@@ -3,6 +3,9 @@ from requests import get
 from ast import literal_eval
 import json
 
+id_tag_dict = {}
+win_loss_dict = {} #of the form player_tag:[(tag,wins,losses), (player,wins,losses)]
+
 def get_bracket():
     url = "http://smashco.challonge.com/CSUWW65WUS"
     username = open('username').read()
@@ -54,16 +57,41 @@ def sanitize_bracket(bracket, symbol="{}"):
     return bracket
 
 def analyze_bracket(bracket):
+    global id_tag_dict
     #continuously find the next instances of 'player1' and 'player2'
 
     index = bracket.index("player1")
     bracket = bracket[index:]
-    player1 = get_player_info(bracket)
+    player1_id, player1_tag = get_player_info(bracket)
+
+    index = bracket.index("player2")
+    bracket = bracket[index:]
+    player2_id, player2_tag = get_player_info(bracket)
+
+    index = bracket.index("winner_id")
+    bracket = bracket[index:]
+    colon = bracket.index(":")
+    comma = bracket.index(",")
+    winner_id = bracket[colon+1:comma]
+
+    #Now that we have both players, and the winner ID, what's the tag of the winner?
+    winner = player1_tag if int(winner_id) == int(player1_id) else player2_tag
+    loser = player1_tag if winner == player2_tag else player2_tag
+    print(winner)
+    print(loser)
+
+    #add the id/tag to the global dict
+    for ID,tag in [(player1_id,player1_tag), (player2_id,player2_tag)]:
+        if ID not in id_tag_dict:
+            id_tag_dict[ID] = tag
+
+    print(id_tag_dict)
 
 def get_player_info(bracket):
     player_dict = json.loads(sanitize_bracket(bracket))
-    print(player_dict['display_name'])
-    return player_dict
+    ID = player_dict['id']
+    tag = player_dict['display_name']
+    return ID, tag
 
 if __name__ == "__main__":
     #Scrape the challonge website for the raw bracket
