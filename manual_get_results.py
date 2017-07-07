@@ -4,7 +4,7 @@ from ast import literal_eval
 import json
 
 id_tag_dict = {}
-win_loss_dict = {} #of the form player_tag:[(tag,wins,losses), (player,wins,losses)]
+wins_losses_dict = {} #of the form player_tag:[(tag,wins,losses), (player,wins,losses)]
 
 def get_bracket():
     url = "http://smashco.challonge.com/CSUWW65WUS"
@@ -58,6 +58,7 @@ def sanitize_bracket(bracket, symbol="{}"):
 
 def analyze_bracket(bracket):
     global id_tag_dict
+    global wins_losses_dict
     #continuously find the next instances of 'player1' and 'player2'
 
     index = bracket.index("player1")
@@ -77,14 +78,34 @@ def analyze_bracket(bracket):
     #Now that we have both players, and the winner ID, what's the tag of the winner?
     winner = player1_tag if int(winner_id) == int(player1_id) else player2_tag
     loser = player1_tag if winner == player2_tag else player2_tag
-    print(winner)
-    print(loser)
 
     #add the id/tag to the global dict
     for ID,tag in [(player1_id,player1_tag), (player2_id,player2_tag)]:
         if ID not in id_tag_dict:
             id_tag_dict[ID] = tag
 
+    #Update the winner
+    if winner not in wins_losses_dict:
+        wins_losses_dict[winner] = {}
+
+    if loser not in wins_losses_dict[winner]:
+        wins_losses_dict[winner][loser] = (1,0)
+    else:
+        cur = wins_losses_dict[winner][loser]
+        wins_losses_dict[winner][loser] = (cur[0]+1,cur[-1])
+
+    #update the loser
+    if loser not in wins_losses_dict:
+        wins_losses_dict[loser] = {}
+
+    if winner not in wins_losses_dict[loser]:
+        wins_losses_dict[loser][winner] = (0,1)
+    else:
+        cur = wins_losses_dict[loser][winner]
+        wins_losses_dict[loser][winner] = (cur[0],cur[-1]+1)
+
+
+    print(wins_losses_dict)
     print(id_tag_dict)
 
 def get_player_info(bracket):
