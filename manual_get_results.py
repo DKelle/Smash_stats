@@ -27,19 +27,22 @@ def get_bracket():
 
     return bracket
 
-def sanitize_bracket(bracket):
-    index = bracket.index("{")
+def sanitize_bracket(bracket, symbol="{}"):
+    #Which symbol should we be trying to match on? It will be either () or {}
+    opn = symbol[0]
+    close = symbol[-1]
+
+    index = bracket.index(opn)
 
     #Cut off everything up until the first open bracket
     bracket = bracket[index:]
 
-    print(bracket)
     #use a queue to cut off everything after the aligning close bracket
     count = 0
     for i, letter in enumerate(bracket):
-        if letter == "{":
+        if letter == opn:
             count = count + 1
-        if letter == "}":
+        if letter == close:
             count = count - 1
 
             #Also check to see if this is the final closing bracket
@@ -51,16 +54,16 @@ def sanitize_bracket(bracket):
     return bracket
 
 def analyze_bracket(bracket):
-    dump = json.dumps(bracket)
-    print(dump)
+    #continuously find the next instances of 'player1' and 'player2'
 
-    bracket_dict = json.loads(dump)
+    index = bracket.index("player1")
+    bracket = bracket[index:]
+    player1 = get_player_info(bracket)
 
-    for r in bracket_dict:
-        analyze_round(r, bracket_dict)
-
-def analyze_round(r, bracket):
-    pass
+def get_player_info(bracket):
+    player_dict = json.loads(sanitize_bracket(bracket))
+    print(player_dict['display_name'])
+    return player_dict
 
 if __name__ == "__main__":
     #Scrape the challonge website for the raw bracket
