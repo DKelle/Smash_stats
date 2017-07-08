@@ -3,12 +3,12 @@ from requests import get
 from ast import literal_eval
 import json
 from pprint import pprint
+from get_brackets import get_urls
 
 id_tag_dict = {}
 wins_losses_dict = {} #of the form player_tag:[(tag,wins,losses), (player,wins,losses)]
 
-def analyze_tournament(week):
-    url = "http://smashco.challonge.com/CSUWW" + str(week) + "WUS"
+def analyze_tournament(url):
     #Scrape the challonge website for the raw bracket
     bracket = get_bracket(url)
 
@@ -121,6 +121,7 @@ def get_player_info(bracket):
     return ID, tag
 
 if __name__ == "__main__":
-    for i in range(64,68):
-        analyze_tournament(i)
+    bracket_urls = get_urls(pages=5)
+    for bracket in bracket_urls:
+        analyze_tournament(bracket)
     pprint(wins_losses_dict)
