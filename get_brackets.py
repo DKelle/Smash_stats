@@ -17,20 +17,27 @@ def get_html(pages):
         r = get(url)
         data = r.text
 
-        # Create the Python Object from HTML
-        soup = BeautifulSoup(data, "html.parser")
+        #return the HTML
+        return data
 
-        #fina all the <a> tags, because that's where we will find bracket URLs
-        a_tags = soup.find_all('a')
+def scrape_urls(html):
 
-        for a in soup.findAll('a'):
-            url = a['href']
+    # Create the Python Object from HTML
+    soup = BeautifulSoup(html, "html.parser")
+    urls = []
 
-            #Check to see if this URL is to a Wii U bracket
-            if 'http://' in url or 'https://' in url:
-                if 'WU' in url:
-                    print(url)
+    #fina all the <a> tags, because that's where we will find bracket URLs
+    a_tags = soup.find_all('a')
 
+    for a in soup.findAll('a'):
+        url = a['href']
+
+        #Check to see if this URL is to a Wii U bracket
+        if 'http://' in url or 'https://' in url:
+            if 'WU' in url:
+                urls.append(url)
+
+    return urls
 
 def get_bracket(url):
 
@@ -53,5 +60,20 @@ def get_bracket(url):
 
     return bracket
 
+def get_urls(pages = 5):
+    #first get the raw HTML
+    html = get_html(5)
+
+    #Scrape the HTML for bracket URLs
+    urls = scrape_urls(html)
+
+    print(urls)
+    return urls
+
 if __name__ == "__main__":
-    get_html(5)
+    #first get the raw HTML
+    html = get_html(5)
+
+    #Scrape the HTML for bracket URLs
+    urls = scrape_urls(html)
+
