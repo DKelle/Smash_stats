@@ -8,6 +8,7 @@ id_tag_dict = {}
 wins_losses_dict = {} #of the form player_tag:[(tag,wins,losses), (player,wins,losses)]
 
 def get_html(pages):
+    data = ''
     for page in range(1, pages+1):
 
         #Scrape the challonge website for the raw brackets
@@ -15,10 +16,12 @@ def get_html(pages):
 
         # get the html page
         r = get(url)
-        data = r.text
+        html = r.text
 
         #return the HTML
-        return data
+        #collect the HTML
+        data = data + '\n' + html
+    return data
 
 def scrape_urls(html):
 
@@ -67,7 +70,6 @@ def get_urls(pages = 5):
     #Scrape the HTML for bracket URLs
     urls = scrape_urls(html)
 
-    print(urls)
     return urls
 
 if __name__ == "__main__":
@@ -77,3 +79,5 @@ if __name__ == "__main__":
     #Scrape the HTML for bracket URLs
     urls = scrape_urls(html)
 
+    for url in urls:
+        print(url)
