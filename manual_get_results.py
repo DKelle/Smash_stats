@@ -2,14 +2,22 @@ from bs4 import BeautifulSoup
 from requests import get
 from ast import literal_eval
 import json
+from pprint import pprint
 
 id_tag_dict = {}
 wins_losses_dict = {} #of the form player_tag:[(tag,wins,losses), (player,wins,losses)]
 
-def get_bracket():
-    url = "http://smashco.challonge.com/CSUWW65WUS"
-    username = open('username').read()
-    key = open('api_key').read()
+def analyze_tournament(week):
+    url = "http://smashco.challonge.com/CSUWW" + str(week) + "WUS"
+    #Scrape the challonge website for the raw bracket
+    bracket = get_bracket(url)
+
+    #Sanitize the braket
+    sanitized = sanitize_bracket(bracket)
+
+    analyze_bracket(sanitized)
+
+def get_bracket(url):
 
     # get the html page
     r = get(url)
@@ -105,8 +113,6 @@ def analyze_bracket(bracket):
             wins_losses_dict[loser][winner] = (cur[0],cur[-1]+1)
 
 
-    print(wins_losses_dict)
-    print(id_tag_dict)
 
 def get_player_info(bracket):
     player_dict = json.loads(sanitize_bracket(bracket))
@@ -115,11 +121,6 @@ def get_player_info(bracket):
     return ID, tag
 
 if __name__ == "__main__":
-    #Scrape the challonge website for the raw bracket
-    bracket = get_bracket()
-
-    #Sanitize the braket
-    sanitized = sanitize_bracket(bracket)
-
-    analyze_bracket(sanitized)
-
+    for i in range(64,68):
+        analyze_tournament(i)
+    pprint(wins_losses_dict)
