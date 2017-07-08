@@ -8,17 +8,29 @@ id_tag_dict = {}
 wins_losses_dict = {} #of the form player_tag:[(tag,wins,losses), (player,wins,losses)]
 
 def get_html(pages):
-    #Scrape the challonge website for the raw brackets
-    url = "http://smashco.challonge.com/?page="+str(pages)
+    for page in range(1, pages+1):
 
-    # get the html page
-    r = get(url)
-    data = r.text
+        #Scrape the challonge website for the raw brackets
+        url = "http://smashco.challonge.com/?page="+str(page)
 
-    print(data)
+        # get the html page
+        r = get(url)
+        data = r.text
 
-    # Create the Python Object from HTML
-    soup = BeautifulSoup(data, "html.parser")
+        # Create the Python Object from HTML
+        soup = BeautifulSoup(data, "html.parser")
+
+        #fina all the <a> tags, because that's where we will find bracket URLs
+        a_tags = soup.find_all('a')
+
+        for a in soup.findAll('a'):
+            url = a['href']
+
+            #Check to see if this URL is to a Wii U bracket
+            if 'http://' in url or 'https://' in url:
+                if 'WU' in url:
+                    print(url)
+
 
 def get_bracket(url):
 
@@ -42,4 +54,4 @@ def get_bracket(url):
     return bracket
 
 if __name__ == "__main__":
-    get_html(1)
+    get_html(5)
