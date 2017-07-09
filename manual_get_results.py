@@ -117,11 +117,18 @@ def analyze_bracket(bracket):
 def get_player_info(bracket):
     player_dict = json.loads(sanitize_bracket(bracket))
     ID = player_dict['id']
-    tag = player_dict['display_name']
+    tag = player_dict['display_name'].lower()
     return ID, tag
 
+def get_win_loss_data(pages=25):
+    bracket_urls = get_urls(pages)
+    for bracket in bracket_urls:
+        analyze_tournament(bracket)
+
+    return wins_losses_dict
+
 if __name__ == "__main__":
-    bracket_urls = get_urls(pages=5)
+    bracket_urls = get_urls(pages=25)
     for bracket in bracket_urls:
         analyze_tournament(bracket)
     pprint(wins_losses_dict)
