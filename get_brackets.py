@@ -65,7 +65,7 @@ def get_bracket(url):
 
 def get_urls(pages = 5):
     #first get the raw HTML
-    html = get_html(5)
+    html = get_html(pages)
 
     #Scrape the HTML for bracket URLs
     urls = scrape_urls(html)
