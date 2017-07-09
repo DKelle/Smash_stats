@@ -2,37 +2,41 @@ from manual_get_results import get_win_loss_data
 
 def get_header():
     header = "<!DOCTYPE html>\n<html>\n\t<body>\n"
-    header = header + '\t<link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">\n'
+    header = header + '\t<link rel="stylesheet" type="text/css" href="smashco.css">\n'
+    header = header + '\t\t<div id="left"></div>\n'
+    header = header + '\t\t<div id="center">\n'
+
+
     return header
 
 def get_table(data):
-    table = ''
-    #Start generating the table HTML
-    table = table + '\t<table class="pure-table" style="width:30%" align="center">\n'
 
+    btn = ''
+    players = list(data.keys())
+    sorted_data = sorted(players)
+    sorted_data
 
-    for key in data:
+    #Add a button as a legen so the user knows what the data means
+    btn += '\t\t\t<button class="legend">tag W - L</button>\n'
+    for key in sorted_data:
         wins, losses = get_wins_losses(key, data)
-        table = table + '\t\t<thead>\n'
-        table = table + '\t\t\t<tr>\n'
-        table = table + '\t\t\t\t<th>' + str(key) + ' ' + str(wins) + '-' + str(losses) + '</th>\n'
-        table = table + '\t\t\t</tr>\n'
-        table = table + '\t\t</thead>\n'
+        btn += '\t\t\t<button class="accordion">'+ str(key) + ' ' + str(wins) + '-' + str(losses) +'</button>\n'
+        btn += '\t\t\t<div class="panel">\n'
 
         match_data = data[key]
+        btn += '\t\t\t\t<p class="legend">Opponent (W-L)</p>\n'
         for opponent, results in match_data.items():
-            table = table + '\t\t<tbody>\n'
-            table = table + '\t\t\t<tr>\n'
-            table = table + '\t\t\t\t<td>' + str(opponent) + '\t' +  str(results) + '</td>\n'
-            table = table + '\t\t\t</tr>\n'
-            table = table + '\t\t</tbody>\n'
+            btn += '\t\t\t\t<p text-align="center">'+ str(opponent) + '\t' +  str(results) +'</p>\n'
 
-    table = table + '\t</table>\n'
+        btn += '\t\t\t</div>\n'
 
-    return table
+    btn += '\t\t</div>\n'
+    return btn
 
 def get_footer():
-    footer = "\t</body>\n</html>\n"
+    footer = '\t\t<div id="right"></div>\n'
+    footer = footer + '\t<script src="smashco.js"></script>\n'
+    footer = footer + "\t</body>\n</html>\n"
     return footer
 
 def get_wins_losses(player, data):
