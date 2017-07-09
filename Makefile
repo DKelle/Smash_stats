@@ -16,5 +16,8 @@ html:
 	vim smashco.html
 	echo "don't forget to commit dkelle.github.io"
 
-
+rank:
+	rm rank.txt
+	python3 get_rank.py > rank.txt
+	vim rank.txt
 
