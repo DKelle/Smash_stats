@@ -8,7 +8,13 @@ bracket:
 	python3 get_brackets.py > bracket.txt
 	vim bracket.txt
 
-challonge:
-	rm temp.txt
-	python3 get_results.py > temp.txt
-	vim temp.txt
+html:
+	rm html.txt
+	python3 gen_html.py > html.txt
+	cp html.txt smashco.html
+	cp smashco.html ../../dkelle.github.io/
+	vim smashco.html
+	echo "don't forget to commit dkelle.github.io"
+
+
+
