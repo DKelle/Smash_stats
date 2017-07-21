@@ -21,3 +21,8 @@ rank:
 	python3 get_rank.py > rank.txt
 	vim rank.txt
 
+smashbrews:
+	rm html.txt
+	python3 gen_html.py > html.txt
+	cp html.txt smashbrews.html
+	vim smashco.html

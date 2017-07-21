@@ -55,7 +55,7 @@ def get_bracket(url):
     script = soup.find_all('script')
     bracket = None
     for s in script:
-        if 'TournamentStore' in str(s):
+        if 'matches_by_round' in str(s):
             #We found the actual bracket. S contains all data about matches
             index = str(s).index('matches_by_round')
             s = str(s)[index:]
