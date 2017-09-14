@@ -4,12 +4,13 @@ from ast import literal_eval
 import json
 from pprint import pprint
 from get_brackets import get_urls
+from time import sleep
 
 id_tag_dict = {}
 sanitized_tag_dict = {}
 wins_losses_dict = {} #of the form player_tag:[(tag,wins,losses), (player,wins,losses)]
 
-debug = True
+debug = False
 
 def analyze_tournament(url):
     #Scrape the challonge website for the raw bracket
@@ -25,9 +26,7 @@ def analyze_tournament(url):
 
 def get_bracket(url):
 
-    # get the html page
-    r = get(url)
-    data = r.text
+    data = hit_url(url)
 
     # Create the Python Object from HTML
     soup = BeautifulSoup(data, "html.parser")
@@ -137,13 +136,19 @@ def get_player_info(bracket):
     tag = player_dict['display_name'].lower() if 'display_name' in player_dict else None
     return ID, tag
 
-def get_win_loss_data():
+def get_win_loss_data(base_urls = ['http://challonge.com/Smashbrews']):
     global wins_losses_dict
     global sanitized_tag_dict
     base_url = 'http://challonge.com/Smashbrews'
-    for i in range(17,  70):
-        bracket = base_url + str(i)
-        analyze_tournament(bracket)
+
+    if debug: print('about to start getting valid ULRS')
+
+    for base_url in base_urls:
+        start = get_first_valid_url(base_url)
+        end = get_last_valid_url(base_url, start)
+        for i in range(start,  end+1):
+            bracket = base_url + str(i)
+            analyze_tournament(bracket)
 
     #The win loss dict is full of tags with whitespace removed. Change the tags back to the proper spacing
     temp_dict = {}
@@ -153,9 +158,76 @@ def get_win_loss_data():
     wins_losses_dict = temp_dict
     return wins_losses_dict
 
+def get_first_valid_url(base_url):
+
+    #Start from 1, and increment the number at the end or URL until we find a valid URL
+    valid = False
+    index = 1
+    while(not valid):
+        url = base_url + str(index)
+        data = hit_url(url)
+
+        if is_valid(data):
+            if debug: print('url ' + url + ' is valid')
+            valid = True
+        else:
+            if debug: print('url ' + url + ' is not valid')
+            index = index + 1
+
+    return index
+
+def get_last_valid_url(base_url, start = 1):
+
+    #We know that URL number 'start' is valid. What is the next invalid URL?
+    invalid_count = 0
+    end = start #Use this to keep track of the last valid URL
+
+    #Sometimes a week is skipped -- Make sure we see 100 invalid URLs in a row before calling it quits
+    while(invalid_count <= 100):
+        url = base_url + str(start)
+        if debug: print('start is ' + str(start))
+
+        data = hit_url(url)
+
+        if is_valid(data):
+            if debug: print('url ' + str(url) + ' is valid')
+            invalid_count = 0
+            end = start
+        else:
+            invalid_count = invalid_count + 1
+
+        start = start + 1
+    return end
+
+def hit_url(url):
+    #sleep, to make sure we don't go over our rate-limit
+    #sleep(.1)
+
+    #Get the html page
+    r = get(url)
+    data = r.text
+
+    return data
+
+def is_valid(html):
+    # Create the Python Object from HTML
+    soup = BeautifulSoup(html, "html.parser")
+
+    #A potential 404 will be seen in the 'title' tag
+    titles = soup.find_all('title')
+
+    #Check to see if this tournament page exists
+    error = '404'
+    for title in titles:
+        if error in str(title):
+            return False
+    return True
+
 if __name__ == "__main__":
     base_url = 'http://challonge.com/Smashbrews'
-    for i in range(17,  70):
+    start = get_first_valid_url(base_url)
+    end = get_last_valid_url(base_url, start)
+    for i in range(start,  end+1):
         bracket = base_url + str(i)
         analyze_tournament(bracket)
     pprint(wins_losses_dict)

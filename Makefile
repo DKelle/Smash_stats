@@ -25,4 +25,11 @@ smashbrews:
 	rm html.txt
 	python3 gen_html.py > html.txt
 	cp html.txt smashbrews.html
-	vim smashco.html
+	vim smashbrews.html
+
+austin:
+	rm html.txt
+	python3 gen_html.py 'https://challonge.com/NP9ATX' 'https://austinsmash4.challonge.com/atx' > html.txt
+	cp html.txt austinsmash.html
+	vim austinsmash.html
+

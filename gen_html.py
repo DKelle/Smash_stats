@@ -1,4 +1,5 @@
 from manual_get_results import get_win_loss_data
+import sys
 
 def get_header():
     header = "<!DOCTYPE html>\n<html>\n\t<body>\n"
@@ -71,16 +72,19 @@ def get_wins_losses(player, data):
     return wins, losses
 
 if __name__ == "__main__":
-    data = get_win_loss_data()
+    #first, figure out which URLs we are trying to get
+    base_urls = sys.argv[1:]
 
+    #get the actual data about these URLs
+    data = get_win_loss_data(base_urls)
+
+    #Now turn all this data into HTML that can be displayed in browser
     html_header = get_header()
-
     html_table_singles = get_table(data, True)
-
     html_table_doubles = get_table(data, False)
-
     html_footer = get_footer()
 
+    #Combine all the aspects of the page to create a final HTML file
     html = html_header + html_table_singles + html_table_doubles + html_footer
 
     print(html)
