@@ -10,11 +10,11 @@ bracket:
 
 html:
 	rm html.txt
-	python3 gen_html.py > html.txt
+	python3 gen_html.py 'https://challonge.com/NP9ATX###' 'https://austinsmash4.challonge.com/atx###' > html.txt
 	cp html.txt smashco.html
-	cp smashco.html ../../dkelle.github.io/
+	cp smashco.html ../../../dkelle.github.io/smash/
 	vim smashco.html
-	echo "don't forget to commit dkelle.github.io"
+	echo "~~~ don't forget to commit dkelle.github.io ~~~"
 
 rank:
 	rm rank.txt
@@ -23,7 +23,7 @@ rank:
 
 colorado:
 	rm colorado.txt
-	python3 gen_html.py 'http://smashco.challonge.com/CSUWW###WUS' > colorado.txt
+	python3 gen_html.py 'http://smashco.challonge.com/CSUWW###WUS' 'http://smashco.challonge.com/CSUWW###WUD' 'http://smascho.challonge.com/FCWUA###' 'http://smascho.challonge.com/FCWUIB###' 'http://smashco.challonge.com/FCWUDC###'> colorado.txt
 	cp colorado.txt coloradosmash.html
 	vim coloradosmash.html
 
@@ -39,3 +39,5 @@ austin:
 	cp austin.txt austinsmash.html
 	vim austinsmash.html
 
+urltest:
+	python3 url_test.py
