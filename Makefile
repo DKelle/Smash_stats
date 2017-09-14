@@ -23,7 +23,7 @@ rank:
 
 smashbrews:
 	rm html.txt
-	python3 gen_html.py > html.txt
+	python3 gen_html.py 'https://challonge.com/Smashbrews' > html.txt
 	cp html.txt smashbrews.html
 	vim smashbrews.html
 
