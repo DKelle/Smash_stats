@@ -136,10 +136,9 @@ def get_player_info(bracket):
     tag = player_dict['display_name'].lower() if 'display_name' in player_dict else None
     return ID, tag
 
-def get_win_loss_data(base_urls = ['http://challonge.com/Smashbrews']):
+def get_win_loss_data(base_urls = ['http://challonge.com/Smashbrews###']):
     global wins_losses_dict
     global sanitized_tag_dict
-    base_url = 'http://challonge.com/Smashbrews'
 
     if debug: print('about to start getting valid ULRS')
 
@@ -147,7 +146,7 @@ def get_win_loss_data(base_urls = ['http://challonge.com/Smashbrews']):
         start = get_first_valid_url(base_url)
         end = get_last_valid_url(base_url, start)
         for i in range(start,  end+1):
-            bracket = base_url + str(i)
+            bracket = base_url.replace('###', str(i))
             analyze_tournament(bracket)
 
     #The win loss dict is full of tags with whitespace removed. Change the tags back to the proper spacing
@@ -164,7 +163,7 @@ def get_first_valid_url(base_url):
     valid = False
     index = 1
     while(not valid):
-        url = base_url + str(index)
+        url = base_url.replace('###', str(index))
         data = hit_url(url)
 
         if is_valid(data):
@@ -184,7 +183,7 @@ def get_last_valid_url(base_url, start = 1):
 
     #Sometimes a week is skipped -- Make sure we see 100 invalid URLs in a row before calling it quits
     while(invalid_count <= 100):
-        url = base_url + str(start)
+        url = base_url.replace('###', str(start))
         if debug: print('start is ' + str(start))
 
         data = hit_url(url)
@@ -224,7 +223,7 @@ def is_valid(html):
     return True
 
 if __name__ == "__main__":
-    base_url = 'http://challonge.com/Smashbrews'
+    base_url = 'http://challonge.com/Smashbrews###'
     start = get_first_valid_url(base_url)
     end = get_last_valid_url(base_url, start)
     for i in range(start,  end+1):

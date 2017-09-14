@@ -21,15 +21,21 @@ rank:
 	python3 get_rank.py > rank.txt
 	vim rank.txt
 
+colorado:
+	rm colorado.txt
+	python3 gen_html.py 'http://smashco.challonge.com/CSUWW###WUS' > colorado.txt
+	cp colorado.txt coloradosmash.html
+	vim coloradosmash.html
+
 smashbrews:
-	rm html.txt
-	python3 gen_html.py 'https://challonge.com/Smashbrews' > html.txt
-	cp html.txt smashbrews.html
+	rm smashbrews.txt
+	python3 gen_html.py 'https://challonge.com/Smashbrews###' > smashbrews.txt
+	cp smashbrews.txt smashbrews.html
 	vim smashbrews.html
 
 austin:
-	rm html.txt
-	python3 gen_html.py 'https://challonge.com/NP9ATX' 'https://austinsmash4.challonge.com/atx' > html.txt
-	cp html.txt austinsmash.html
+	rm austin.txt
+	python3 gen_html.py 'https://challonge.com/NP9ATX###' 'https://austinsmash4.challonge.com/atx###' > austin.txt
+	cp austin.txt austinsmash.html
 	vim austinsmash.html
 
