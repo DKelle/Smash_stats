@@ -128,6 +128,28 @@ def sanitize_bracket(bracket, symbol="{}"):
     bracket = bracket[:index+1]
     return bracket
 
+def get_ranks(bracket_url):
+    # Map a placing to a list of players that got that placing
+    placings_map = {}
+    standings_html = hit_url(bracket_url+'/standings')
+    soup = BeautifulSoup(standings_html, "html.parser")
+    tds = soup.find_all('td')
+
+    # Cycle thorugh these tds, and find the ones that represent different placings
+    current_placing = 1
+    for td in tds:
+        if td.has_attr('class') and td['class'][0] == 'rank':
+            current_placing = int(td.getText())
+        span = td.find('span')
+        if span:
+            player = span.getText()
+            if current_placing not in placings_map:
+                placings_map[current_placing] = []
+            placings_map[current_placing].append(player.lower())
+
+    print(placings_map)
+    return placings_map
+
 def player_in_bracket(player, bracket):
     if re.search(player, bracket, re.IGNORECASE):
         return True
