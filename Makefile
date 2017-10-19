@@ -3,11 +3,6 @@ all:
 	python3 manual_get_results.py > temp.txt
 	vim temp.txt
 
-bracket:
-	rm bracket.txt
-	python3 get_brackets.py > bracket.txt
-	vim bracket.txt
-
 html:
 	rm html.txt
 	python3 gen_html.py 'https://challonge.com/NP9ATX###' 'https://austinsmash4.challonge.com/atx###' > html.txt
@@ -52,4 +47,5 @@ urltest:
 	python3 url_test.py
 
 clean:
+	rm .*
 	rm *.txt

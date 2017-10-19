@@ -111,6 +111,7 @@ if __name__ == "__main__":
     base_url = 'http://challonge.com/Smashbrews###'
     start = bracket_utils.get_first_valid_url(base_url)
     end = bracket_utils.get_last_valid_url(base_url, start)
+    if debug: print("Start is %s. End is %s", start, end)
     for i in range(start,  end+1):
         bracket = base_url + str(i)
         analyze_tournament(bracket)

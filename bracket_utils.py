@@ -1,7 +1,9 @@
 from time import sleep
 from bs4 import BeautifulSoup
 from requests import get
+import re
 
+DEFAULT_BASE_URLS = ['https://challonge.com/NP9ATX###', 'http://challonge.com/heatwave###', 'https://austinsmash4.challonge.com/atx###']
 
 debug = False
 def get_first_valid_url(base_url):
@@ -45,6 +47,11 @@ def get_last_valid_url(base_url, start = 1):
         start = start + 1
     return end
 
+def get_valid_url_range(base_url):
+    start = get_first_valid_url(base)
+    end = get_last_valid_url(base, start)
+    return start, end
+
 def hit_url(url):
     #sleep, to make sure we don't go over our rate-limit
     sleep(.1)
@@ -86,11 +93,13 @@ def get_bracket(url):
             s = str(s)[index:]
             bracket = (s)
 
+    if debug: print('got bracket: \n', bracket)
+
     return bracket
 
 def get_sanitized_bracket(url, symbol="{}"):
     bracket = get_bracket(url)
-    sanitized = sanitized_bracket(bracket, symbol)
+    sanitized = sanitize_bracket(bracket, symbol) if bracket else None
     return sanitized
 
 def sanitize_bracket(bracket, symbol="{}"):
@@ -118,4 +127,21 @@ def sanitize_bracket(bracket, symbol="{}"):
 
     bracket = bracket[:index+1]
     return bracket
+
+def player_in_bracket(player, bracket):
+    if re.search(player, bracket, re.IGNORECASE):
+        return True
+    return False
+
+def get_urls_with_player(player="Christmas Mike", base_urls=DEFAULT_BASE_URLS):
+    urls = []
+    for base in base_urls:
+        start = get_first_valid_url(base)
+        end = get_last_valid_url(base, start=start)
+        for i in range(start, end+1):
+            bracket_url = base.replace('###', str(i))
+            bracket = get_sanitized_bracket(bracket_url)
+            if bracket and player_in_bracket(player, bracket):
+                urls.append(bracket_url)
+    return urls
 
