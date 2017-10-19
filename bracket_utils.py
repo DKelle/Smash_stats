@@ -128,8 +128,8 @@ def sanitize_bracket(bracket, symbol="{}"):
     bracket = bracket[:index+1]
     return bracket
 
-def get_ranks(bracket_url):
-    # Map a placing to a list of players that got that placing
+def get_tournament_placings(bracket_url):
+    # Map tags to their respective placings in this bracket
     placings_map = {}
     standings_html = hit_url(bracket_url+'/standings')
     soup = BeautifulSoup(standings_html, "html.parser")
@@ -141,13 +141,11 @@ def get_ranks(bracket_url):
         if td.has_attr('class') and td['class'][0] == 'rank':
             current_placing = int(td.getText())
         span = td.find('span')
+        # Player tags are kept in <span> elements
         if span:
             player = span.getText()
-            if current_placing not in placings_map:
-                placings_map[current_placing] = []
-            placings_map[current_placing].append(player.lower())
+            placings_map[player.lower()] = current_placing
 
-    print(placings_map)
     return placings_map
 
 def player_in_bracket(player, bracket):
