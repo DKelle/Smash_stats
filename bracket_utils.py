@@ -182,7 +182,7 @@ def get_tournament_placings(bracket_url):
     # Map tags to their respective placings in this bracket
     placings_map = {}
     standings_html = hit_url(bracket_url+'/standings')
-    soup = BeautifulSoup(standings_html, "html.parser")
+    soup = BeautifulSoup(standings_html, "lxml")
     tds = soup.find_all('td')
 
     # Cycle thorugh these tds, and find the ones that represent different placings
@@ -203,15 +203,17 @@ def player_in_bracket(player, bracket):
         return True
     return False
 
-def get_urls_with_player(player="Christmas Mike", base_urls=DEFAULT_BASE_URLS):
+def get_urls_with_players(players=["Christmas Mike", "christmasmike"], base_urls=DEFAULT_BASE_URLS):
     urls = []
     for base in base_urls:
         start, end = get_valid_url_range(base)
         for i in range(start, end+1):
             bracket_url = base.replace('###', str(i))
             bracket = get_sanitized_bracket(bracket_url)
-            if bracket and player_in_bracket(player, bracket):
-                urls.append(bracket_url)
+            for player in players:
+                if bracket and player_in_bracket(player, bracket):
+                    urls.append(bracket_url)
+                    break
     return urls
 
 start, end = get_valid_url_range('https://challonge.com/NP9ATX###')
