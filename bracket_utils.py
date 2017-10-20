@@ -70,7 +70,7 @@ def dump_pickle_data(base_fname, data):
     cwd = os.getcwd()
 
     # Go from https://ausin_melee_bracket -> austin_melee_bracket
-    bracket_name = base_fname.split('/')[-1]
+    bracket_name = base_fname.replace('/', '_')
     fname = cwd+'/pickle/'+str(bracket_name)+'.p'
 
     with open(fname, "wb") as p:
@@ -82,7 +82,7 @@ def load_pickle_data(base_fname):
     cwd = os.getcwd()
 
     # Go from https://ausin_melee_bracket -> austin_melee_bracket
-    bracket_name = base_fname.split('/')[-1]
+    bracket_name = base_fname.replace('/', '_')
     fname = cwd+'/pickle/'+str(bracket_name)+'.p'
 
     try:
@@ -195,6 +195,8 @@ def get_tournament_placings(bracket_url):
         if span:
             player = span.getText()
             placings_map[player.lower()] = current_placing
+
+    print(placings_map)
 
     return placings_map
 

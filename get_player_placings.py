@@ -12,7 +12,8 @@ def main(tag):
         player_placing = tournament_placings[tag.lower()]
         tournament_placings_map[url] = player_placing
 
-    print(tournament_placings_map)
+    for url in tournament_placings_map:
+        print(url, tournament_placings_map[url])
 
 
 
