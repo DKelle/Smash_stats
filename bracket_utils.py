@@ -2,11 +2,13 @@ from time import sleep
 from bs4 import BeautifulSoup
 from requests import get
 import re
+import os
+import pickle
 
 DEFAULT_BASE_URLS = ['https://challonge.com/NP9ATX###', 'http://challonge.com/heatwave###', 'https://austinsmash4.challonge.com/atx###']
 
-debug = False
-def get_first_valid_url(base_url):
+debug = True
+def _get_first_valid_url(base_url):
 
     #Start from 1, and increment the number at the end or URL until we find a valid URL
     valid = False
@@ -24,14 +26,14 @@ def get_first_valid_url(base_url):
 
     return index
 
-def get_last_valid_url(base_url, start = 1):
+def _get_last_valid_url(base_url, start=1):
 
     #We know that URL number 'start' is valid. What is the next invalid URL?
     invalid_count = 0
     end = start #Use this to keep track of the last valid URL
 
     #Sometimes a week is skipped -- Make sure we see 100 invalid URLs in a row before calling it quits
-    while(invalid_count <= 100):
+    while(invalid_count <= 50):
         url = base_url.replace('###', str(start))
         if debug: print('start is ' + str(start))
 
@@ -48,8 +50,27 @@ def get_last_valid_url(base_url, start = 1):
     return end
 
 def get_valid_url_range(base_url):
-    start = get_first_valid_url(base)
-    end = get_last_valid_url(base, start)
+    cwd = os.getcwd()
+    fname = base_url.split('/')[-1]
+    f = cwd+'/pickle/'+str(fname)+'.p'
+    # Attempt to get this data from pickle
+
+    try:
+        with open(f, 'rb') as p:
+            start, end = pickle.load(p)
+            if debug: print('start and end FROM PICKLE', start, end)
+
+            # Check for new brackets since the last time we pickled this data
+            end = _get_last_valid_url(base_url, end)
+    except FileNotFoundError:
+        print('in erro')
+        start = _get_first_valid_url(base_url)
+        end = _get_last_valid_url(base_url, start)
+
+    # If there has been more tournaments, pickle the new data back up
+    with open( f, "wb") as p:
+        pickle.dump((start, end), p)
+
     return start, end
 
 def hit_url(url):
@@ -156,8 +177,7 @@ def player_in_bracket(player, bracket):
 def get_urls_with_player(player="Christmas Mike", base_urls=DEFAULT_BASE_URLS):
     urls = []
     for base in base_urls:
-        start = get_first_valid_url(base)
-        end = get_last_valid_url(base, start=start)
+        start, end = get_valid_url_range(base)
         for i in range(start, end+1):
             bracket_url = base.replace('###', str(i))
             bracket = get_sanitized_bracket(bracket_url)
@@ -165,3 +185,4 @@ def get_urls_with_player(player="Christmas Mike", base_urls=DEFAULT_BASE_URLS):
                 urls.append(bracket_url)
     return urls
 
+start, end = get_valid_url_range('https://challonge.com/NP9ATX###')
