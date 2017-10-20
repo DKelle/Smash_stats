@@ -1,4 +1,4 @@
-from bracket_utils import get_urls_with_player, get_ranks
+from bracket_utils import get_urls_with_player, get_tournament_placings
 import sys
 
 def main(tag):
@@ -8,7 +8,7 @@ def main(tag):
 
     # Get the html from the 'standings' of this tournament
     for url in player_urls:
-        tournament_placings = get_ranks(url)
+        tournament_placings = get_tournament_placings(url)
         player_placing = tournament_placings[tag.lower()]
         tournament_placings_map[url] = player_placing
 
