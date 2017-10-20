@@ -93,8 +93,7 @@ def get_win_loss_data(base_urls = ['http://challonge.com/Smashbrews###']):
     if debug: print('about to start getting valid ULRS')
 
     for base_url in base_urls:
-        start = bracket_utils.get_first_valid_url(base_url)
-        end = bracket_utils.get_last_valid_url(base_url, start)
+        start, end = bracket_utils.get_valid_url_range(base_url)
         for i in range(start,  end+1):
             bracket = base_url.replace('###', str(i))
             analyze_tournament(bracket)
