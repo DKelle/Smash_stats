@@ -196,8 +196,6 @@ def get_tournament_placings(bracket_url):
             player = span.getText()
             placings_map[player.lower()] = current_placing
 
-    print(placings_map)
-
     return placings_map
 
 def player_in_bracket(player, bracket):
