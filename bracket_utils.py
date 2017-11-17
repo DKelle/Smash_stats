@@ -8,6 +8,7 @@ import pickle
 DEFAULT_BASE_URLS = ['https://challonge.com/NP9ATX###', 'http://challonge.com/heatwave###', 'https://austinsmash4.challonge.com/atx###']
 
 debug = False
+
 def _get_first_valid_url(base_url):
 
     #Start from 1, and increment the number at the end or URL until we find a valid URL
@@ -33,7 +34,9 @@ def _get_last_valid_url(base_url, start=1):
     end = start #Use this to keep track of the last valid URL
 
     #Sometimes a week is skipped -- Make sure we see 100 invalid URLs in a row before calling it quits
-    while(invalid_count <= 50):
+    while(invalid_count <= 20):
+        #if base_url == "https://austinsmash4.challonge.com/atx145":
+        #    print
         url = base_url.replace('###', str(start))
         if debug: print('start is ' + str(start))
 
@@ -96,33 +99,67 @@ def load_pickle_data(base_fname):
 
 def hit_url(url):
     # Before we try to hit this URL, see if we have pickle data for it
+
+    if debug and url == "https://austinsmash4.challonge.com/atx155":
+        print("is valid?")
     data =  load_pickle_data(url)
     if data:
         return data
 
+    if debug and url == "https://austinsmash4.challonge.com/atx155":
+        print("not in ")
     #sleep, to make sure we don't go over our rate-limit
-    sleep(.1)
+    sleep(.01)
 
     #Get the html page
     r = get(url)
     data = r.text
 
-    # Make sure we pickle this data, so we can get it next time
-    dump_pickle_data(url, data)
+    if(is_valid(data)):
+        # Make sure we pickle this data, so we can get it next time
+        dump_pickle_data(url, data)
 
     return data
 
-def is_valid(html):
-    # Create the Python Object from HTML
-    soup = BeautifulSoup(html, "html.parser")
+def get_brackets_from_scene(scene_url):
+    # Given the url for a given scene (https://austinsmash4.challonge.com)
+    # Return all of the brackets hosted by said scene
 
-    #A potential 404 will be seen in the 'title' tag
-    titles = soup.find_all('title')
+    def get_bracket_urls_from_scene(scene_url):
+        # Given a specific page of a scene, parse out the urls for all brackets
+        # eg inputhttps://austinsmash4.challonge.com?page=4
+        # The above URL contains a list of brackets. Find those bracket URLs
+        scene_brackets_html = hit_url(scene_url)
+        scene_name = scene_url.split('https://')[-1].split('.')[0]
+        soup = BeautifulSoup(scene_brackets_html, "lxml")
+
+        links = soup.find_all('a')
+        bracket_links = []
+        for link in links:
+            if link.has_attr('href') and scene_name in link['href']:
+                bracket_links.append(link['href'])
+        return bracket_links
+
+    # This scene may have multiple pages.
+    # eg, https://austinsmash4.challonge.com?page=###
+    # Find all the pages
+    # Then find all the URLs for each page
+    scene_url_with_pages = scene_url + '?page=###'
+    start, end = get_valid_url_range(scene_url_with_pages)
+    brackets = []
+    for i in range(start, end+1):
+        scene_url = scene_url_with_pages.replace('###', str(i))
+        page_brackets = get_bracket_urls_from_scene(scene_url)
+        brackets.append(page_brackets)
+
+    return brackets
+
+def is_valid(html):
 
     #Check to see if this tournament page exists
-    error = '404'
-    for title in titles:
-        if error in str(title):
+    errors= ['404', 'No tournaments found']
+    for error in errors:
+        if error in str(html):
             return False
     return True
 
@@ -193,12 +230,17 @@ def get_tournament_placings(bracket_url):
         span = td.find('span')
         # Player tags are kept in <span> elements
         if span:
+            if bracket_url == "https://challonge.com/NP9ATX6l":
+                print('adding tag to placings: '+ str(player))
             player = span.getText()
             placings_map[player.lower()] = current_placing
 
     return placings_map
 
-def player_in_bracket(player, bracket):
+def player_in_bracket(player, bracket, url):
+    # Make sure to add quotations around the tag
+    # this way, we ony match on actual tags, and not *tag*
+    player = '<title>'+player+'</title>'
     if re.search(player, bracket, re.IGNORECASE):
         return True
     return False
@@ -211,9 +253,7 @@ def get_urls_with_players(players=["Christmas Mike", "christmasmike"], base_urls
             bracket_url = base.replace('###', str(i))
             bracket = get_sanitized_bracket(bracket_url)
             for player in players:
-                if bracket and player_in_bracket(player, bracket):
+                if bracket and player_in_bracket(player, bracket, bracket_url):
                     urls.append(bracket_url)
                     break
     return urls
-
-start, end = get_valid_url_range('https://challonge.com/NP9ATX###')
