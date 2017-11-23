@@ -7,7 +7,7 @@ import pickle
 
 DEFAULT_BASE_URLS = ['https://challonge.com/NP9ATX###', 'http://challonge.com/heatwave###', 'https://austinsmash4.challonge.com/atx###']
 
-debug = False
+debug = True
 
 def _get_first_valid_url(base_url):
 
@@ -240,7 +240,7 @@ def get_tournament_placings(bracket_url):
 def player_in_bracket(player, bracket, url):
     # Make sure to add quotations around the tag
     # this way, we ony match on actual tags, and not *tag*
-    player = '<title>'+player+'</title>'
+    #player = '<title>'+player+'</title>'
     if re.search(player, bracket, re.IGNORECASE):
         return True
     return False
