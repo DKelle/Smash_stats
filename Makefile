@@ -29,7 +29,7 @@ smashbrews:
 
 austin:
 	rm -f austin.txt
-	python3 gen_html.py 'https://challonge.com/NP9ATX###' 'https://austinsmash4.challonge.com/atx###' > austin.txt
+	python3 gen_html.py 'https://challonge.com/NP9ATX###' 'https://austinsmash4.challonge.com/atx###' 'http://challonge.com/HW###'> austin.txt
 	cp austin.txt lib/austin.html
 	cp lib/austin.html ../../dkelle.github.io/smash/
 	vim lib/austin.html
@@ -41,6 +41,14 @@ austinmelee:
 	cp austinmelee.txt lib/austinmelee.html
 	cp lib/austinmelee.html ../../dkelle.github.io/smash/
 	vim lib/austinmeleesmash.html
+	echo "~~~ don't forget to commit dkelle.github.io ~~~"
+
+sms:
+	rm -f sms.txt
+	python3 gen_html.py 'http://challonge.com/RAA_###' > sms.txt
+	cp sms.txt lib/sms.html
+	cp lib/sms.html ../../dkelle.github.io/smash/
+	vim lib/sms.html
 	echo "~~~ don't forget to commit dkelle.github.io ~~~"
 
 urltest:

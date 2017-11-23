@@ -1,4 +1,5 @@
 import bracket_utils
+import copy
 import json
 
 from pprint import pprint
@@ -8,6 +9,9 @@ sanitized_tag_dict = {}
 wins_losses_dict = {} #of the form player_tag:[(tag,wins,losses), (player,wins,losses)]
 
 debug = False
+
+# Make a list of tags that we need to coalesce into the same player
+TAGS_TO_COALESCE = [['christmasmike', 'thanksgivingmike', 'halloweenmike'],]
 
 def analyze_tournament(url):
     #Scrape the challonge website for the raw bracket
@@ -98,6 +102,9 @@ def get_win_loss_data(base_urls = ['http://challonge.com/Smashbrews###']):
             bracket = base_url.replace('###', str(i))
             analyze_tournament(bracket)
 
+
+    coalesce_tags()
+
     #The win loss dict is full of tags with whitespace removed. Change the tags back to the proper spacing
     temp_dict = {}
     for key in wins_losses_dict:
@@ -106,12 +113,67 @@ def get_win_loss_data(base_urls = ['http://challonge.com/Smashbrews###']):
     wins_losses_dict = temp_dict
     return wins_losses_dict
 
+def temp():
+    global wins_losses_dict
+    global sanitized_tag_dict
+
+    urls = bracket_utils.get_brackets_from_scene('https://austinsmash4.challonge.com')
+    for url in urls:
+        analyze_tournament(url)
+
+    #The win loss dict is full of tags with whitespace removed. Change the tags back to the proper spacing
+    temp_dict = {}
+    for key in wins_losses_dict:
+        tag = sanitized_tag_dict[key]
+        temp_dict[tag] = wins_losses_dict[key]
+    wins_losses_dict = temp_dict
+    return wins_losses_dict
+
+def coalesce_tags():
+    # 2D list
+    # Each inner list is a list of tags that should all be
+    # coalesced into one
+    tags_to_coalesce = TAGS_TO_COALESCE
+
+    for tags in tags_to_coalesce:
+        # The first tag in the list is the tag we want to
+        # combine evertyhing to
+        main_tag = tags[0]
+        other = tags[1:]
+        # coalesce 'christmas mike' and 'thanksgiving mike'
+        if main_tag in wins_losses_dict.keys():
+            for o in other:
+                base_data = wins_losses_dict[main_tag]
+
+                # Is the name we want to coalesce with in the dict?
+                if o in wins_losses_dict.keys():
+                    coalesce_data = wins_losses_dict[o]
+
+                    new_data = copy.deepcopy(base_data)
+                    for key, value in coalesce_data.items():
+                        # Do we already have data about this tag?
+                        if key in new_data.keys():
+                            combine = lambda l1, l2, i: (l1[i] + l2[i])
+                            combined_wins = combine(new_data[key], coalesce_data[key], 0)
+                            combined_losses = combine(new_data[key], coalesce_data[key], 1)
+                            combined_data = (combined_wins, combined_losses)
+                            new_data[key] = combined_data
+                        else:
+                            new_data[key] = coalesce_data[key]
+
+                    wins_losses_dict[main_tag] = new_data
+                    del wins_losses_dict[o]
+
+        else:
+            print('chirstmas mike is not in the dict')
+
 if __name__ == "__main__":
-    base_url = 'http://challonge.com/Smashbrews###'
-    start = bracket_utils.get_first_valid_url(base_url)
-    end = bracket_utils.get_last_valid_url(base_url, start)
-    if debug: print("Start is %s. End is %s", start, end)
-    for i in range(start,  end+1):
-        bracket = base_url + str(i)
-        analyze_tournament(bracket)
-    pprint(wins_losses_dict)
+    #base_url = 'http://challonge.com/Smashbrews###'
+    #start = bracket_utils.get_first_valid_url(base_url)
+    #end = bracket_utils.get_last_valid_url(base_url, start)
+    #if debug: print("Start is %s. End is %s", start, end)
+    #for i in range(start,  end+1):
+    #    bracket = base_url + str(i)
+    #    analyze_tournament(bracket)
+    #pprint(wins_losses_dict)
+    temp()
