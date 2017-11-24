@@ -1,8 +1,9 @@
 from manual_get_results import get_win_loss_data
 import numpy
 import pickle
+import constants
 import pprint
-from bracket_utils import dump_pickle_data, load_pickle_data
+from bracket_utils import dump_pickle_data, load_pickle_data, get_urls_with_players
 
 debug = False
 
@@ -29,7 +30,7 @@ TEST_DATA = {
     },
 }
 
-epsilon = .05
+epsilon = 1
 
 class PlayerNode(object):
     def __init__(self, tag):
@@ -72,8 +73,8 @@ def create_transition_mat(win_loss_data, tags_to_index):
             else:
                 # If these players haven't played, assume that they both
                 # have a 50% chance of winning
-                wins = get_total_wins(player_1, win_loss_data)
-                losses = get_total_wins(player_2, win_loss_data)
+                wins = get_win_loss_ratio(player_1, win_loss_data)
+                losses = get_win_loss_ratio(player_2, win_loss_data)
             total_matches = wins + losses
             value = ((losses+epsilon)/(total_matches+epsilon))/(num_players-1)
 
@@ -90,12 +91,14 @@ def create_transition_mat(win_loss_data, tags_to_index):
             print(transition_mat[i])
     return transition_mat
 
-def get_total_wins(player, win_loss_dict):
+def get_win_loss_ratio(player, win_loss_dict):
     data = win_loss_dict[player]
-    total = 0
+    wins = 0
+    losses = 0
     for key in data.keys():
-        total = total + data[key][0]
-    return total
+        wins = wins + data[key][0]
+        losses = losses + data[key][1]
+    return (wins+epsilon)/(losses+epsilon)
 
 def get_eigen_vector(transition_mat):
     # Get eigen values and vectors
@@ -136,7 +139,7 @@ def random_walk(trans_mat, threshold=0.0000000000000001):
         prev_state = cur_state
         cur_state = cur_state.dot(trans_mat)
         diff = l2(cur_state, prev_state)
-        print(diff)
+        if debug: print(diff)
     return cur_state
 
 def index_of(vals, find):
@@ -149,14 +152,29 @@ def index_of(vals, find):
             return i
     if debug: print("Could not find an eigen vector!")
 
-def print_results(ranks):
+def print_results(ranks, player_urls):
     players = len(ranks)
+    total_PRd = len([x for x in player_urls.keys() if len(player_urls[x]) > 2])
+    # Before we print rankgs, calculate PRs
+    # PR is like a rank, but you only qualify to be
+    # PRd if you have played at least 3 tournaments
+    PR = total_PRd
     for i, x in enumerate(ranks):
-        print(str(i) + '/' + str(players) + ' - ' + str(x))
+        # this is going to be slow
+        tag = x[1]
+        brackets = []
+        if tag in player_urls:
+            brackets = player_urls[tag]
+        if len(brackets) >= 3:
+            print(str(players-i) + '/' + str(players) + ' - ' + str(x) + ' - PR ' + str(PR))
+            PR -= 1
+        else:
+            print(str(players-i) + '/' + str(players) + ' - ' + str(x))
 
 def main():
-    URLS = ['http://challonge.com/RAA_###']
-    win_loss_data = get_win_loss_data(URLS)
+    URLS = constants.COLORADO_SINGLES_URLS
+    #URLS = ['https://challonge.com/NP9ATX###', 'https://austinsmash4.challonge.com/atx###', 'http://challonge.com/HW###']
+    win_loss_data, player_urls = get_win_loss_data(URLS, True)
     #win_loss_data = load_pickle_data('practice')
     #win_loss_data = TEST_DATA
     if debug:
@@ -193,7 +211,7 @@ def main():
         pprint.pprint(a.dot(b))
     ranks_and_tags = list(zip(ranks, tags_to_index))
     sorted_ranks = sorted(ranks_and_tags)
-    print_results(sorted_ranks)
+    print_results(sorted_ranks, player_urls)
 
 
 if __name__ == "__main__":
