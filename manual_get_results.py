@@ -3,17 +3,16 @@ import copy
 import json
 
 from pprint import pprint
+from constants import TAGS_TO_COALESCE
 
 id_tag_dict = {}
 sanitized_tag_dict = {}
 wins_losses_dict = {} #of the form player_tag:[(tag,wins,losses), (player,wins,losses)]
+urls_per_player = {} # Count the number of URLs each player was in
 
 debug = False
 
-# Make a list of tags that we need to coalesce into the same player
-TAGS_TO_COALESCE = [['christmasmike', 'thanksgivingmike', 'halloweenmike'],]
-
-def analyze_tournament(url):
+def analyze_tournament(url, urls_per_player=False):
     #Scrape the challonge website for the raw bracket
     bracket = bracket_utils.get_bracket(url)
 
@@ -23,12 +22,13 @@ def analyze_tournament(url):
     #Sanitize the braket
     sanitized = bracket_utils.sanitize_bracket(bracket)
 
-    analyze_bracket(sanitized)
+    analyze_bracket(sanitized, url, urls_per_player)
 
-def analyze_bracket(bracket):
+def analyze_bracket(bracket, base_url, include_urls_per_player=False):
     global id_tag_dict
     global sanitized_tag_dict
     global wins_losses_dict
+    global urls_per_player
     #continuously find the next instances of 'player1' and 'player2'
     while 'player1' in bracket and 'player2' in bracket:
         index = bracket.index("player1")
@@ -49,9 +49,23 @@ def analyze_bracket(bracket):
         if winner_id == 'null' or player1_id == None or player2_id == None:
             break
 
+        #Before we use this tag, we should see if it is one that we should coalesce
+        # eg, if this is 'thanksgiving mike', we should change it to 'christmas mike'
+        player1_tag = get_coalesced_tag(player1_tag)
+        player2_tag = get_coalesced_tag(player2_tag)
+
         #Now that we have both players, and the winner ID, what's the tag of the winner?
         winner = player1_tag if int(winner_id) == int(player1_id) else player2_tag
         loser = player1_tag if winner == player2_tag else player2_tag
+
+        #Add this bracket to the set of brackets
+        # that 'winner' has played in
+        if include_urls_per_player:
+            if winner not in urls_per_player:
+                urls_per_player[winner] = []
+            if base_url not in urls_per_player[winner]:
+                urls_per_player[winner].append(base_url)
+
         #sanitize both tage (by taking out whitespace)
         san_winner = "".join(winner.split())
         san_loser = "".join(loser.split())
@@ -88,9 +102,12 @@ def get_player_info(bracket):
     player_dict = json.loads(bracket_utils.sanitize_bracket(bracket))
     ID = player_dict['id']
     tag = player_dict['display_name'].lower() if 'display_name' in player_dict else None
+    if debug and 'hakii' in tag:
+        print('tyring to get tag out of player info')
+        pprint(player_dict)
     return ID, tag
 
-def get_win_loss_data(base_urls = ['http://challonge.com/Smashbrews###']):
+def get_win_loss_data(base_urls = ['http://challonge.com/Smashbrews###'], include_urls_per_player=False):
     global wins_losses_dict
     global sanitized_tag_dict
 
@@ -100,10 +117,7 @@ def get_win_loss_data(base_urls = ['http://challonge.com/Smashbrews###']):
         start, end = bracket_utils.get_valid_url_range(base_url)
         for i in range(start,  end+1):
             bracket = base_url.replace('###', str(i))
-            analyze_tournament(bracket)
-
-
-    coalesce_tags()
+            analyze_tournament(bracket, include_urls_per_player)
 
     #The win loss dict is full of tags with whitespace removed. Change the tags back to the proper spacing
     temp_dict = {}
@@ -111,6 +125,10 @@ def get_win_loss_data(base_urls = ['http://challonge.com/Smashbrews###']):
         tag = sanitized_tag_dict[key]
         temp_dict[tag] = wins_losses_dict[key]
     wins_losses_dict = temp_dict
+
+    if include_urls_per_player:
+        return wins_losses_dict, urls_per_player
+
     return wins_losses_dict
 
 def temp():
@@ -130,6 +148,7 @@ def temp():
     return wins_losses_dict
 
 def coalesce_tags():
+    global wins_losses_dict
     # 2D list
     # Each inner list is a list of tags that should all be
     # coalesced into one
@@ -142,6 +161,9 @@ def coalesce_tags():
         other = tags[1:]
         # coalesce 'christmas mike' and 'thanksgiving mike'
         if main_tag in wins_losses_dict.keys():
+            if debug:
+                print('found the tag ' + str(main_tag) + ' to coalesce')
+                print('coalescing with the tags ' + str(other))
             for o in other:
                 base_data = wins_losses_dict[main_tag]
 
@@ -164,14 +186,33 @@ def coalesce_tags():
                     wins_losses_dict[main_tag] = new_data
                     del wins_losses_dict[o]
 
-        else:
-            print('chirstmas mike is not in the dict')
+        elif debug:
+            print(str(main_tag) + ' is not of one the tags in the win loss data')
+            print('Not coalescing any of the following names:\n' + str(other))
+
+def get_coalesced_tag(tag):
+    # See if this is one of the tags we should coalesce
+    for tags in TAGS_TO_COALESCE:
+        # Tags is a list of all tags that are actually one player
+        # eg. ['christmas mike', 'thanksgiving mike']
+        if debug:
+            print('trying to find tag in list: ' + str(tags))
+
+        if tag in tags:
+            if debug:
+                print('found ' + str(tag) + ' in list ')
+            # The first tag in this list is the main tag that we want
+            # to change the others to
+            # eg. ['christmas mike', 'thanksgiving mike']
+            return tags[0]
+
+    # If this is not a tag that we need to coalesce
+    return tag
 
 if __name__ == "__main__":
     #base_url = 'http://challonge.com/Smashbrews###'
     #start = bracket_utils.get_first_valid_url(base_url)
-    #end = bracket_utils.get_last_valid_url(base_url, start)
-    #if debug: print("Start is %s. End is %s", start, end)
+    #end = bracket_utils.get_last_valid_url(base_url, start) us Christif debug: print("Start is %s. End is %s", start, end)
     #for i in range(start,  end+1):
     #    bracket = base_url + str(i)
     #    analyze_tournament(bracket)
