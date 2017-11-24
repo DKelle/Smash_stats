@@ -6,6 +6,8 @@ def main(tags):
     player_urls = get_urls_with_players(tags)
     player_placings = []
 
+    print('player in these ursl \n' + str(player_urls))
+
     # Get the html from the 'standings' of this tournament
     for url in player_urls:
         tournament_placings = get_tournament_placings(url)
@@ -26,5 +28,5 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         tags = sys.argv[1:]
     else:
-        tags = ['Christmas Mike']
+        tags = ['Christmas Mike', 'Thanksgiving Mike']
     main(tags)
