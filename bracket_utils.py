@@ -1,6 +1,7 @@
 from time import sleep
 from bs4 import BeautifulSoup
 from requests import get
+from constants import TAGS_TO_COALESCE
 import re
 import os
 import pickle
@@ -35,7 +36,7 @@ def _get_last_valid_url(base_url, start=1):
     end = start #Use this to keep track of the last valid URL
 
     #Sometimes a week is skipped -- Make sure we see 100 invalid URLs in a row before calling it quits
-    while(invalid_count <= 20):
+    while(invalid_count <= 2):
         #if base_url == "https://austinsmash4.challonge.com/atx145":
         #    print
         url = base_url.replace('###', str(start))
@@ -240,9 +241,21 @@ def player_in_bracket(player, bracket, url):
     # Make sure to add quotations around the tag
     # this way, we ony match on actual tags, and not *tag*
     #player = '<title>'+player+'</title>'
-    if re.search(player, bracket, re.IGNORECASE):
-        return True
+
+    # This player may have multiple tags
+    # Check if any of them are in the bracket
+    tags = get_coalesce_tags(player)
+    for tag in tags:
+        if re.search(tag, bracket, re.IGNORECASE):
+            return True
     return False
+
+def get_coalesce_tags(player):
+    for tags in TAGS_TO_COALESCE:
+        if player in tags:
+            return tags
+    # If this tag does not need to be coalesced, just return a list of this
+    return [player]
 
 def get_urls_with_players(players=["Christmas Mike", "christmasmike"], base_urls=DEFAULT_BASE_URLS):
     urls = []
