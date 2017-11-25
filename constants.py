@@ -12,3 +12,4 @@ SMASHBREWS_RULS = ['https://challonge.com/Smashbrews###']
 COLORADO_SINGLES_URLS = ['http://smashco.challonge.com/CSUWW###WUS', 'http://smascho.challonge.com/FCWUA###', 'http://smascho.challonge.com/FCWUIB###']
 COLORADO_DOUBLES_URLS = ['http://smashco.challonge.com/CSUWW###WUD', 'http://smashco.challonge.com/FCWUDC###']
 COLORADO_URLS = COLORADO_SINGLES_URLS + COLORADO_DOUBLES_URLS
+SMS_URLS = ['http://challonge.com/RAA_###']

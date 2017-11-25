@@ -51,6 +51,7 @@ def get_tags_to_index(win_loss_data):
 
 def create_transition_mat(win_loss_data, tags_to_index):
     num_players = len(tags_to_index)
+    total_matches_played = get_total_matches_played(win_loss_data)
 
     # Start a transition matrix, and fill it with zeros
     transition_mat = zeros(num_players)
@@ -60,10 +61,13 @@ def create_transition_mat(win_loss_data, tags_to_index):
 
     for i in range(num_players):
         row_sum = 0
+        player_1 = tags_to_index[i]
+        player1_wins = get_wins(player_1, win_loss_data)
+        player1_losses = get_losses(player_1, win_loss_data)
+        player1_total = player1_wins + player1_losses
         for j in range(num_players):
             if i == j:
                 continue
-            player_1 = tags_to_index[i]
             player_2 = tags_to_index[j]
             win_loss = win_loss_data[player_1]
             # Have these two players played each other?
@@ -71,12 +75,19 @@ def create_transition_mat(win_loss_data, tags_to_index):
                 wins = win_loss[player_2][0]
                 losses = win_loss[player_2][1]
             else:
-                # If these players haven't played, assume that they both
-                # have a 50% chance of winning
+                # If these players haven't played, assume that their chance
+                # of winning is thier own win/loss ratio
                 wins = get_win_loss_ratio(player_1, win_loss_data)
                 losses = get_win_loss_ratio(player_2, win_loss_data)
+
             total_matches = wins + losses
-            value = ((losses+epsilon)/(total_matches+epsilon))/(num_players-1)
+            total_matches_p2 = get_total_played(player_2, win_loss_data)
+            chance_of_playing = total_matches_p2/(total_matches_played)
+            if debug:
+                print('the total chance of these two playing is ', player_1, player_2, str(chance_of_playing))
+            #win_loss_ratio = ((losses+epsilon)/(total_matches+epsilon))/(num_players-1)
+            win_loss_ratio = ((losses+epsilon)/(total_matches+epsilon))*(chance_of_playing)
+            value = win_loss_ratio
 
             if debug:
                 print('analyze ' + player_1 + ' against ' + player_2)
@@ -91,14 +102,39 @@ def create_transition_mat(win_loss_data, tags_to_index):
             print(transition_mat[i])
     return transition_mat
 
+def get_total_played(tag, win_loss_data):
+    total = 0
+    if tag in win_loss_data:
+        win_loss = win_loss_data[tag]
+        for opponent in win_loss.keys():
+            # Add the wins and losses against each opponent
+            # to get a total number of matches played by 'tag'
+            total += win_loss[opponent][0]
+            total += win_loss[opponent][1]
+
+    if debug:
+        print('the total number of matches played by ' + str(tag) + ' is ' + str(total))
+    return total
+
 def get_win_loss_ratio(player, win_loss_dict):
     data = win_loss_dict[player]
+    wins = get_wins(player, win_loss_dict)
+    losses = get_losses(player, win_loss_dict)
+    return (wins+epsilon)/(losses+epsilon)
+
+def get_wins(player, win_loss_dict):
+    data = win_loss_dict[player]
     wins = 0
-    losses = 0
     for key in data.keys():
         wins = wins + data[key][0]
+    return wins
+
+def get_losses(player, win_loss_dict):
+    data = win_loss_dict[player]
+    losses = 0
+    for key in data.keys():
         losses = losses + data[key][1]
-    return (wins+epsilon)/(losses+epsilon)
+    return losses
 
 def get_eigen_vector(transition_mat):
     # Get eigen values and vectors
@@ -152,9 +188,15 @@ def index_of(vals, find):
             return i
     if debug: print("Could not find an eigen vector!")
 
-def print_results(ranks, player_urls):
+def print_results(ranks, player_urls=None):
+    basic = True
     players = len(ranks)
-    total_PRd = len([x for x in player_urls.keys() if len(player_urls[x]) > 2])
+
+    if player_urls:
+        total_PRd = len([x for x in player_urls.keys() if len(player_urls[x]) > 2])
+    else:
+        total_PRd = 0
+
     # Before we print rankgs, calculate PRs
     # PR is like a rank, but you only qualify to be
     # PRd if you have played at least 3 tournaments
@@ -163,17 +205,31 @@ def print_results(ranks, player_urls):
         # this is going to be slow
         tag = x[1]
         brackets = []
-        if tag in player_urls:
+        if player_urls and tag in player_urls:
             brackets = player_urls[tag]
-        if len(brackets) >= 3:
+        if basic:
+            print(str(players-i) + '/' + str(players) + ' - ' + str(x[-1]))
+        elif len(brackets) >= 3:
             print(str(players-i) + '/' + str(players) + ' - ' + str(x) + ' - PR ' + str(PR))
             PR -= 1
         else:
             print(str(players-i) + '/' + str(players) + ' - ' + str(x))
 
+def get_total_matches_played(win_loss_data):
+    total = 0
+    for key in win_loss_data.keys():
+        data = win_loss_data[key]
+        for k in data.keys():
+            wins = data[k][0]
+            total += wins
+
+    if debug:
+        print('total matches played is ' + str(total))
+    return total
+
 def main():
-    URLS = constants.COLORADO_SINGLES_URLS
-    #URLS = ['https://challonge.com/NP9ATX###', 'https://austinsmash4.challonge.com/atx###', 'http://challonge.com/HW###']
+    URLS = constants.SMS_URLS
+    #URLS = constants.AUSTIN_URLS
     win_loss_data, player_urls = get_win_loss_data(URLS, True)
     #win_loss_data = load_pickle_data('practice')
     #win_loss_data = TEST_DATA
@@ -211,7 +267,10 @@ def main():
         pprint.pprint(a.dot(b))
     ranks_and_tags = list(zip(ranks, tags_to_index))
     sorted_ranks = sorted(ranks_and_tags)
-    print_results(sorted_ranks, player_urls)
+    if debug:
+        print_results(sorted_ranks)
+    else:
+        print_results(sorted_ranks, player_urls)
 
 
 if __name__ == "__main__":
