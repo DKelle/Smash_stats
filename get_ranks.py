@@ -1,8 +1,9 @@
-from manual_get_results import get_win_loss_data
+from manual_get_results import get_win_loss_data, get_dated_data
 import numpy
 import pickle
 import constants
 import pprint
+import datetime
 from bracket_utils import dump_pickle_data, load_pickle_data, get_urls_with_players
 
 debug = False
@@ -32,6 +33,9 @@ TEST_DATA = {
 
 epsilon = 1
 
+# The greater this number, the more significant recent matches will be
+exponent = 1.3
+
 class PlayerNode(object):
     def __init__(self, tag):
         self.tag = tag
@@ -49,9 +53,40 @@ def get_tags_to_index(win_loss_data):
         tags_to_index.append(tag)
     return tags_to_index
 
+def get_win_loss_score(win_loss, tag, tag2):
+    # Get a list of the matches these twp have played against each other
+    matches = win_loss[tag]
+    win_total = 0
+    loss_total = 0
+
+    for match in matches:
+        print('match is ' + str(match))
+        win = (not match[1])
+        date = match[0]
+        score = date_to_points(date)
+        if win:
+            win_total += score
+        else:
+            loss_total += score
+
+
+    return win_total, loss_total
+
+def date_to_points(date):
+    today = datetime.datetime.today()
+    current_date = datetime.datetime(today.year, today.month, today.day)
+    date = datetime.datetime.strptime(date,'%Y-%m-%d')
+    delta = float((today - date).days)
+    delta = max(200, delta)
+    delta = 200 - delta
+    score = delta ** exponent
+    return score
+
+
 def create_transition_mat(win_loss_data, tags_to_index):
     num_players = len(tags_to_index)
     total_matches_played = get_total_matches_played(win_loss_data)
+    print('win loss data is ' + str(win_loss_data))
 
     # Start a transition matrix, and fill it with zeros
     transition_mat = zeros(num_players)
@@ -62,9 +97,6 @@ def create_transition_mat(win_loss_data, tags_to_index):
     for i in range(num_players):
         row_sum = 0
         player_1 = tags_to_index[i]
-        player1_wins = get_wins(player_1, win_loss_data)
-        player1_losses = get_losses(player_1, win_loss_data)
-        player1_total = player1_wins + player1_losses
         for j in range(num_players):
             if i == j:
                 continue
@@ -72,8 +104,9 @@ def create_transition_mat(win_loss_data, tags_to_index):
             win_loss = win_loss_data[player_1]
             # Have these two players played each other?
             if player_2 in win_loss.keys():
-                wins = win_loss[player_2][0]
-                losses = win_loss[player_2][1]
+                #wins = win_loss[player_2][0]
+                #losses = win_loss[player_2][1]
+                wins, losses = get_win_loss_score(win_loss, player_2, player_1)
             else:
                 # If these players haven't played, assume that their chance
                 # of winning is thier own win/loss ratio
@@ -109,8 +142,7 @@ def get_total_played(tag, win_loss_data):
         for opponent in win_loss.keys():
             # Add the wins and losses against each opponent
             # to get a total number of matches played by 'tag'
-            total += win_loss[opponent][0]
-            total += win_loss[opponent][1]
+            total += len(win_loss[opponent])
 
     if debug:
         print('the total number of matches played by ' + str(tag) + ' is ' + str(total))
@@ -126,14 +158,18 @@ def get_wins(player, win_loss_dict):
     data = win_loss_dict[player]
     wins = 0
     for key in data.keys():
-        wins = wins + data[key][0]
+        for match in data[key]:
+            if match[1]:
+                wins += 1
     return wins
 
 def get_losses(player, win_loss_dict):
     data = win_loss_dict[player]
     losses = 0
     for key in data.keys():
-        losses = losses + data[key][1]
+        for match in data[key]:
+            if not match[1]:
+                losses += 1
     return losses
 
 def get_eigen_vector(transition_mat):
@@ -189,29 +225,32 @@ def index_of(vals, find):
     if debug: print("Could not find an eigen vector!")
 
 def print_results(ranks, player_urls=None):
-    basic = True
+    basic = False
     players = len(ranks)
+    PR_map = {}
 
     if player_urls:
-        total_PRd = len([x for x in player_urls.keys() if len(player_urls[x]) > 2])
-    else:
-        total_PRd = 0
+        # Create a map of tags to PR, if any
+        PR = 1
+        best_players = reversed([x[-1] for i, x in enumerate(ranks)])
+        print(best_players)
+        for tag in best_players:
+            if tag in player_urls and len(player_urls[tag]) > 2:
+              PR_map[tag] = PR
+              print('adding ' + str(tag) + ' to the PR at ' + str(PR))
+              PR = PR + 1
 
     # Before we print rankgs, calculate PRs
     # PR is like a rank, but you only qualify to be
     # PRd if you have played at least 3 tournaments
-    PR = total_PRd
     for i, x in enumerate(ranks):
         # this is going to be slow
         tag = x[1]
-        brackets = []
-        if player_urls and tag in player_urls:
-            brackets = player_urls[tag]
         if basic:
             print(str(players-i) + '/' + str(players) + ' - ' + str(x[-1]))
-        elif len(brackets) >= 3:
+        elif tag in PR_map:
+            PR = PR_map[tag]
             print(str(players-i) + '/' + str(players) + ' - ' + str(x) + ' - PR ' + str(PR))
-            PR -= 1
         else:
             print(str(players-i) + '/' + str(players) + ' - ' + str(x))
 
@@ -220,8 +259,9 @@ def get_total_matches_played(win_loss_data):
     for key in win_loss_data.keys():
         data = win_loss_data[key]
         for k in data.keys():
-            wins = data[k][0]
-            total += wins
+            for match in data[k]:
+                if match[1]:
+                    total += 1
 
     if debug:
         print('total matches played is ' + str(total))
@@ -230,7 +270,11 @@ def get_total_matches_played(win_loss_data):
 def main():
     URLS = constants.SMS_URLS
     #URLS = constants.AUSTIN_URLS
-    win_loss_data, player_urls = get_win_loss_data(URLS, True)
+    #URLS = constants.COLORADO_SINGLES_URLS
+    #URLS = constants.AUSTIN_MELEE_URLS
+    #URLS = constants.SMASHBREWS_RULS
+    #win_loss_data, player_urls = get_win_loss_data(URLS, True)
+    win_loss_data, player_urls = get_dated_data(URLS, True)
     #win_loss_data = load_pickle_data('practice')
     #win_loss_data = TEST_DATA
     if debug:
