@@ -31,10 +31,33 @@ TEST_DATA = {
     },
 }
 
-epsilon = 1
+TEST_DATA = {
+    "A" : {
+        "B": [('2017-01-01', True),
+            ('2017-02-01', True),
+            ('2017-03-01', True),
+            ('2017-04-01', False),
+            ('2017-05-01', False)],
+        "C" : [('2016-01-01', False)]
+        },
+    "B" : {
+        "A": [('2017-01-01', False),
+            ('2017-02-01', False),
+            ('2017-03-01', False),
+            ('2017-04-01', True),
+            ('2017-05-01', True)],
+        "C": [('2016-01-01', False)]
+        },
+    "C" : {
+        "A" : [('2017-01-01', True)],
+        "B" : [('2017-01-01', True)]
+        }
+    }
+
+epsilon = 10
 
 # The greater this number, the more significant recent matches will be
-exponent = 1.3
+exponent = 10
 
 class PlayerNode(object):
     def __init__(self, tag):
@@ -53,17 +76,17 @@ def get_tags_to_index(win_loss_data):
         tags_to_index.append(tag)
     return tags_to_index
 
-def get_win_loss_score(win_loss, tag, tag2):
+def get_win_loss_score(win_loss, tag, tag2, max_days, min_days):
     # Get a list of the matches these twp have played against each other
     matches = win_loss[tag]
     win_total = 0
     loss_total = 0
 
     for match in matches:
-        print('match is ' + str(match))
+        if debug: print('match is ' + str(match))
         win = (not match[1])
         date = match[0]
-        score = date_to_points(date)
+        score = date_to_points(date, max_days, min_days)
         if win:
             win_total += score
         else:
@@ -72,21 +95,62 @@ def get_win_loss_score(win_loss, tag, tag2):
 
     return win_total, loss_total
 
-def date_to_points(date):
+def date_to_points(date, max_days, min_days):
+    #print('about to score a match that is on X with max days X' + str(date) + date(max_days))
     today = datetime.datetime.today()
     current_date = datetime.datetime(today.year, today.month, today.day)
     date = datetime.datetime.strptime(date,'%Y-%m-%d')
+    if debug: print('getting the score of a match that was on ' + str(date))
     delta = float((today - date).days)
-    delta = max(200, delta)
-    delta = 200 - delta
-    score = delta ** exponent
+
+    # How many days are we from the oldest tournament?
+    days_from_oldest = max_days - delta
+
+    # This tournament somewhere between newest and oldest tournaments
+    # If 0 was oldest, and 100 was newst, what is this?
+    day_range = max_days - min_days
+    percentage = days_from_oldest * 100 / day_range
+    if debug: print('this was X days ago ' + str(percentage) )
+    score = percentage ** exponent
+    if debug: print('this score is delta ^ exp = ', str(percentage), str(exponent), str(score))
     return score
 
+def get_newest_tournament(win_loss_data):
+    today = datetime.datetime.today()
+    current_date = datetime.datetime(today.year, today.month, today.day)
+    min_days = 10000000
+    d = ""
+    for tag in win_loss_data.keys():
+        for tag2 in win_loss_data[tag]:
+            for match in win_loss_data[tag][tag2]:
+                date = match[0]
+                date = datetime.datetime.strptime(date,'%Y-%m-%d')
+                if (current_date - date).days < min_days:
+                    min_days = (current_date - date).days
+                    d = match[0]
+
+    return min_days
+
+def get_oldest_tournament(win_loss_data):
+    today = datetime.datetime.today()
+    current_date = datetime.datetime(today.year, today.month, today.day)
+    max_days = 0
+    date = ""
+    for tag in win_loss_data.keys():
+        for tag2 in win_loss_data[tag]:
+            for match in win_loss_data[tag][tag2]:
+                date = match[0]
+                date = datetime.datetime.strptime(date,'%Y-%m-%d')
+                if (current_date - date).days > max_days:
+                    max_days = (current_date - date).days
+                    d = match[0]
+    return max_days
 
 def create_transition_mat(win_loss_data, tags_to_index):
     num_players = len(tags_to_index)
-    total_matches_played = get_total_matches_played(win_loss_data)
-    print('win loss data is ' + str(win_loss_data))
+    max_days = get_oldest_tournament(win_loss_data)
+    min_days = get_newest_tournament(win_loss_data)
+    #total_matches_played = get_total_matches_played(win_loss_data)
 
     # Start a transition matrix, and fill it with zeros
     transition_mat = zeros(num_players)
@@ -104,27 +168,25 @@ def create_transition_mat(win_loss_data, tags_to_index):
             win_loss = win_loss_data[player_1]
             # Have these two players played each other?
             if player_2 in win_loss.keys():
-                #wins = win_loss[player_2][0]
-                #losses = win_loss[player_2][1]
-                wins, losses = get_win_loss_score(win_loss, player_2, player_1)
+                # Get the total amount of points this player has given up
+                total_points_given_up = get_total_points_given_up(player_1, win_loss_data, max_days, min_days)
+
+                lost_to_p2 = get_points_given_up_to(player_1, player_2, win_loss_data, max_days, min_days)
+                #wins, losses = get_win_loss_score(win_loss, player_2, player_1)
             else:
                 # If these players haven't played, assume that their chance
                 # of winning is thier own win/loss ratio
-                wins = get_win_loss_ratio(player_1, win_loss_data)
-                losses = get_win_loss_ratio(player_2, win_loss_data)
+                total_points_given_up = get_win_loss_ratio(player_1, win_loss_data)
+                lost_to_p2 = get_win_loss_ratio(player_2, win_loss_data)
 
-            total_matches = wins + losses
-            total_matches_p2 = get_total_played(player_2, win_loss_data)
-            chance_of_playing = total_matches_p2/(total_matches_played)
-            if debug:
-                print('the total chance of these two playing is ', player_1, player_2, str(chance_of_playing))
-            #win_loss_ratio = ((losses+epsilon)/(total_matches+epsilon))/(num_players-1)
-            win_loss_ratio = ((losses+epsilon)/(total_matches+epsilon))*(chance_of_playing)
+            ratio = (lost_to_p2 + epsilon) / (total_points_given_up + epsilon)
+            #total_matches = wins + losses
+            # total_matches_p2 = get_total_played(player_2, win_loss_data)
+            # chance_of_playing = total_matches_p2/(total_matches_played)
+            win_loss_ratio = (ratio)/(num_players-1)
+            # win_loss_ratio = ((losses+epsilon)/(total_matches+epsilon))*(chance_of_playing)
             value = win_loss_ratio
 
-            if debug:
-                print('analyze ' + player_1 + ' against ' + player_2)
-                print('wins is X, losses is X, value is X', wins, losses, value)
             transition_mat[i][j] = value
             row_sum += value
 
@@ -134,6 +196,31 @@ def create_transition_mat(win_loss_data, tags_to_index):
             print('wins, losses', wins, losses)
             print(transition_mat[i])
     return transition_mat
+
+def get_total_points_given_up(tag, win_loss_data, max_days, min_days):
+    win_loss = win_loss_data[tag]
+    total = 0
+    for opponent in win_loss.keys():
+        for match in win_loss[opponent]:
+            score = date_to_points(match[0], max_days, min_days)
+            total += score
+            #total += get_points_given_up_to(tag, opponent, win_loss_data, False)
+
+    return total
+
+def get_points_given_up_to(tag, tag2, win_loss_data, max_days, min_days, loss_only=True):
+    win_loss = win_loss_data[tag]
+    total = 0
+    if tag2 in win_loss.keys():
+        for match in win_loss[tag2]:
+            score = date_to_points(match[0], max_days, min_days)
+            if loss_only and not match[1]:
+                total += score
+            elif not loss_only:
+                print('adding to the total score '+ str(score))
+                total += score
+
+    return total
 
 def get_total_played(tag, win_loss_data):
     total = 0
@@ -275,7 +362,11 @@ def main():
     #URLS = constants.SMASHBREWS_RULS
     #win_loss_data, player_urls = get_win_loss_data(URLS, True)
     win_loss_data, player_urls = get_dated_data(URLS, True)
-    #win_loss_data = load_pickle_data('practice')
+    print ('dallas ', str(win_loss_data))
+    #win_loss_data = load_pickle_data('dated')
+    #win_loss_data = TEST_DATA
+    player_urls = None
+    #Gwin_loss_data = load_pickle_data('practice')
     #win_loss_data = TEST_DATA
     if debug:
         print('win loss data looks like: ')

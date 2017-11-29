@@ -155,8 +155,10 @@ def get_data(base_urls, include_player_urls=False, dated=False):
 
     return wins_losses_dict
 
-def coalesce_tags():
+def coalesce_tags(dated=True):
     global wins_losses_dict
+    global dated_win_loss
+    data = wins_losses_dict if not dated else dated_win_loss
     # 2D list
     # Each inner list is a list of tags that should all be
     # coalesced into one
@@ -168,16 +170,16 @@ def coalesce_tags():
         main_tag = tags[0]
         other = tags[1:]
         # coalesce 'christmas mike' and 'thanksgiving mike'
-        if main_tag in wins_losses_dict.keys():
+        if main_tag in data.keys():
             if debug:
                 print('found the tag ' + str(main_tag) + ' to coalesce')
                 print('coalescing with the tags ' + str(other))
             for o in other:
-                base_data = wins_losses_dict[main_tag]
+                base_data = data[main_tag]
 
                 # Is the name we want to coalesce with in the dict?
-                if o in wins_losses_dict.keys():
-                    coalesce_data = wins_losses_dict[o]
+                if o in data.keys():
+                    coalesce_data = data[o]
 
                     new_data = copy.deepcopy(base_data)
                     for key, value in coalesce_data.items():
@@ -191,8 +193,8 @@ def coalesce_tags():
                         else:
                             new_data[key] = coalesce_data[key]
 
-                    wins_losses_dict[main_tag] = new_data
-                    del wins_losses_dict[o]
+                    data[main_tag] = new_data
+                    del data[o]
 
         elif debug:
             print(str(main_tag) + ' is not of one the tags in the win loss data')

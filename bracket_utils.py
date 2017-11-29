@@ -9,7 +9,7 @@ import pickle
 DEFAULT_BASE_URLS = ['https://challonge.com/NP9ATX###', 'http://challonge.com/heatwave###', 'https://austinsmash4.challonge.com/atx###',\
         'http://challonge.com/RAA_###']
 
-debug = False
+debug = True
 
 def _get_first_valid_url(base_url):
 
@@ -116,6 +116,8 @@ def hit_url(url):
     #Get the html page
     r = get(url)
     data = r.text
+    if url == 'http://challonge.com/RAA_9':
+        print('bracket nine data is %s', str(data))
 
     if(is_valid(data)):
         # Make sure we pickle this data, so we can get it next time
@@ -159,7 +161,7 @@ def get_brackets_from_scene(scene_url):
 def is_valid(html):
 
     #Check to see if this tournament page exists
-    errors= ['404', 'No tournaments found']
+    errors= ['The page you\'re looking for isn\'t here', 'No tournaments found']
     for error in errors:
         if error in str(html):
             return False
