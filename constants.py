@@ -5,7 +5,9 @@ TAGS_TO_COALESCE = [['christmas mike', 'thanksgiving mike'],
         ['sassy', 'atx | sassy'],
         ['crump', 'donald crump', 'captain crump', 'abc | crump'],
         ['dragonite', 'su dragonite', 'su | dragonite', 'tpwn | dragonite', 'tpwn | dragonite_pr', 'tpwn| dragonite (gnw)', 'atx hoh | dragonite', 'dragonite_pr', 'hoh | dragonite', 'mega dragonite'],
-        ['gallium', 's.e.s punk']]
+        ['gallium', 's.e.s punk'],
+        ['spankey', 'spanky'],
+        ['xlll', 'xiii']]
 
 
 AUSTIN_URLS = ['https://challonge.com/NP9ATX###', 'https://austinsmash4.challonge.com/atx###', 'http://challonge.com/heatwave###']

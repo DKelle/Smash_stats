@@ -324,7 +324,6 @@ def print_results(ranks, player_urls=None):
         for tag in best_players:
             if tag in player_urls and len(player_urls[tag]) > 2:
               PR_map[tag] = PR
-              print('adding ' + str(tag) + ' to the PR at ' + str(PR))
               PR = PR + 1
 
     # Before we print rankgs, calculate PRs
@@ -360,14 +359,7 @@ def main():
     #URLS = constants.COLORADO_SINGLES_URLS
     #URLS = constants.AUSTIN_MELEE_URLS
     #URLS = constants.SMASHBREWS_RULS
-    #win_loss_data, player_urls = get_win_loss_data(URLS, True)
     win_loss_data, player_urls = get_dated_data(URLS, True)
-    print ('dallas ', str(win_loss_data))
-    #win_loss_data = load_pickle_data('dated')
-    #win_loss_data = TEST_DATA
-    player_urls = None
-    #Gwin_loss_data = load_pickle_data('practice')
-    #win_loss_data = TEST_DATA
     if debug:
         print('win loss data looks like: ')
         pprint.pprint(win_loss_data)
@@ -402,10 +394,7 @@ def main():
         pprint.pprint(a.dot(b))
     ranks_and_tags = list(zip(ranks, tags_to_index))
     sorted_ranks = sorted(ranks_and_tags)
-    if debug:
-        print_results(sorted_ranks)
-    else:
-        print_results(sorted_ranks, player_urls)
+    print_results(sorted_ranks, player_urls)
 
 
 if __name__ == "__main__":

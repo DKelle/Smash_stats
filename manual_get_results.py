@@ -69,6 +69,14 @@ def analyze_bracket(bracket, base_url, dated, include_urls_per_player=False):
             add_dated_data(player1_tag, player2_tag, winner, base_url)
             add_dated_data(player2_tag, player1_tag, winner, base_url)
 
+            #Add this bracket to the set of brackets
+            # that 'winner' has played in
+            if include_urls_per_player:
+                if winner not in urls_per_player:
+                    urls_per_player[winner] = []
+                if base_url not in urls_per_player[winner]:
+                    urls_per_player[winner].append(base_url)
+
         else:
             #Add this bracket to the set of brackets
             # that 'winner' has played in
