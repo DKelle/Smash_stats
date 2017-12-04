@@ -9,7 +9,7 @@ import pickle
 DEFAULT_BASE_URLS = ['https://challonge.com/NP9ATX###', 'http://challonge.com/heatwave###', 'https://austinsmash4.challonge.com/atx###',\
         'http://challonge.com/RAA_###']
 
-debug = True
+debug = False
 
 def _get_first_valid_url(base_url):
 

@@ -58,5 +58,3 @@ clean:
 	rm *.txt
 	rm *.pyc
 	rm -f *.txt
-	rm -f .*
-
