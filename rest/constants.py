@@ -16,12 +16,3 @@ COLORADO_SINGLES_URLS = ['http://smashco.challonge.com/CSUWW###WUS', 'http://sma
 COLORADO_DOUBLES_URLS = ['http://smashco.challonge.com/CSUWW###WUD', 'http://smashco.challonge.com/FCWUDC###']
 COLORADO_URLS = COLORADO_SINGLES_URLS + COLORADO_DOUBLES_URLS
 SMS_URLS = ['http://challonge.com/RAA_###']
-
-"""
-Data structure we need -
-dictionary where key is tag_1:
-    value is dictionary:
-        key for inner dictionary is tag_2, value is a list
-        the list has (date_of_set, result)
-        one (date, result) for every set they have played
-"""

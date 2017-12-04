@@ -1,27 +1,28 @@
 from validURLs import validURLs
+from process_data import processData
 import constants
 import threading
 import logger
 import shared_data
+import constants
+import get_ranks
+import interaction
+import bracket_utils
 
 LOG = logger.logger(__name__)
 
 def main():
-    austin = constants.AUSTIN_URLS
-    smashbrews = constants.SMASHBREWS_RULS
-    colorado_singles = constants.COLORADO_SINGLES_URLS
-    colorado_doubles= constants.COLORADO_DOUBLES_URLS
-    colorado = constants.COLORADO_URLS = constants.COLORADO_SINGLES_URLS + constants.COLORADO_DOUBLES_URLS
-    sms = constants.SMS_URLS
 
-    base_urls = [austin, smashbrews, colorado_singles, colorado_doubles, colorado, sms]
+    base_urls = bracket_utils.get_list_of_scenes()
     valids = validURLs(base_urls)
+    data_processor = processData()
+
     print('creating worker threads')
     LOG.info("Creating the following worker threads")
     # threading.Thread(target=valids.init).start()
 
     ## Create a list of worker threads
-    workers = [valids.init]
+    workers = [valids.init, data_processor.init, get_ranks.get_ranks, interaction.interact]
 
     for worker in workers:
         print(str(worker))
