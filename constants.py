@@ -1,11 +1,11 @@
 TAGS_TO_COALESCE = [['christmas mike', 'thanksgiving mike'],
-        ['megafox', 'su | megafox'],
-        ['hakii', 'su l hakii', 'su | hakii', 'su redriot i hakii', 'hih | hakii', 'su | sleepyhakii', 'su|hakii', 'su | hakii $', 'su  redriot i hakii', 'hoh | hakii', 'su| hakii'],
-        ['lucy', 'ttn | lucy'],
-        ['sassy', 'atx | sassy'],
-        ['crump', 'donald crump', 'captain crump', 'abc | crump'],
-        ['dragonite', 'su dragonite', 'su | dragonite', 'tpwn | dragonite', 'tpwn | dragonite_pr', 'tpwn| dragonite (gnw)', 'atx hoh | dragonite', 'dragonite_pr', 'hoh | dragonite', 'mega dragonite', 'tpwn|dragonite'],
-        ['gallium', 's.e.s punk'],
+	['megafox', 'su | megafox'],
+	['hakii', 'su l hakii', 'su | hakii', 'su redriot i hakii', 'hih | hakii', 'su | sleepyhakii', 'su|hakii', 'su | hakii $', 'su  redriot i hakii', 'hoh | hakii', 'su| hakii'],
+	['lucy', 'ttn | lucy'],
+	['sassy', 'atx | sassy'],
+	['crump', 'donald crump', 'captain crump', 'abc | crump'],
+	['dragonite', 'su dragonite', 'su | dragonite', 'tpwn | dragonite', 'tpwn | dragonite_pr', 'tpwn| dragonite (gnw)', 'atx hoh | dragonite', 'dragonite_pr', 'hoh | dragonite', 'mega dragonite', 'tpwn|dragonite'],
+	['gallium', 's.e.s punk'],
 	['mt', 'mt_'],
 	['fx | albert', 'albert'],
 	['ul | jf', 'jf', 'ul| jf', 'ul i jf'],
@@ -13,10 +13,9 @@ TAGS_TO_COALESCE = [['christmas mike', 'thanksgiving mike'],
 	['bobby big ballz', 'bobby big balls'],
 	['prof. cube', 'prof cube', 'professor cube', 'profesor cube', 'cube', 'processorcube', 'prof cube $'],
 	['cashoo', 'hoh | cashoo', 'hoh l cashoo'],
-	['ul | chandy', 'ul| chandy', 'cnb | chandy', 'chandy']]
-        ['gallium', 's.e.s punk'],
-        ['spankey', 'spanky'],
-        ['xlll', 'xiii']]
+	['ul | chandy', 'ul| chandy', 'cnb | chandy', 'chandy'],
+	['spankey', 'spanky'],
+	['xlll', 'xiii']]
 
 
 AUSTIN_URLS = ['https://challonge.com/NP9ATX###', 'https://austinsmash4.challonge.com/atx###', 'http://challonge.com/heatwave###']
