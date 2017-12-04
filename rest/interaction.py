@@ -1,4 +1,5 @@
 import shared_data
+import json
 
 def interact():
     while True:
@@ -25,9 +26,14 @@ class interaction(object):
             data = self.data_source()
             if len(b) > 1:
                 if 'print' in b or 'file' in b:
-                    fname = str(keywork) + '.txt'
-                    with open(fname, 'w') as f:
-                        f.write(data)
+                    fname = 'output/' + str(self.keyword) + '.txt'
+                    if b[-1] not in 'print' and b[-1] not in 'file' and b[-1] in data:
+                        with open(fname, 'w') as f:
+                            f.write(json.dumps(data[b[-1]]))
+
+                    else:
+                        with open(fname, 'w') as f:
+                            f.write(json.dumps(data))
 
                 elif b[-1] in data:
                     print(data[b[-1]])
