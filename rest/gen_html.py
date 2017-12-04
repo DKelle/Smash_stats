@@ -1,5 +1,9 @@
-from manual_get_results import get_win_loss_data
+from get_results import get_win_loss_data
+import shared_data
+import bracket_utils
 import sys
+import time
+import constants
 
 def get_header():
     header = "<!DOCTYPE html>\n<html>\n\t<body>\n"
@@ -76,23 +80,25 @@ def init():
 
     #get the actual data about these URLs
     scene_data = shared_data.get_win_loss_data()
+    print('starting html thread')
 
-    for scene in scenes:
-        name = scene[0]
-        base_urls = scene[1]
+    while True:
+        for scene in scenes:
+            name = scene[0]
+            base_urls = scene[1]
 
-        if name in scene_data:
-            data = scene_data[name]
+            if name in scene_data:
+                data = scene_data[name]
 
-            #Now turn all this data into HTML that can be displayed in browser
-            html_header = get_header()
-            html_table_singles = get_table(data, True)
-            html_table_doubles = get_table(data, False)
-            html_footer = get_footer()
+                #Now turn all this data into HTML that can be displayed in browser
+                html_header = get_header()
+                html_table_singles = get_table(data, True)
+                html_table_doubles = get_table(data, False)
+                html_footer = get_footer()
 
-            #Combine all the aspects of the page to create a final HTML file
-            html = html_header + html_table_singles + html_table_doubles + html_footer
+                #Combine all the aspects of the page to create a final HTML file
+                html = html_header + html_table_singles + html_table_doubles + html_footer
 
-            shared_data.set_html(name, html)
-            print(html)
+                shared_data.set_html(name, html)
 
+        time.sleep(constants.SLEEP_TIME)

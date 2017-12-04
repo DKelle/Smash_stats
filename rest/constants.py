@@ -16,3 +16,5 @@ COLORADO_SINGLES_URLS = ['http://smashco.challonge.com/CSUWW###WUS', 'http://sma
 COLORADO_DOUBLES_URLS = ['http://smashco.challonge.com/CSUWW###WUD', 'http://smashco.challonge.com/FCWUDC###']
 COLORADO_URLS = COLORADO_SINGLES_URLS + COLORADO_DOUBLES_URLS
 SMS_URLS = ['http://challonge.com/RAA_###']
+
+SLEEP_TIME = 30

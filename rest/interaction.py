@@ -24,7 +24,12 @@ class interaction(object):
             b = self.query.split()
             data = self.data_source()
             if len(b) > 1:
-                if b[-1] in data:
+                if 'print' in b or 'file' in b:
+                    fname = str(keywork) + '.txt'
+                    with open(fname, 'w') as f:
+                        f.write(data)
+
+                elif b[-1] in data:
                     print(data[b[-1]])
                 else:
                     print('key not in')

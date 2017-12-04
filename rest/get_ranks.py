@@ -405,4 +405,4 @@ def get_ranks():
                 #                print('key ' + str(name) + ' not in dated data' )
                 #                continue
 
-        time.sleep(30)
+        time.sleep(constants.SLEEP_TIME)
