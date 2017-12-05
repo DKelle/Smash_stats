@@ -12,7 +12,7 @@ import gen_html
 
 LOG = logger.logger(__name__)
 
-def main():
+def run():
 
     base_urls = bracket_utils.get_list_of_scenes()
     valids = validURLs(base_urls)
@@ -32,7 +32,9 @@ def main():
         t.start()
 
 
+def main():
+    run()
+
+
 if __name__ == "__main__":
     main()
-
-
