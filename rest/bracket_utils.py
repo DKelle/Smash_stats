@@ -36,7 +36,7 @@ def _get_last_valid_url(base_url, start=1):
     end = start #Use this to keep track of the last valid URL
 
     #Sometimes a week is skipped -- Make sure we see 100 invalid URLs in a row before calling it quits
-    while(invalid_count <= 15):
+    while(invalid_count <= 50):
         #if base_url == "https://austinsmash4.challonge.com/atx145":
         #    print
         url = base_url.replace('###', str(start))
