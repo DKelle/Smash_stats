@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, request
 import shared_data
 import json
 
@@ -20,6 +20,11 @@ def dated_data():
 def win_loss_data():
     return json.dumps(shared_data.get_win_loss_data())
 
-@endpoints.route("/rank_data")
+@endpoints.route("/rank_data/")
 def rank_data():
-    return json.dumps(shared_data.get_rank_data())
+    scene = request.args.get('scene', default=None)
+    rank_data = shared_data.get_rank_data()
+
+    if scene in rank_data:
+        return json.dumps(rank_data[scene])
+    return json.dumps(rank_data)
