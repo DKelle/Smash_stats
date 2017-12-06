@@ -35,4 +35,4 @@ class processData(object):
                    # Now that we have the win loss data for this scene, update shared data
                    shared_data.set_win_loss_data(name, win_loss_data)
 
-            time.sleep(30)
+            time.sleep(constants.SLEEP_TIME)

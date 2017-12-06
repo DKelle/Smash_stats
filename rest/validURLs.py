@@ -2,6 +2,8 @@ from scene import Scene
 import logger
 import bracket_utils
 import shared_data
+import constants
+import time
 
 LOG = logger.logger(__name__)
 
@@ -34,3 +36,5 @@ class validURLs(object):
 
                     # Now that we have the data for this URL, update shared data
                     shared_data.set_url_range_data(base_url, first_url, last_url)
+
+            time.sleep(constants.SLEEP_TIME)

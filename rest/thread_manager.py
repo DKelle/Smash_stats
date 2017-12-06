@@ -8,10 +8,11 @@ import constants
 import get_ranks
 import interaction
 import bracket_utils
+import gen_html
 
 LOG = logger.logger(__name__)
 
-def main():
+def run():
 
     base_urls = bracket_utils.get_list_of_scenes()
     valids = validURLs(base_urls)
@@ -22,7 +23,7 @@ def main():
     # threading.Thread(target=valids.init).start()
 
     ## Create a list of worker threads
-    workers = [valids.init, data_processor.init, get_ranks.get_ranks, interaction.interact]
+    workers = [valids.init, data_processor.init, get_ranks.get_ranks, interaction.interact, gen_html.init]
 
     for worker in workers:
         print(str(worker))
@@ -31,7 +32,9 @@ def main():
         t.start()
 
 
+def main():
+    run()
+
+
 if __name__ == "__main__":
     main()
-
-

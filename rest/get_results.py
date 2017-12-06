@@ -291,13 +291,3 @@ def get_dated_data(base_urls = ['http://challonge.com/Smashbrews###'], include_p
     if include_player_urls:
         return dated_win_loss, urls_per_player
     return dated_win_loss
-
-if __name__ == "__main__":
-    #base_url = 'http://challonge.com/Smashbrews###'
-    #start = bracket_utils.get_first_valid_url(base_url)
-    #end = bracket_utils.get_last_valid_url(base_url, start) us Christif debug: print("Start is %s. End is %s", start, end)
-    #for i in range(start,  end+1):
-    #    bracket = base_url + str(i)
-    #    analyze_tournament(bracket)
-    #pprint(wins_losses_dict)
-    temp()
