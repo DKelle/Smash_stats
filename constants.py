@@ -1,4 +1,4 @@
-TAGS_TO_COALESCE = [['christmas mike', 'thanksgiving mike', 'christmasmike'],
+TAGS_TO_COALESCE = [['christmas mike', 'thanksgiving mike'],
         ['megafox', 'su | megafox'],
         ['hakii', 'su l hakii', 'su | hakii', 'su redriot i hakii', 'hih | hakii', 'su | sleepyhakii', 'su|hakii', 'su | hakii $', 'su  redriot i hakii', 'hoh | hakii', 'su| hakii'],
         ['lucy', 'ttn | lucy'],

@@ -1,5 +1,9 @@
-from manual_get_results import get_win_loss_data
+from get_results import get_win_loss_data
+import shared_data
+import bracket_utils
 import sys
+import time
+import constants
 
 def get_header():
     header = "<!DOCTYPE html>\n<html>\n\t<body>\n"
@@ -71,20 +75,35 @@ def get_wins_losses(player, data):
 
     return wins, losses
 
-if __name__ == "__main__":
-    #first, figure out which URLs we are trying to get
-    base_urls = sys.argv[1:]
+def init():
+    scenes = bracket_utils.get_list_of_named_scenes()
 
     #get the actual data about these URLs
-    data = get_win_loss_data(base_urls)
+    scene_data = shared_data.get_win_loss_data()
+    print('starting html thread')
 
-    #Now turn all this data into HTML that can be displayed in browser
-    html_header = get_header()
-    html_table_singles = get_table(data, True)
-    html_table_doubles = get_table(data, False)
-    html_footer = get_footer()
+    while True:
+        for scene in scenes:
+            name = scene[0]
+            base_urls = scene[1]
 
-    #Combine all the aspects of the page to create a final HTML file
-    html = html_header + html_table_singles + html_table_doubles + html_footer
+            if name in scene_data:
+                data = scene_data[name]
 
-    print(html)
+                #Now turn all this data into HTML that can be displayed in browser
+                html_header = get_header()
+                html_table_singles = get_table(data, True)
+                html_table_doubles = get_table(data, False)
+                html_footer = get_footer()
+
+                #Combine all the aspects of the page to create a final HTML file
+                html = html_header + html_table_singles + html_table_doubles + html_footer
+
+                # Create the actual HTML page
+                fname = 'lib/' + str(scene[0]) + '.html'
+                with open(fname, 'w+') as f:
+                    f.write(html)
+
+                shared_data.set_html(name, html)
+
+        time.sleep(constants.SLEEP_TIME)

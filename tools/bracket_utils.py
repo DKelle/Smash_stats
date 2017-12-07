@@ -1,7 +1,7 @@
 from time import sleep
 from bs4 import BeautifulSoup
 from requests import get
-import constants
+from constants import TAGS_TO_COALESCE
 import re
 import os
 import pickle
@@ -36,7 +36,7 @@ def _get_last_valid_url(base_url, start=1):
     end = start #Use this to keep track of the last valid URL
 
     #Sometimes a week is skipped -- Make sure we see 100 invalid URLs in a row before calling it quits
-    while(invalid_count <= 50):
+    while(invalid_count <= 2):
         #if base_url == "https://austinsmash4.challonge.com/atx145":
         #    print
         url = base_url.replace('###', str(start))
@@ -253,7 +253,7 @@ def player_in_bracket(player, bracket, url):
     return False
 
 def get_coalesce_tags(player):
-    for tags in constants.TAGS_TO_COALESCE:
+    for tags in TAGS_TO_COALESCE:
         if player in tags:
             return tags
     # If this tag does not need to be coalesced, just return a list of this
@@ -271,23 +271,3 @@ def get_urls_with_players(players=["Christmas Mike", "christmasmike"], base_urls
                     urls.append(bracket_url)
                     break
     return urls
-
-def get_list_of_scenes():
-    austin = constants.AUSTIN_URLS
-    smashbrews = constants.SMASHBREWS_RULS
-    colorado_singles = constants.COLORADO_SINGLES_URLS
-    colorado_doubles = constants.COLORADO_DOUBLES_URLS
-    colorado = constants.COLORADO_SINGLES_URLS + constants.COLORADO_DOUBLES_URLS
-    sms = constants.SMS_URLS
-    base_urls = [austin, smashbrews, colorado_singles, colorado_doubles, colorado, sms]
-    return base_urls
-
-def get_list_of_named_scenes():
-    austin = constants.AUSTIN_URLS
-    smashbrews = constants.SMASHBREWS_RULS
-    colorado_singles = constants.COLORADO_SINGLES_URLS
-    colorado_doubles = constants.COLORADO_DOUBLES_URLS
-    sms = constants.SMS_URLS
-    base_urls = [['austin', austin], ['smashbrews', smashbrews], ['colorado', colorado_singles], ['colorado_doubles', colorado_doubles], ['sms', sms]]
-    return base_urls
-

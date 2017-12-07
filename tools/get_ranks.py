@@ -1,13 +1,10 @@
-from get_results import get_win_loss_data, get_dated_data
+from manual_get_results import get_win_loss_data, get_dated_data
 import numpy
 import pickle
 import constants
 import pprint
-import shared_data
 import datetime
-import time
-import copy
-from bracket_utils import dump_pickle_data, load_pickle_data, get_urls_with_players, get_list_of_named_scenes
+from bracket_utils import dump_pickle_data, load_pickle_data, get_urls_with_players
 
 debug = False
 
@@ -356,53 +353,49 @@ def get_total_matches_played(win_loss_data):
         print('total matches played is ' + str(total))
     return total
 
-def get_ranks():
-    scenes = get_list_of_named_scenes()
+def main():
+    URLS = constants.SMS_URLS
+    #URLS = constants.AUSTIN_URLS
+    #URLS = constants.COLORADO_SINGLES_URLS
+    #URLS = constants.AUSTIN_MELEE_URLS
+    #URLS = constants.SMASHBREWS_RULS
+    win_loss_data, player_urls = get_dated_data(URLS, True)
+    if debug:
+        print('win loss data looks like: ')
+        pprint.pprint(win_loss_data)
 
-    while True:
-        dated_data = shared_data.get_dated_data()
+    # Create a map of tags to an ID (index of the tag)
+    tags_to_index = get_tags_to_index(win_loss_data)
+    if debug:
+        print('tags to index looks like')
+        pprint.pprint(tags_to_index)
 
-        for scene in scenes:
-            # Calculate the ranks off all players in this scene
-            name = scene[0]
-            urls = scene[1]
+    # Make a transition matrix that shows the probability
+    # of each player beating any other given player
+    transition_mat = create_transition_mat(win_loss_data, tags_to_index)
+    if debug:
+        print('transition mat looks like')
+        pprint.pprint(transition_mat)
 
-            if name in dated_data:
-                print('have enough data to calculate ranks for scene ' + str(name))
 
-                win_loss_data = copy.deepcopy(dated_data[name])
+    # If we get the eigen vector, we can treat each players
+    # value as a rank
+    # eg, if Christmas Mike is index 5 in tags_to_index
+    # Then eigen_vector[5] will be Christmas Mike's rank
+    ranks = random_walk(numpy.array(transition_mat))
+    if debug:
+        print('ranking values are ')
+        pprint.pprint(ranks)
 
-                # Create a map of tags to an ID (index of the tag)
-                tags_to_index = get_tags_to_index(win_loss_data)
+    if debug:
+        print('ranks times transition mat is')
+        a = numpy.array(transition_mat)
+        b = numpy.array(ranks)
+        pprint.pprint(a.dot(b))
+    ranks_and_tags = list(zip(ranks, tags_to_index))
+    sorted_ranks = sorted(ranks_and_tags)
+    print_results(sorted_ranks, player_urls)
 
-                # Make a transition matrix that shows the probability
-                # of each player beating any other given player
-                transition_mat = create_transition_mat(win_loss_data, tags_to_index)
 
-                # If we get the eigen vector, we can treat each players
-                # value as a rank
-                # eg, if Christmas Mike is index 5 in tags_to_index
-                # Then eigen_vector[5] will be Christmas Mike's rank
-                ranks = random_walk(numpy.array(transition_mat))
-
-                ranks_and_tags = list(zip(ranks, tags_to_index))
-                sorted_ranks = sorted(ranks_and_tags)
-
-                # Now that we have rank data for this scene, updated shared data
-                shared_data.set_rank_data(name, sorted_ranks)
-
-                ranks = {}
-                # PRd if you have played at least 3 tournaments
-                #for i, x in enumerate(sorted_ranks):
-                #    # this is going to be slow
-
-                #    tag = x[1]
-                #    points = x[-1]
-
-                #        print(str(players-i) + '/' + str(players) + ' - ' + str(x[-1]))
-
-                #            else:
-                #                print('key ' + str(name) + ' not in dated data' )
-                #                continue
-
-        time.sleep(constants.SLEEP_TIME)
+if __name__ == "__main__":
+    main()

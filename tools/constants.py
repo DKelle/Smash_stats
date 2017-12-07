@@ -1,4 +1,4 @@
-TAGS_TO_COALESCE = [['christmas mike', 'thanksgiving mike'],
+TAGS_TO_COALESCE = [['christmas mike', 'thanksgiving mike', 'christmasmike'],
         ['megafox', 'su | megafox'],
         ['hakii', 'su l hakii', 'su | hakii', 'su redriot i hakii', 'hih | hakii', 'su | sleepyhakii', 'su|hakii', 'su | hakii $', 'su  redriot i hakii', 'hoh | hakii', 'su| hakii'],
         ['lucy', 'ttn | lucy'],
@@ -17,4 +17,4 @@ COLORADO_DOUBLES_URLS = ['http://smashco.challonge.com/CSUWW###WUD', 'http://sma
 COLORADO_URLS = COLORADO_SINGLES_URLS + COLORADO_DOUBLES_URLS
 SMS_URLS = ['http://challonge.com/RAA_###']
 
-SLEEP_TIME = 30
+SLEEP_TIME = 60 * 5 

@@ -4,7 +4,7 @@ import json
 
 endpoints = Blueprint('endpoints', __name__)
 
-@endpoints.route("/temp")
+@endpoints.route("/")
 def temp():
     return "temp"
 
