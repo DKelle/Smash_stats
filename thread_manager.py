@@ -4,7 +4,6 @@ from scene import Scene
 import constants
 import threading
 import logger
-import shared_data
 import constants
 import get_ranks
 import interaction

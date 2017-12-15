@@ -1,5 +1,3 @@
-from get_results import get_win_loss_data
-import shared_data
 import bracket_utils
 import sys
 import time

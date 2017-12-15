@@ -1,5 +1,4 @@
 from flask import Blueprint, request
-import shared_data
 import json
 
 endpoints = Blueprint('endpoints', __name__)

@@ -2,22 +2,17 @@ import bracket_utils
 import copy
 import json
 import datetime
-import shared_data
 
 from pprint import pprint
 from constants import TAGS_TO_COALESCE
 
 id_tag_dict = {}
 sanitized_tag_dict = {}
-wins_losses_dict = {} # of the form player_tag:[(tag,wins,losses), (player,wins,losses)]
-urls_per_player = {} # Count the number of URLs each player was in
-dated_win_loss = {} # Also store info about the dates of sets, to use for ranking
+debug = True 
 
-debug = False
-
-def analyze_tournament(url, dated, urls_per_player=False):
+def analyze_tournament(db, bracket, dated, urls_per_player=False):
     #Scrape the challonge website for the raw bracket
-    bracket = bracket_utils.get_bracket(url)
+    print("BRACKET IS" + str(bracket))
 
     if bracket == None:
         return
@@ -27,7 +22,7 @@ def analyze_tournament(url, dated, urls_per_player=False):
 
     analyze_bracket(sanitized, url, dated, urls_per_player)
 
-def analyze_bracket(bracket, base_url, dated, include_urls_per_player=False):
+def analyze_bracket(db, bracket, base_url, dated, include_urls_per_player=False):
     global id_tag_dict
     global sanitized_tag_dict
     global wins_losses_dict
@@ -63,61 +58,12 @@ def analyze_bracket(bracket, base_url, dated, include_urls_per_player=False):
         winner = player1_tag if int(winner_id) == int(player1_id) else player2_tag
         loser = player1_tag if winner == player2_tag else player2_tag
 
+        date = get_date(base_url)
+        sql = "INSERT INTO matches(player1, player2, winner, date) VALUES ('"
+        sql += str(player1_tag) + "', '" + str(player2_tag) + "', '" + str(winner) + "', '"+ str(date) + "'); "
+        print(sql)
 
-        if dated:
-            # Add this (date, result) to the dated_win_loss
-            if debug: print('attemptint to add to the dated data ', player1_tag, player2_tag)
-            add_dated_data(player1_tag, player2_tag, winner, base_url)
-            add_dated_data(player2_tag, player1_tag, winner, base_url)
-
-            #Add this bracket to the set of brackets
-            # that 'winner' has played in
-            if include_urls_per_player:
-                if winner not in urls_per_player:
-                    urls_per_player[winner] = []
-                if base_url not in urls_per_player[winner]:
-                    urls_per_player[winner].append(base_url)
-
-        else:
-            #Add this bracket to the set of brackets
-            # that 'winner' has played in
-            if include_urls_per_player:
-                if winner not in urls_per_player:
-                    urls_per_player[winner] = []
-                if base_url not in urls_per_player[winner]:
-                    urls_per_player[winner].append(base_url)
-
-            #sanitize both tage (by taking out whitespace)
-            san_winner = "".join(winner.split())
-            san_loser = "".join(loser.split())
-
-            #add the id/tag to the global dict
-            for ID,tag in [(player1_id,player1_tag), (player2_id,player2_tag)]:
-                if ID not in id_tag_dict:
-                    id_tag_dict[ID] = tag
-                sanitized = "".join(tag.split())
-                if sanitized not in sanitized_tag_dict:
-                    sanitized_tag_dict[sanitized] = tag
-
-            #Update the winner
-            if san_winner not in wins_losses_dict:
-                wins_losses_dict[san_winner] = {}
-
-            if loser not in wins_losses_dict[san_winner]:
-                wins_losses_dict[san_winner][loser] = (1,0)
-            else:
-                cur = wins_losses_dict[san_winner][loser]
-                wins_losses_dict[san_winner][loser] = (cur[0]+1,cur[-1])
-
-            #update the loser
-            if san_loser not in wins_losses_dict:
-                wins_losses_dict[san_loser] = {}
-
-            if winner not in wins_losses_dict[san_loser]:
-                wins_losses_dict[san_loser][winner] = (0,1)
-            else:
-                cur = wins_losses_dict[san_loser][winner]
-                wins_losses_dict[san_loser][winner] = (cur[0],cur[-1]+1)
+        self.db.exec(sql)
 
 def get_player_info(bracket):
     player_dict = json.loads(bracket_utils.sanitize_bracket(bracket))
@@ -127,50 +73,6 @@ def get_player_info(bracket):
         print('tyring to get tag out of player info')
         pprint(player_dict)
     return ID, tag
-
-def get_win_loss_data(base_urls = ['http://challonge.com/Smashbrews###'], include_urls_per_player=False):
-    return get_data(base_urls, include_urls_per_player, dated=False)
-
-def get_data(base_urls, include_player_urls=False, dated=False):
-    # If dated, we will return dated_win_loss data
-    # else we will return win_loss_data
-    global wins_losses_dict
-    global sanitized_tag_dict
-    global dated_win_loss
-
-    if debug: print('about to start getting valid ULRS')
-
-    url_ranges = shared_data.get_valid_range()
-    for base_url in base_urls:
-        # Get the first and last valid url through shared_data
-        if base_url in url_ranges:
-            start, end = url_ranges[base_url]
-
-            for i in range(start,  end+1):
-                bracket = base_url.replace('###', str(i))
-                if debug: print('about to analyze a tourney. Dated? ' + str(dated))
-                analyze_tournament(bracket, dated, include_player_urls)
-
-        else:
-            # We don't have valid range data about this base url
-            continue
-
-    if dated:
-        if include_player_urls:
-            return dated_win_loss, urls_per_player
-        return dated_win_loss
-
-    #The win loss dict is full of tags with whitespace removed. Change the tags back to the proper spacing
-    temp_dict = {}
-    for key in wins_losses_dict:
-        tag = sanitized_tag_dict[key]
-        temp_dict[tag] = wins_losses_dict[key]
-    wins_losses_dict = temp_dict
-
-    if include_player_urls:
-        return wins_losses_dict, urls_per_player
-
-    return wins_losses_dict
 
 def coalesce_tags(dated=True):
     global wins_losses_dict
@@ -236,23 +138,6 @@ def get_coalesced_tag(tag):
     # If this is not a tag that we need to coalesce
     return tag
 
-def add_dated_data(tag, tag_2, winner, url):
-    global dated_win_loss
-
-    # Instanciate the data structure if necessary
-    if tag not in dated_win_loss.keys():
-        dated_win_loss[tag] = {}
-        if debug: print('adding key 1 ', tag)
-    if tag_2 not in dated_win_loss[tag].keys():
-        dated_win_loss[tag][tag_2] = []
-
-    # get the acutal date of this match
-    date = get_date(url)
-
-    # Get the actual date and result
-    dated_data = (date, tag == winner)
-    dated_win_loss[tag][tag_2].append(dated_data)
-
 def get_date(url):
     url = url + "/log"
     bracket = bracket_utils.hit_url(url)
@@ -272,22 +157,6 @@ def get_date(url):
 
     return date
 
-def get_dated_data(base_urls = ['http://challonge.com/Smashbrews###'], include_player_urls=False):
-    # Clear all of this data before we start calculating
-    global id_tag_dict
-    global sanitized_tag_dict
-    global wins_losses_dict
-    global urls_per_player
-    global dated_win_loss
-
-    id_tag_dict = {}
-    sanitized_tag_dict = {}
-    wins_losses_dict = {}
-    urls_per_player = {}
-    dated_win_loss = {}
-
-    # Populate the dated data, then return it
-    get_data(base_urls, include_player_urls, dated=True)
-    if include_player_urls:
-        return dated_win_loss, urls_per_player
-    return dated_win_loss
+def process(url, db):
+    if debug: print('about to start getting valid ulrs')
+    analyze_tournament(db, url, True, False)

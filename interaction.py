@@ -1,4 +1,3 @@
-import shared_data
 import json
 
 def interact():

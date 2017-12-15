@@ -3,5 +3,6 @@
 *.un*
 *.ranks
 placings/*
+database_writer.py
 
 rest/pickle*

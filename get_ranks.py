@@ -1,9 +1,7 @@
-from get_results import get_win_loss_data, get_dated_data
 import numpy
 import pickle
 import constants
 import pprint
-import shared_data
 import datetime
 import time
 import copy

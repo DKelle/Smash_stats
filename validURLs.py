@@ -1,7 +1,7 @@
 from database_writer import DatabaseWriter
+from process_data import processData
 import logger
 import bracket_utils
-import shared_data
 import constants
 import time
 
@@ -11,6 +11,9 @@ class validURLs(object):
     def __init__(self, scenes):
         self.scenes = scenes
         self.db = DatabaseWriter()
+
+        # Create a processor to analyze new matches
+        self.data_processor = processData() 
         print("validURL being created")
 
 
@@ -29,22 +32,28 @@ class validURLs(object):
                     prior_entries = False
                     
                     # attempt to load this data from the database
-                    sql = "SELECT * FROM valids WHERE base_url = '" + str(base_url) + "';"
+                    sql = "SELECT first,last FROM valids WHERE base_url = '" + str(base_url) + "';"
                     result = self.db.exec(sql)
-                    has_results = len(result) > 1
+                    has_results = len(result) > 0 
 
                     # Did we find a match in the database?
                     if has_results:
-                        first = result[0]
-                        last = result[1]
+                        print("validURLs found values in the database" + str(result))
+                        first = result[0][0]
+                        last = result[0][1]
 
                         # Check for a new valid URL
                         new_last = bracket_utils._get_last_valid_url(base_url, last)
 
-                        if new_last:
+                        if not new_last == last:
                             # If there's been a new last, update the database
                             sql = "UPDATE valids SET last=" + str(new_last) + " where base_url = '"+str(base_url)+"';"
                             self.db.exec(sql)
+
+                            # Since this URL is new, we have to process the data
+                            bracket = base_url.replace('###', str(last))
+                            self.data_processor.process(bracket)
+
 
                     else:
                         # We need to create first and last from scratch
@@ -55,6 +64,8 @@ class validURLs(object):
                         sql = "INSERT INTO valids (base_url, first, last, scene) VALUES ("
                         sql += "'"+str(base_url)+"', "+str(first)+ ", "+str(last)+", '"+str(name)+"');"
                         self.db.exec(sql)
+                        bracket = base_url.replace('###', str(last))
+                        self.data_processor.process(bracket)
                         
 
                     print('Got results' + str(result))
