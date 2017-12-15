@@ -1,5 +1,6 @@
 from validURLs import validURLs
 from process_data import processData
+from scene import Scene
 import constants
 import threading
 import logger
@@ -14,8 +15,11 @@ LOG = logger.logger(__name__)
 
 def run():
 
+    # Construct all of our 'scenes'
+
     base_urls = bracket_utils.get_list_of_scenes()
-    valids = validURLs(base_urls)
+    scenes = [Scene(x[0], x[1]) for x in base_urls]
+    valids = validURLs(scenes)
     data_processor = processData()
 
     print('creating worker threads')
@@ -23,7 +27,8 @@ def run():
     # threading.Thread(target=valids.init).start()
 
     ## Create a list of worker threads
-    workers = [valids.init, data_processor.init, get_ranks.get_ranks, interaction.interact, gen_html.init]
+    #workers = [valids.init, data_processor.init, get_ranks.get_ranks, interaction.interact, gen_html.init]
+    workers = [valids.init]
 
     for worker in workers:
         print(str(worker))

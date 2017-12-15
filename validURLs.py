@@ -1,4 +1,4 @@
-from scene import Scene
+from database_writer import DatabaseWriter
 import logger
 import bracket_utils
 import shared_data
@@ -8,33 +8,55 @@ import time
 LOG = logger.logger(__name__)
 
 class validURLs(object):
-    def __init__(self, base_urls_list):
-        self.base_urls_list = base_urls_list
-        LOG.info("validURL being created")
+    def __init__(self, scenes):
+        self.scenes = scenes
+        self.db = DatabaseWriter()
+        print("validURL being created")
 
 
     def init(self):
         print('valid urls has been started')
-        scenes = []
-        for base_url in self.base_urls_list:
-            scenes.append(Scene(base_url))
 
         # Now that we have all the scenes we want to analyze,
         # continuously check for new brackets
         while True:
-            for scene in scenes:
+            for scene in self.scenes:
 
                 # This scene will have several base URLs
                 base_urls = scene.get_base_urls()
+                name = scene.get_name()
                 for base_url in base_urls:
-                    # get the first
-                    first_url = bracket_utils._get_first_valid_url(base_url)
-                    last_url = bracket_utils._get_last_valid_url(base_url, first_url)
-                    print('analyzing ' + str(base_url))
-                    LOG.info('First is ' + str(first_url))
-                    LOG.info('last is ' + str(last_url))
+                    prior_entries = False
+                    
+                    # attempt to load this data from the database
+                    sql = "SELECT * FROM valids WHERE base_url = '" + str(base_url) + "';"
+                    result = self.db.exec(sql)
+                    has_results = len(result) > 1
 
-                    # Now that we have the data for this URL, update shared data
-                    shared_data.set_url_range_data(base_url, first_url, last_url)
+                    # Did we find a match in the database?
+                    if has_results:
+                        first = result[0]
+                        last = result[1]
+
+                        # Check for a new valid URL
+                        new_last = bracket_utils._get_last_valid_url(base_url, last)
+
+                        if new_last:
+                            # If there's been a new last, update the database
+                            sql = "UPDATE valids SET last=" + str(new_last) + " where base_url = '"+str(base_url)+"';"
+                            self.db.exec(sql)
+
+                    else:
+                        # We need to create first and last from scratch
+                        first = bracket_utils._get_first_valid_url(base_url)
+                        last = bracket_utils._get_last_valid_url(base_url, first)
+
+                        # This is new data, we need to put it into the db
+                        sql = "INSERT INTO valids (base_url, first, last, scene) VALUES ("
+                        sql += "'"+str(base_url)+"', "+str(first)+ ", "+str(last)+", '"+str(name)+"');"
+                        self.db.exec(sql)
+                        
+
+                    print('Got results' + str(result))
 
             time.sleep(constants.SLEEP_TIME)
