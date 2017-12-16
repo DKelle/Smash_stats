@@ -35,7 +35,6 @@ class validURLs(object):
                     sql = "SELECT first,last FROM valids WHERE base_url = '" + str(base_url) + "';"
                     result = self.db.exec(sql)
                     has_results = len(result) > 0 
-                    print("HAS RESULTS? " + str(has_results))
 
                     # Did we find a match in the database?
                     if has_results:

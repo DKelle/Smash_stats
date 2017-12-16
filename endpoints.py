@@ -1,5 +1,8 @@
 from flask import Blueprint, request
 import json
+from database_writer import DatabaseWriter
+
+db = None
 
 endpoints = Blueprint('endpoints', __name__)
 
@@ -27,3 +30,17 @@ def rank_data():
     if scene in rank_data:
         return json.dumps(rank_data[scene])
     return json.dumps(rank_data)
+
+@endpoints.route("/wins")
+def wins():
+    if db == None:
+        init()
+
+    palyer = request.args.get('player', default="Christmas mike")
+    sql = "SELECT * FROM matches WHERE winner = '"+str(player)"';"
+    result = db.exec(sql)
+
+    return result
+
+def init():
+    db = DatabaseWriter()
