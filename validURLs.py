@@ -64,8 +64,10 @@ class validURLs(object):
                         sql = "INSERT INTO valids (base_url, first, last, scene) VALUES ("
                         sql += "'"+str(base_url)+"', "+str(first)+ ", "+str(last)+", '"+str(name)+"');"
                         self.db.exec(sql)
-                        bracket = base_url.replace('###', str(last))
-                        self.data_processor.process(bracket)
+
+                        for i in range(first, last+1):
+                            bracket = base_url.replace('###', str(i))
+                            self.data_processor.process(bracket)
                         
 
                     print('Got results' + str(result))

@@ -4,7 +4,7 @@ TAGS_TO_COALESCE = [['christmas mike', 'thanksgiving mike'],
         ['lucy', 'ttn | lucy'],
         ['sassy', 'atx | sassy'],
         ['crump', 'donald crump', 'captain crump', 'abc | crump'],
-        ['dragonite', 'su dragonite', 'su | dragonite', 'tpwn | dragonite', 'tpwn | dragonite_pr', 'tpwn| dragonite (gnw)', 'atx hoh | dragonite', 'dragonite_pr', 'hoh | dragonite', 'mega dragonite'],
+        ['dragonite', 'armada | dragonite', 'armada| dragonite', 'armada|dragonite', 'su dragonite', 'su | dragonite', 'tpwn | dragonite', 'tpwn | dragonite_pr', 'tpwn| dragonite (gnw)', 'atx hoh | dragonite', 'dragonite_pr', 'hoh | dragonite', 'mega dragonite'],
         ['gallium', 's.e.s punk'],
         ['spankey', 'spanky'],
         ['xlll', 'xiii']]

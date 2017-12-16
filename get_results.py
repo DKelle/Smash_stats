@@ -8,11 +8,11 @@ from constants import TAGS_TO_COALESCE
 
 id_tag_dict = {}
 sanitized_tag_dict = {}
-debug = True 
+debug = False 
 
-def analyze_tournament(db, bracket, dated, urls_per_player=False):
+def analyze_tournament(db, url, dated, urls_per_player=False):
     #Scrape the challonge website for the raw bracket
-    print("BRACKET IS" + str(bracket))
+    bracket = bracket_utils.get_bracket(url)
 
     if bracket == None:
         return
@@ -20,14 +20,9 @@ def analyze_tournament(db, bracket, dated, urls_per_player=False):
     #Sanitize the braket
     sanitized = bracket_utils.sanitize_bracket(bracket)
 
-    analyze_bracket(sanitized, url, dated, urls_per_player)
+    analyze_bracket(db, sanitized, url, dated, urls_per_player)
 
 def analyze_bracket(db, bracket, base_url, dated, include_urls_per_player=False):
-    global id_tag_dict
-    global sanitized_tag_dict
-    global wins_losses_dict
-    global urls_per_player
-    global dated_win_loss
     #continuously find the next instances of 'player1' and 'player2'
     if debug: print('analyz a bracket. Dated? ' + str(dated))
     while 'player1' in bracket and 'player2' in bracket:
@@ -59,11 +54,11 @@ def analyze_bracket(db, bracket, base_url, dated, include_urls_per_player=False)
         loser = player1_tag if winner == player2_tag else player2_tag
 
         date = get_date(base_url)
-        sql = "INSERT INTO matches(player1, player2, winner, date) VALUES ('"
-        sql += str(player1_tag) + "', '" + str(player2_tag) + "', '" + str(winner) + "', '"+ str(date) + "'); "
+        sql = "INSERT INTO matches(player1, player2, winner, date, base_url) VALUES ('"
+        sql += str(player1_tag) + "', '" + str(player2_tag) + "', '" + str(winner) + "', '"+ str(date) + "', '"+str(base_url)+"'); "
         print(sql)
 
-        self.db.exec(sql)
+        db.exec(sql)
 
 def get_player_info(bracket):
     player_dict = json.loads(bracket_utils.sanitize_bracket(bracket))
