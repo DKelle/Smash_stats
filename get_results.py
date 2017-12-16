@@ -2,6 +2,7 @@ import bracket_utils
 import copy
 import json
 import datetime
+import re
 
 from pprint import pprint
 from constants import TAGS_TO_COALESCE
@@ -48,6 +49,9 @@ def analyze_bracket(db, bracket, base_url, dated, include_urls_per_player=False)
         # eg, if this is 'thanksgiving mike', we should change it to 'christmas mike'
         player1_tag = get_coalesced_tag(player1_tag)
         player2_tag = get_coalesced_tag(player2_tag)
+
+        player1_tag = re.sub("['-]", '', player1_tag)
+        player2_tag = re.sub("['-]", '', player2_tag)
 
         #Now that we have both players, and the winner ID, what's the tag of the winner?
         winner = player1_tag if int(winner_id) == int(player1_id) else player2_tag
