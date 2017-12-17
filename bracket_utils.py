@@ -18,9 +18,9 @@ def _get_first_valid_url(base_url):
     index = 1
     while(not valid):
         url = base_url.replace('###', str(index))
-        data = hit_url(url)
+        data, status = hit_url(url)
 
-        if is_valid(data):
+        if status < 300 and is_valid(data):
             if debug: print('url ' + url + ' is valid')
             valid = True
         else:
@@ -42,9 +42,9 @@ def _get_last_valid_url(base_url, start=1):
         url = base_url.replace('###', str(start))
         if debug: print('start is ' + str(start))
 
-        data = hit_url(url)
+        data, status = hit_url(url)
 
-        if is_valid(data):
+        if status < 300  and is_valid(data):
             if debug: print('url ' + str(url) + ' is valid')
             invalid_count = 0
             end = start
@@ -106,7 +106,7 @@ def hit_url(url):
         print("is valid?")
     data =  load_pickle_data(url)
     if data:
-        return data
+        return data, 200
 
     if debug and url == "https://austinsmash4.challonge.com/atx155":
         print("not in ")
@@ -121,7 +121,7 @@ def hit_url(url):
         # Make sure we pickle this data, so we can get it next time
         dump_pickle_data(url, data)
 
-    return data
+    return data, r.status_code
 
 def get_brackets_from_scene(scene_url):
     # Given the url for a given scene (https://austinsmash4.challonge.com)
@@ -131,7 +131,7 @@ def get_brackets_from_scene(scene_url):
         # Given a specific page of a scene, parse out the urls for all brackets
         # eg inputhttps://austinsmash4.challonge.com?page=4
         # The above URL contains a list of brackets. Find those bracket URLs
-        scene_brackets_html = hit_url(scene_url)
+        scene_brackets_html, status = hit_url(scene_url)
         scene_name = scene_url.split('https://')[-1].split('.')[0]
         soup = BeautifulSoup(scene_brackets_html, "lxml")
 
@@ -167,7 +167,7 @@ def is_valid(html):
 
 def get_bracket(url):
 
-    data = hit_url(url)
+    data, status = hit_url(url)
 
     # Create the Python Object from HTML
     soup = BeautifulSoup(data, "html.parser")
@@ -220,7 +220,7 @@ def sanitize_bracket(bracket, symbol="{}"):
 def get_tournament_placings(bracket_url):
     # Map tags to their respective placings in this bracket
     placings_map = {}
-    standings_html = hit_url(bracket_url+'/standings')
+    standings_html, status = hit_url(bracket_url+'/standings')
     soup = BeautifulSoup(standings_html, "lxml")
     tds = soup.find_all('td')
 

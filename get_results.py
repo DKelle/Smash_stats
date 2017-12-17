@@ -139,7 +139,7 @@ def get_coalesced_tag(tag):
 
 def get_date(url):
     url = url + "/log"
-    bracket = bracket_utils.hit_url(url)
+    bracket, status = bracket_utils.hit_url(url)
 
     first_occurance = str(bracket).index('created_at')
     bracket = bracket[first_occurance:]
@@ -157,5 +157,12 @@ def get_date(url):
     return date
 
 def process(url, db):
-    if debug: print('about to start getting valid ulrs')
+    # Just to be sure, make sure this bracket hasn't already been analyzed
+    sql = "SELECT * FROM analyzed WHERE base_url = '" + str(url) + "';"
+    result = db.exec(sql)
+    if len(result) > 0:
+        return
+
     analyze_tournament(db, url, True, False)
+    sql = "INSERT INTO analyzed (base_url) VALUES ('" + str(url)+"');" 
+    db.exec(sql)

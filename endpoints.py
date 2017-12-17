@@ -36,11 +36,38 @@ def wins():
     if db == None:
         init()
 
-    palyer = request.args.get('player', default="Christmas mike")
-    sql = "SELECT * FROM matches WHERE winner = '"+str(player)"';"
+    player = request.args.get('player', default="Christmas mike")
+    sql = "SELECT * FROM matches WHERE winner = '"+str(player)+"' ORDER BY date DESC;"
     result = db.exec(sql)
 
-    return result
+    return json.dumps(str(result))
+
+@endpoints.route("/losses")
+def losses():
+    if db == None:
+        init()
+
+    player = request.args.get('player', default="Christmas mike")
+    sql = "SELECT * FROM matches WHERE (player1 = '"+str(player)+"' OR "\
+            +"player2 = '"+str(player)+"') AND winner != '"+str(player)+"' ORDER BY date DESC;"
+    result = db.exec(sql)
+
+    return json.dumps(str(result))
+
+@endpoints.route("/h2h")
+def h2h():
+    if db == None:
+        init()
+
+    player1 = request.args.get('player1', default="Christmas mike")
+    player2 = request.args.get('player2', default="Christmas mike")
+    sql = "SELECT * FROM matches WHERE (player1 = '"+str(player1)+"' OR "\
+            +"player2 = '"+str(player1)+"') AND (player1 = '"+str(player2)+"' OR "\
+            +"player2 = '"+str(player2)+"') ORDER BY date DESC;"
+    result = db.exec(sql)
+
+    return json.dumps(str(result))
 
 def init():
+    global db
     db = DatabaseWriter()
