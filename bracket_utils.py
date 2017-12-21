@@ -11,6 +11,77 @@ DEFAULT_BASE_URLS = ['https://challonge.com/NP9ATX###', 'http://challonge.com/he
 
 debug = False
 
+def temp(base_url):
+
+    #Start from 1, and increment the number at the end or URL until we find a valid URL
+    valid = False
+    index = 1
+    while(not valid):
+        url = base_url.replace('###', str(index))
+        data, status = temp_hit_url(url)
+
+        if status < 300 and temp_is_valid(data):
+            if debug: print('url ' + url + ' is valid')
+            valid = True
+            index = index + 1
+        elif index > 300:
+            valid = True
+        else:
+            if debug: print('url ' + url + ' is not valid')
+            index = index + 1
+
+    return index
+
+def temp2(base_url, start=1):
+
+    #We know that URL number 'start' is valid. What is the next invalid URL?
+    invalid_count = 0
+    end = start #Use this to keep track of the last valid URL
+
+    #Sometimes a week is skipped -- Make sure we see 100 invalid URLs in a row before calling it quits
+    while(invalid_count <= 50):
+        #if base_url == "https://austinsmash4.challonge.com/atx145":
+        #    print
+        url = base_url.replace('###', str(start))
+        if debug: print('start is ' + str(start))
+
+        data, status = temp_hit_url(url)
+
+        if status < 300  and temp_is_valid(data):
+            if debug: print('url ' + str(url) + ' is valid')
+            invalid_count = 0
+            end = start
+        else:
+            invalid_count = invalid_count + 1
+
+        start = start + 1
+    return end
+
+
+def temp_is_valid(html):
+
+    #Check to see if this tournament page exists
+    errors= ['The page you\'re looking for isn\'t here', 'No tournaments found']
+    for error in errors:
+        if error in str(html):
+            return False
+    return True
+
+def temp_hit_url(url):
+    # Before we try to hit this URL, see if we have pickle data for it
+
+    if debug and url == "https://austinsmash4.challonge.com/atx155":
+        print("is valid?")
+    data =  load_pickle_data(url)
+    if data:
+        return data, 200
+
+    if debug and url == "https://austinsmash4.challonge.com/atx155":
+        print("not in ")
+
+    return data, 404
+
+
 def _get_first_valid_url(base_url):
 
     #Start from 1, and increment the number at the end or URL until we find a valid URL

@@ -60,10 +60,6 @@ epsilon = 10
 # The greater this number, the more significant recent matches will be
 exponent = 10
 
-class PlayerNode(object):
-    def __init__(self, tag):
-        self.tag = tag
-
 def zeros(n):
     z = [0 for i in range(n)]
     zs = []

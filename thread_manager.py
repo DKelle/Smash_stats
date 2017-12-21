@@ -1,5 +1,4 @@
 from validURLs import validURLs
-from process_data import processData
 from scene import Scene
 import constants
 import threading
@@ -19,7 +18,6 @@ def run():
     base_urls = bracket_utils.get_list_of_scenes()
     scenes = [Scene(x[0], x[1]) for x in base_urls]
     valids = validURLs(scenes)
-    data_processor = processData()
 
     print('creating worker threads')
     LOG.info("Creating the following worker threads")
