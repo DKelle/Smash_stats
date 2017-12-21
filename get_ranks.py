@@ -354,53 +354,21 @@ def get_total_matches_played(win_loss_data):
         print('total matches played is ' + str(total))
     return total
 
-def get_ranks():
-    scenes = get_list_of_named_scenes()
+def get_ranks(win_loss_data):
+    # Create a map of tags to an ID (index of the tag)
+    tags_to_index = get_tags_to_index(win_loss_data)
 
-    while True:
-        dated_data = shared_data.get_dated_data()
+    # Make a transition matrix that shows the probability
+    # of each player beating any other given player
+    transition_mat = create_transition_mat(win_loss_data, tags_to_index)
 
-        for scene in scenes:
-            # Calculate the ranks off all players in this scene
-            name = scene[0]
-            urls = scene[1]
+    # If we get the eigen vector, we can treat each players
+    # value as a rank
+    # eg, if Christmas Mike is index 5 in tags_to_index
+    # Then eigen_vector[5] will be Christmas Mike's rank
+    ranks = random_walk(numpy.array(transition_mat))
 
-            if name in dated_data:
-                print('have enough data to calculate ranks for scene ' + str(name))
+    ranks_and_tags = list(zip(ranks, tags_to_index))
+    sorted_ranks = sorted(ranks_and_tags)
 
-                win_loss_data = copy.deepcopy(dated_data[name])
-
-                # Create a map of tags to an ID (index of the tag)
-                tags_to_index = get_tags_to_index(win_loss_data)
-
-                # Make a transition matrix that shows the probability
-                # of each player beating any other given player
-                transition_mat = create_transition_mat(win_loss_data, tags_to_index)
-
-                # If we get the eigen vector, we can treat each players
-                # value as a rank
-                # eg, if Christmas Mike is index 5 in tags_to_index
-                # Then eigen_vector[5] will be Christmas Mike's rank
-                ranks = random_walk(numpy.array(transition_mat))
-
-                ranks_and_tags = list(zip(ranks, tags_to_index))
-                sorted_ranks = sorted(ranks_and_tags)
-
-                # Now that we have rank data for this scene, updated shared data
-                shared_data.set_rank_data(name, sorted_ranks)
-
-                ranks = {}
-                # PRd if you have played at least 3 tournaments
-                #for i, x in enumerate(sorted_ranks):
-                #    # this is going to be slow
-
-                #    tag = x[1]
-                #    points = x[-1]
-
-                #        print(str(players-i) + '/' + str(players) + ' - ' + str(x[-1]))
-
-                #            else:
-                #                print('key ' + str(name) + ' not in dated data' )
-                #                continue
-
-        time.sleep(constants.SLEEP_TIME)
+    return ranks

@@ -1,4 +1,5 @@
 from flask import Blueprint, request
+from get_ranks import get_ranks
 import json
 from database_writer import DatabaseWriter
 
@@ -67,6 +68,56 @@ def h2h():
     result = db.exec(sql)
 
     return json.dumps(str(result))
+
+@endpoints.route("/ranks")
+def ranks():
+    # Define contsants
+    PLAYER1 = 0
+    PLAYER2 = 1
+    WINNER = 2
+    DATE = 3
+    SCENE = 4
+    if db == None:
+        init()
+
+    # Default to Austin
+    scene = requests.args.get('scene', default='austin')
+
+    # Get every match from this scene
+    sql = "SELECT * FROM matches WHERE scene = '"+ scene +"';"
+    matches =  db.exec(sql)
+
+    # Iterate through each match, and build up our dict
+    win_loss_dict = {}
+    for match in matches:
+        p1 = match[PLAYER1]
+        p2 = match[PLAYER2]
+        winner = match[WINNER]
+        date = match[DATE]
+
+        #Add p1 to the dict
+        if p1 not in win_loss_dict:
+            win_loss_dict[p1] = {}
+
+        if p2 not in win_loss_dict[p1]:
+            win_loss_dict[p1][p2] = []
+
+        # Add an entry to represent this match to p1
+        win_loss_dict[p1][p2].append((date, winner == p1))
+
+        # add p2 to the dict
+        if p2 not in win_loss_dict:
+            win_loss_dict[p2] = {}
+
+        if p1 not in win_loss_dict[p2]:
+            win_loss_dict[p2][p1] = []
+
+        win_loss_dict[p2][p1].append((date, winner == p2))
+
+    #Now that we created this dict, calculate ranks
+    ranks = get_ranks.get_ranks(win_loss_dict)
+    return json.dumps(str(ranks))
+
 
 def init():
     global db
