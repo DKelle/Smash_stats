@@ -52,7 +52,7 @@ class validURLs(object):
 
                             # Since this URL is new, we have to process the data
                             bracket = base_url.replace('###', str(last))
-                            self.data_processor.process(bracket)
+                            self.data_processor.process(bracket, name)
 
 
                     else:
@@ -67,7 +67,7 @@ class validURLs(object):
 
                         for i in range(first, last+1):
                             bracket = base_url.replace('###', str(i))
-                            self.data_processor.process(bracket)
+                            self.data_processor.process(bracket, name)
                         
 
             time.sleep(constants.SLEEP_TIME)

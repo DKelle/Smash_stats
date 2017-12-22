@@ -115,7 +115,7 @@ def ranks():
         win_loss_dict[p2][p1].append((date, winner == p2))
 
     #Now that we created this dict, calculate ranks
-    ranks = get_ranks.get_ranks(win_loss_dict)
+    ranks = get_ranks(win_loss_dict)
     return json.dumps(str(ranks))
 
 

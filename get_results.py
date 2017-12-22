@@ -11,7 +11,7 @@ id_tag_dict = {}
 sanitized_tag_dict = {}
 debug = False 
 
-def analyze_tournament(db, url, dated, urls_per_player=False):
+def analyze_tournament(db, url, scene, dated, urls_per_player=False):
     #Scrape the challonge website for the raw bracket
     bracket = bracket_utils.get_bracket(url)
 
@@ -21,9 +21,9 @@ def analyze_tournament(db, url, dated, urls_per_player=False):
     #Sanitize the braket
     sanitized = bracket_utils.sanitize_bracket(bracket)
 
-    analyze_bracket(db, sanitized, url, dated, urls_per_player)
+    analyze_bracket(db, sanitized, url, scene, dated, urls_per_player)
 
-def analyze_bracket(db, bracket, base_url, dated, include_urls_per_player=False):
+def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player=False):
     #continuously find the next instances of 'player1' and 'player2'
     if debug: print('analyz a bracket. Dated? ' + str(dated))
     while 'player1' in bracket and 'player2' in bracket:
@@ -58,11 +58,10 @@ def analyze_bracket(db, bracket, base_url, dated, include_urls_per_player=False)
         loser = player1_tag if winner == player2_tag else player2_tag
 
         date = get_date(base_url)
-        sql = "INSERT INTO matches(player1, player2, winner, date, base_url) VALUES ('"
-        sql += str(player1_tag) + "', '" + str(player2_tag) + "', '" + str(winner) + "', '"+ str(date) + "', '"+str(base_url)+"'); "
-        print(sql)
+        sql = "INSERT INTO matches(player1, player2, winner, date, scene) VALUES ('"
+        sql += str(player1_tag) + "', '" + str(player2_tag) + "', '" + str(winner) + "', '"+ str(date) + "', '"+str(scene)+"'); "
 
-        db.exec(sql)
+        db.exec(sql, debug=False)
 
 def get_player_info(bracket):
     player_dict = json.loads(bracket_utils.sanitize_bracket(bracket))
@@ -156,13 +155,13 @@ def get_date(url):
 
     return date
 
-def process(url, db):
+def process(url, scene, db):
     # Just to be sure, make sure this bracket hasn't already been analyzed
     sql = "SELECT * FROM analyzed WHERE base_url = '" + str(url) + "';"
     result = db.exec(sql)
     if len(result) > 0:
         return
 
-    analyze_tournament(db, url, True, False)
+    analyze_tournament(db, url, scene, True, False)
     sql = "INSERT INTO analyzed (base_url) VALUES ('" + str(url)+"');" 
     db.exec(sql)

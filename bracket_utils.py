@@ -4,6 +4,7 @@ from requests import get
 import constants
 import re
 import os
+import pickle
 
 DEFAULT_BASE_URLS = ['https://challonge.com/NP9ATX###', 'http://challonge.com/heatwave###', 'https://austinsmash4.challonge.com/atx###',\
         'http://challonge.com/RAA_###']
@@ -54,23 +55,71 @@ def _get_last_valid_url(base_url, start=1):
     return end
 
 def get_valid_url_range(base_url):
-    start = _get_first_valid_url(base_url)
-    end = _get_last_valid_url(base_url, start)
+    # Try to get this data form pickle
+    start_end = load_pickle_data(base_url)
+    if start_end:
+        start, end = start_end
+
+        # See if there have been new brackets since we pickled this data
+        end = _get_last_valid_url(base_url, end)
+
+    else:
+        start = _get_first_valid_url(base_url)
+        end = _get_last_valid_url(base_url, start)
+
+    dump_pickle_data(base_url, (start,end))
 
     return start, end
 
+def dump_pickle_data(base_fname, data):
+    cwd = os.getcwd()
+
+    # Go from https://ausin_melee_bracket -> austin_melee_bracket
+    bracket_name = base_fname.replace('/', '_')
+    fname = cwd+'/pickle/'+str(bracket_name)+'.p'
+
+    with open(fname, "wb") as p:
+        pickle.dump(data, p)
+
+def load_pickle_data(base_fname):
+    if debug: print('attempting to get pickle data for ', base_fname)
+    # Attempt to get data from pickle
+    cwd = os.getcwd()
+
+    # Go from https://ausin_melee_bracket -> austin_melee_bracket
+    bracket_name = base_fname.replace('/', '_')
+    fname = cwd+'/pickle/'+str(bracket_name)+'.p'
+
+    try:
+        with open(fname, 'rb') as p:
+            data = pickle.load(p)
+            return data
+
+    except FileNotFoundError:
+        if debug: print('failed to get pickle data for ', base_fname)
+        return None
 
 def hit_url(url):
+    # Before we try to hit this URL, see if we have pickle data for it
 
     if debug and url == "https://austinsmash4.challonge.com/atx155":
         print("is valid?")
+    data =  load_pickle_data(url)
+    if data:
+        return data, 200
 
+    if debug and url == "https://austinsmash4.challonge.com/atx155":
+        print("not in ")
     #sleep, to make sure we don't go over our rate-limit
     sleep(.01)
 
     #Get the html page
     r = get(url)
     data = r.text
+
+    if(is_valid(data)):
+        # Make sure we pickle this data, so we can get it next time
+        dump_pickle_data(url, data)
 
     return data, r.status_code
 
