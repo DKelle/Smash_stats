@@ -18,16 +18,16 @@ def temp(base_url):
     index = 1
     while(not valid):
         url = base_url.replace('###', str(index))
-        data, status = temp_hit_url(url)
+        data, status = hit_url(url)
 
         if status < 300 and temp_is_valid(data):
-            if debug: print('url ' + url + ' is valid')
+            print('url ' + url + ' is valid')
             valid = True
             index = index + 1
         elif index > 300:
             valid = True
         else:
-            if debug: print('url ' + url + ' is not valid')
+            print('url ' + url + ' is not valid')
             index = index + 1
 
     return index
@@ -43,12 +43,12 @@ def temp2(base_url, start=1):
         #if base_url == "https://austinsmash4.challonge.com/atx145":
         #    print
         url = base_url.replace('###', str(start))
-        if debug: print('start is ' + str(start))
+        print('start is ' + str(start))
 
-        data, status = temp_hit_url(url)
+        data, status = hit_url(url)
 
         if status < 300  and temp_is_valid(data):
-            if debug: print('url ' + str(url) + ' is valid')
+            print('url ' + str(url) + ' is valid')
             invalid_count = 0
             end = start
         else:
@@ -359,4 +359,8 @@ def get_list_of_named_scenes():
     sms = constants.SMS_URLS
     base_urls = [['austin', austin], ['smashbrews', smashbrews], ['colorado', colorado_singles], ['colorado_doubles', colorado_doubles], ['sms', sms]]
     return base_urls
+
+
+if __name__ == "__main__":
+    temp('https://challonge.com/NP9ATX###')
 
