@@ -1,11 +1,10 @@
 import numpy
-import pickle
 import constants
 import pprint
 import datetime
 import time
 import copy
-from bracket_utils import dump_pickle_data, load_pickle_data, get_urls_with_players, get_list_of_named_scenes
+from bracket_utils import get_urls_with_players, get_list_of_named_scenes
 
 debug = False
 
