@@ -81,7 +81,7 @@ def ranks():
         init()
 
     # Default to Austin
-    scene = requests.args.get('scene', default='austin')
+    scene = request.args.get('scene', default='austin')
 
     # Get every match from this scene
     sql = "SELECT * FROM matches WHERE scene = '"+ scene +"';"
