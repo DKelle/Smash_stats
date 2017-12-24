@@ -58,8 +58,8 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
         loser = player1_tag if winner == player2_tag else player2_tag
 
         date = get_date(base_url)
-        sql = "INSERT INTO matches(player1, player2, winner, date, scene) VALUES ('"
-        sql += str(player1_tag) + "', '" + str(player2_tag) + "', '" + str(winner) + "', '"+ str(date) + "', '"+str(scene)+"'); "
+        sql = "INSERT INTO matches(player1, player2, winner, date, scene, url) VALUES ('"
+        sql += str(player1_tag) + "', '" + str(player2_tag) + "', '" + str(winner) + "', '"+ str(date) + "', '"+str(scene) + "', '"+str(base_url)+"'); "
 
         db.exec(sql, debug=False)
 

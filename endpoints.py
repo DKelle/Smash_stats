@@ -2,6 +2,8 @@ from flask import Blueprint, request
 from get_ranks import get_ranks
 import json
 from database_writer import DatabaseWriter
+#sys.path.insert(0, '/home/ubuntu/Smash_stats/tools')
+#from tools import  
 
 db = None
 
@@ -19,9 +21,9 @@ def valid_urls():
 def dated_data():
     return json.dumps(shared_data.get_dated_data())
 
-@endpoints.route("/win_loss_data")
-def win_loss_data():
-    return json.dumps(shared_data.get_win_loss_data())
+#@endpoints.route("/win_loss_data")
+#def win_loss_data():
+#    return json.dumps(shared_data.get_win_loss_data())
 
 @endpoints.route("/rank_data/")
 def rank_data():
@@ -113,6 +115,12 @@ def ranks():
             win_loss_dict[p2][p1] = []
 
         win_loss_dict[p2][p1].append((date, winner == p2))
+
+    # Compare this win_loss_dict to the tools/ genereated win_loss_dict
+    urls = constants.SMS_URLS
+    d2, _ = get_dated_data(urls, True)
+    assert(win_loss_dict == d2)
+    print(d2)
 
     #Now that we created this dict, calculate ranks
     ranks = get_ranks(win_loss_dict)
