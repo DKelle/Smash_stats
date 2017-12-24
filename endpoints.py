@@ -126,6 +126,39 @@ def ranks():
     ranks = get_ranks(win_loss_dict)
     return json.dumps(str(ranks))
 
+@endpoints.route("/both_entrants")
+def both_entrants():
+    if db == None:
+        init()
+
+    sql = "SELECT base_url FROM analyzed;"
+    urls = db.exec(sql)
+
+    player1 = request.args.get('player1', default="Christmas mike")
+    player2 = request.args.get('player2', default="Christmas mike")
+    # Collect all the URLs that these players were in together
+    common = []
+    for url in urls:
+        sql = "SELECT * FROM matches WHERE url = '"+str(url[0])+"';"
+        matches = db.exec(sql)
+
+        p1_matches = []
+        p2_matches = []
+        perge = lambda l, p: [x for x in l if p == x[0] or p == x[1]]
+        urls_p1_in = [] 
+        for match in matches:
+            if player1 in match and match[5] not in urls_p1_in:
+                urls_p1_in.append(match[5])
+                # We have all the brackets, now find the ones p2 has played in
+                sql = "SELECT * FROM matches WHERE (player1 = '" + str(player2) +\
+                        "' or player2 = '"+str(player2)+"') AND url = '" + str(match[5]) +\
+                        "';"
+                both_entered = db.exec(sql)
+                no_dups = list(set([x[5] for x in both_entered]))
+                common = common + list(no_dups)
+                print(both_entered)
+
+    return json.dumps(common)
 
 def init():
     global db
