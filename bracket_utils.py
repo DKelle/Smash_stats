@@ -159,7 +159,8 @@ def get_brackets_from_scene(scene_url):
 def is_valid(html):
 
     #Check to see if this tournament page exists
-    errors= ['The page you\'re looking for isn\'t here', 'No tournaments found']
+    errors= ['The page you\'re looking for isn\'t here', 'No tournaments found',\
+            'Bad gateway']
     for error in errors:
         if error in str(html):
             return False

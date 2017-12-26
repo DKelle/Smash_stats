@@ -126,39 +126,36 @@ def ranks():
     ranks = get_ranks(win_loss_dict)
     return json.dumps(str(ranks))
 
-@endpoints.route("/both_entrants")
-def both_entrants():
+@endpoints.route("/entrants")
+def entrants():
     if db == None:
         init()
 
     sql = "SELECT base_url FROM analyzed;"
     urls = db.exec(sql)
 
-    player1 = request.args.get('player1', default="Christmas mike")
-    player2 = request.args.get('player2', default="Christmas mike")
-    # Collect all the URLs that these players were in together
-    common = []
-    for url in urls:
-        sql = "SELECT * FROM matches WHERE url = '"+str(url[0])+"';"
-        matches = db.exec(sql)
+    # Create an array of all the players that we want to search for
+    players = []
+    for p in request.args:
+        players.append(request.args[p])
 
-        p1_matches = []
-        p2_matches = []
-        perge = lambda l, p: [x for x in l if p == x[0] or p == x[1]]
-        urls_p1_in = [] 
-        for match in matches:
-            if player1 in match and match[5] not in urls_p1_in:
-                urls_p1_in.append(match[5])
-                # We have all the brackets, now find the ones p2 has played in
-                sql = "SELECT * FROM matches WHERE (player1 = '" + str(player2) +\
-                        "' or player2 = '"+str(player2)+"') AND url = '" + str(match[5]) +\
-                        "';"
-                both_entered = db.exec(sql)
-                no_dups = list(set([x[5] for x in both_entered]))
-                common = common + list(no_dups)
-                print(both_entered)
+    for p in players:
+        # Create a long 'OR' clause. One for each 'url'
+        # eg WHERE url = "url1" OR url = "url2" ...
+        or_clause = "url = '{}' ".format(urls[0][0]) + " ".join(["OR url = '{}'".format(url[0]) for url in urls[1:]])
+        
+        # Grab all the URLs that this player has played in
+        sql = "SELECT DISTINCT url FROM matches WHERE (player1 = '" + str(p) +\
+                "' or player2 = '"+str(p)+"') AND (" + str(or_clause) +");"
+        
+        # This should be a list of all the URLs that all of the players have been in together
+        urls = db.exec(sql)
 
-    return json.dumps(common)
+        # If we ever get to an empty set of URLs, just return
+        if len(urls) == 0:
+            return json.dumps([])
+
+    return json.dumps(urls)
 
 def init():
     global db

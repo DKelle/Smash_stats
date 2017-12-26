@@ -43,7 +43,7 @@ class validURLs(object):
                         last = result[0][1]
 
                         # Check for a new valid URL
-                        new_last = bracket_utils._get_last_valid_url(base_url, last)
+                        new_last = bracket_utils._get_last_valid_url(base_url, last-1)
 
                         if not new_last == last:
                             # If there's been a new last, update the database
