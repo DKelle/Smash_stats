@@ -50,6 +50,7 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
         player1_tag = get_coalesced_tag(player1_tag)
         player2_tag = get_coalesced_tag(player2_tag)
 
+        # TODO sql injection
         player1_tag = re.sub("['-]", '', player1_tag)
         player2_tag = re.sub("['-]", '', player2_tag)
 

@@ -2,6 +2,8 @@ from flask import Blueprint, request
 from get_ranks import get_ranks
 import json
 from database_writer import DatabaseWriter
+import constants
+import bracket_utils
 #sys.path.insert(0, '/home/ubuntu/Smash_stats/tools')
 #from tools import  
 
@@ -12,27 +14,6 @@ endpoints = Blueprint('endpoints', __name__)
 @endpoints.route("/")
 def temp():
     return "temp"
-
-@endpoints.route("/valid_urls")
-def valid_urls():
-    return json.dumps(shared_data.get_valid_range())
-
-@endpoints.route("/dated_data")
-def dated_data():
-    return json.dumps(shared_data.get_dated_data())
-
-#@endpoints.route("/win_loss_data")
-#def win_loss_data():
-#    return json.dumps(shared_data.get_win_loss_data())
-
-@endpoints.route("/rank_data/")
-def rank_data():
-    scene = request.args.get('scene', default=None)
-    rank_data = shared_data.get_rank_data()
-
-    if scene in rank_data:
-        return json.dumps(rank_data[scene])
-    return json.dumps(rank_data)
 
 @endpoints.route("/wins")
 def wins():
@@ -118,26 +99,29 @@ def ranks():
 
     # Compare this win_loss_dict to the tools/ genereated win_loss_dict
     urls = constants.SMS_URLS
-    d2, _ = get_dated_data(urls, True)
-    assert(win_loss_dict == d2)
-    print(d2)
+
+    # TODO compare these two data to make sure we are doing it right
+    #d2, _ = get_dated_data(urls, True)
+    #assert(win_loss_dict == d2)
+    #print(d2)
 
     #Now that we created this dict, calculate ranks
     ranks = get_ranks(win_loss_dict)
     return json.dumps(str(ranks))
 
 @endpoints.route("/entrants")
-def entrants():
+def entrants(players=None):
     if db == None:
         init()
 
     sql = "SELECT base_url FROM analyzed;"
-    urls = db.exec(sql)
+    urls = db.exec(sql, debug=False)
 
-    # Create an array of all the players that we want to search for
-    players = []
-    for p in request.args:
-        players.append(request.args[p])
+    # Create an array ofall the players that we want to search for
+    if players == None:
+        players = []
+        for p in request.args:
+            players.append(request.args[p])
 
     for p in players:
         # Create a long 'OR' clause. One for each 'url'
@@ -156,6 +140,21 @@ def entrants():
             return json.dumps([])
 
     return json.dumps(urls)
+
+@endpoints.route("/placings")
+def placings():
+    if db == None:
+        init()
+
+    tag = request.args.get('tag', default='christmas mike')
+
+    print("args are: "+str(tag))
+    # Get all the urls that this player has participated in
+    sql = "SELECT * FROM placings WHERE player = '{}'".format(tag)
+    results = list(db.exec(sql))
+    results.sort(key=lambda x: int(x[2]))
+
+    return json.dumps(results)
 
 def init():
     global db

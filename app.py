@@ -9,5 +9,4 @@ if __name__ == "__main__":
     threading.Thread(target=thread_manager.run).start()
 
     app.register_blueprint(endpoints)
-    app.run()
-
+    app.run(host='0.0.0.0', debug = False)

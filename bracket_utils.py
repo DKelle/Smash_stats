@@ -222,7 +222,7 @@ def get_tournament_placings(bracket_url):
     # Map tags to their respective placings in this bracket
     placings_map = {}
     standings_html, status = hit_url(bracket_url+'/standings')
-    soup = BeautifulSoup(standings_html, "lxml")
+    soup = BeautifulSoup(standings_html, "html")
     tds = soup.find_all('td')
 
     # Cycle thorugh these tds, and find the ones that represent different placings
