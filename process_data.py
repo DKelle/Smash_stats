@@ -4,6 +4,7 @@ import get_results
 import time
 import copy
 import bracket_utils
+from get_ranks import get_ranks
 from database_writer import DatabaseWriter
 import re
 
@@ -37,14 +38,46 @@ class processData(object):
         print(tournament_placings)
 
 
-        #found_placing = False
-        #for tag in tags:
-        #    player_placing = tournament_placings[tag.lower()] if tag.lower() in tournament_placings else None
-        #    if player_placing:
-        #        found_placing = True
-        #        player_placings.append((url, player_placing))
-        #if not found_placing:
-        #    print('cant determine placing in bracket ' + url)
+    def process_ranks(self, scene):
+        print("Dallas! About to process ranks")
+        PLAYER1 = 0
+        PLAYER2 = 1
+        WINNER = 2
+        DATE = 3
+        SCENE = 4
 
-        #for url, placing in sorted(player_placings, key=lambda x : x[-1]):
+        # Get every match from this scene
+        sql = "SELECT * FROM matches WHERE scene = '"+ scene +"';"
+        matches =  self.db.exec(sql)
+
+        # Iterate through each match, and build up our dict
+        win_loss_dict = {}
+        for match in matches:
+            p1 = match[PLAYER1]
+            p2 = match[PLAYER2]
+            winner = match[WINNER]
+            date = match[DATE]
+
+            #Add p1 to the dict
+            if p1 not in win_loss_dict:
+                win_loss_dict[p1] = {}
+
+            if p2 not in win_loss_dict[p1]:
+                win_loss_dict[p1][p2] = []
+
+            # Add an entry to represent this match to p1
+            win_loss_dict[p1][p2].append((date, winner == p1))
+            print("appending to win loss dict {}".format((date, winner, p2)))
+
+            # add p2 to the dict
+            if p2 not in win_loss_dict:
+                win_loss_dict[p2] = {}
+
+            if p1 not in win_loss_dict[p2]:
+                win_loss_dict[p2][p1] = []
+
+            win_loss_dict[p2][p1].append((date, winner == p2))
+
+        ranks = get_ranks(win_loss_dict)
+        print('dallas - {}'.format(ranks))
 

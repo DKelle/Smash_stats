@@ -7,7 +7,7 @@ import time
 import copy
 from bracket_utils import dump_pickle_data, load_pickle_data, get_urls_with_players, get_list_of_named_scenes
 
-debug = False
+debug = False 
 
 TEST_DATA = {
     "A": {
@@ -109,7 +109,7 @@ def date_to_points(date, max_days, min_days):
 
     # This tournament somewhere between newest and oldest tournaments
     # If 0 was oldest, and 100 was newst, what is this?
-    day_range = max_days - min_days
+    day_range = max(1, max_days - min_days)
     percentage = days_from_oldest * 100 / day_range
     if debug: print('this was X days ago ' + str(percentage) )
     score = percentage ** exponent
@@ -218,7 +218,6 @@ def get_points_given_up_to(tag, tag2, win_loss_data, max_days, min_days, loss_on
             if loss_only and not match[1]:
                 total += score
             elif not loss_only:
-                print('adding to the total score '+ str(score))
                 total += score
 
     return total
@@ -357,10 +356,12 @@ def get_total_matches_played(win_loss_data):
 def get_ranks(win_loss_data):
     # Create a map of tags to an ID (index of the tag)
     tags_to_index = get_tags_to_index(win_loss_data)
+    #print(tags_to_index)
 
     # Make a transition matrix that shows the probability
     # of each player beating any other given player
     transition_mat = create_transition_mat(win_loss_data, tags_to_index)
+    #print(transition_mat)
 
     # If we get the eigen vector, we can treat each players
     # value as a rank

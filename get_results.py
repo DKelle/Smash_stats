@@ -3,13 +3,73 @@ import copy
 import json
 import datetime
 import re
+import pysmash
 
 from pprint import pprint
 from constants import TAGS_TO_COALESCE
 
+smash = None
 id_tag_dict = {}
 sanitized_tag_dict = {}
 debug = False 
+
+def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
+    global smash
+    if smash == None:
+        smash = pysmash.SmashGG()
+
+    # Exctract the tournament and event names
+    # eg url:
+    # https://smash.gg/tournament/pulsar-premier-league/events/rocket-league-3v3/brackets/68179
+    # tournament name = pulsar-premier-leauge
+    # event name = rocket-league-3v3
+    url_parts = url.split('/')
+    print("about to analyze smashgg bracket: {}".format(url))
+
+    if 'tournament' in url_parts and 'events' in url_parts:
+        t = url_parts[url_parts.index('tournament')+1]
+        e = url_parts[url_parts.index('events')+1]
+
+        # The event will be either 'melee' or 'wiiu'
+
+        players = smash.tournament_show_players(t, e)
+        # Create a map of ID to tag
+        tag_id_dict = {}
+        for player in players:
+            id = int(player["entrant_id"])
+            tag = player["tag"]
+            # sanitize the tag
+            tag = ''.join([i if ord(i) < 128 else ' ' for i in tag])
+            #TODO sql injection
+            tag = re.sub("['-]", '', tag)
+            
+            #TODO coalesce here
+            tag_id_dict[id] = tag
+            print('id {} is tag {}'.format(id, tag))
+
+        sets = smash.tournament_show_sets(t, e)
+        e = "pro" if "melee" in e else "pro_wiiu"
+        for s in sets:
+            # Temporary
+            date = '2017-09-26'
+
+            l_id = int(s['loser_id'])
+            w_id = int(s['winner_id'])
+            if l_id in tag_id_dict and w_id in tag_id_dict:
+                loser = tag_id_dict[l_id]
+                winner = tag_id_dict[w_id]
+            else:
+                continue
+
+            sql = "INSERT INTO matches(player1, player2, winner, date, scene, url) VALUES ('{}', '{}', '{}', '{}', '{}', '{}');".format(\
+                    winner, loser, winner, date, e, url)
+
+            db.exec(sql)
+
+    else:
+        print("ERROR PARSING SMASHGG: {}".format(url))
+        return
+
 
 def analyze_tournament(db, url, scene, dated, urls_per_player=False):
     #Scrape the challonge website for the raw bracket
@@ -163,6 +223,10 @@ def process(url, scene, db):
     if len(result) > 0:
         return
 
-    analyze_tournament(db, url, scene, True, False)
+    if "challonge" in url:
+        analyze_tournament(db, url, scene, True, False)
+    else:
+        analyze_smashgg_tournament(db, url, scene, True, False)
+
     sql = "INSERT INTO analyzed (base_url) VALUES ('" + str(url)+"');" 
     db.exec(sql)

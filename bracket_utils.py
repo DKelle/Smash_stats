@@ -160,7 +160,17 @@ def is_valid(html):
 
     #Check to see if this tournament page exists
     errors= ['The page you\'re looking for isn\'t here', 'No tournaments found',\
-            'Bad gateway']
+            "Internal Server Error",
+            "Not Implemented",
+            "Bad Gateway",
+            "Service Unavailable",
+            "Gateway Timeout",
+            "HTTP Version Not Supported",
+            "Variant Also Negotiates",
+            "Insufficient Storage",
+            "Loop Detected",
+            "Not Extended",
+            "Network Authentication Required"]
     for error in errors:
         if error in str(html):
             return False
