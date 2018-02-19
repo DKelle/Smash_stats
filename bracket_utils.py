@@ -5,6 +5,7 @@ import constants
 import re
 import os
 import pickle
+import pysmash
 
 DEFAULT_BASE_URLS = ['https://challonge.com/NP9ATX###', 'http://challonge.com/heatwave###', 'https://austinsmash4.challonge.com/atx###',\
         'http://challonge.com/RAA_###']
@@ -172,7 +173,7 @@ def is_valid(html):
             "Not Extended",
             "Network Authentication Required"]
     for error in errors:
-        if error in str(html):
+        if error.lower() in str(html).lower():
             return False
     return True
 
@@ -231,20 +232,38 @@ def sanitize_bracket(bracket, symbol="{}"):
 def get_tournament_placings(bracket_url):
     # Map tags to their respective placings in this bracket
     placings_map = {}
-    standings_html, status = hit_url(bracket_url+'/standings')
-    soup = BeautifulSoup(standings_html, "html")
-    tds = soup.find_all('td')
 
-    # Cycle thorugh these tds, and find the ones that represent different placings
-    current_placing = 1
-    for td in tds:
-        if td.has_attr('class') and td['class'][0] == 'rank':
-            current_placing = int(td.getText())
-        span = td.find('span')
-        # Player tags are kept in <span> elements
-        if span:
-            player = span.getText()
-            placings_map[player.lower()] = current_placing
+    if 'challonge' in bracket_url:
+        standings_html, status = hit_url(bracket_url+'/standings')
+        soup = BeautifulSoup(standings_html, "html")
+        tds = soup.find_all('td')
+
+        # Cycle thorugh these tds, and find the ones that represent different placings
+        current_placing = 1
+        for td in tds:
+            if td.has_attr('class') and td['class'][0] == 'rank':
+                current_placing = int(td.getText())
+            span = td.find('span')
+            # Player tags are kept in <span> elements
+            if span:
+                player = span.getText()
+                placings_map[player.lower()] = current_placing
+
+    # This bracket is from smashgg
+    else:
+        smash = pysmash.SmashGG()
+        url_parts = bracket_url.split('/')
+
+        if 'tournament' in url_parts and 'events' in url_parts:
+            t = url_parts[url_parts.index('tournament')+1]
+            e = url_parts[url_parts.index('events')+1]
+            players = smash.tournament_show_players(t, e)
+            for player_dict in players:
+                tag = player_dict['tag']
+                # sanitize the tag
+                tag = ''.join([i if ord(i) < 128 else ' ' for i in tag])
+                place = player_dict['final_placement']
+                placings_map[tag.lower()] = place
 
     return placings_map
 

@@ -33,6 +33,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
         # The event will be either 'melee' or 'wiiu'
 
         players = smash.tournament_show_players(t, e)
+        print('dallas: smashgg players {}'.format(players))
         # Create a map of ID to tag
         tag_id_dict = {}
         for player in players:
@@ -45,7 +46,6 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
             
             #TODO coalesce here
             tag_id_dict[id] = tag
-            print('id {} is tag {}'.format(id, tag))
 
         sets = smash.tournament_show_sets(t, e)
         e = "pro" if "melee" in e else "pro_wiiu"

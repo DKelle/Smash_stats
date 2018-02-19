@@ -5,6 +5,9 @@ import bracket_utils
 import constants
 import time
 
+# TODO this is temporary test code
+loaded_smashgg = False
+
 LOG = logger.logger(__name__)
 
 class validURLs(object):
@@ -18,11 +21,13 @@ class validURLs(object):
 
 
     def init(self):
-        print('valid urls has been started')
+        global loaded_smashgg
 
         # Now that we have all the scenes we want to analyze,
         # continuously check for new brackets
         while True:
+
+            
             for scene in self.scenes:
 
                 # This scene will have several base URLs
@@ -46,14 +51,22 @@ class validURLs(object):
                         new_last = bracket_utils._get_last_valid_url(base_url, last-1)
 
                         if not new_last == last:
+                            if new_last - last > 5:
+                                with open("DEBUGOUTPUT.txt", 'w') as f:
+                                    f.write("found a SHIT TON of new tournaments for bracket: {}".format(base_url))
                             # If there's been a new last, update the database
                             sql = "UPDATE valids SET last=" + str(new_last) + " where base_url = '"+str(base_url)+"';"
                             self.db.exec(sql)
 
                             # Since this URL is new, we have to process the data
                             bracket = base_url.replace('###', str(last))
-                            self.data_processor.process(bracket, name)
 
+                            # Analyze each of these new brackets
+                            for i in range(last+1, new_last+1):
+                                self.data_processor.process(bracket, name)
+
+                            #TODO uncomment
+                            #self.data_processor.process_ranks(name)
 
                     else:
                         # We need to create first and last from scratch
@@ -68,6 +81,23 @@ class validURLs(object):
                         for i in range(first, last+1):
                             bracket = base_url.replace('###', str(i))
                             self.data_processor.process(bracket, name)
+
+                        #TODO uncomment
+                        #self.data_processor.process_ranks(name)
                         
 
+            # TODO temporary - have we loaded smashgg brackets?
+            if not loaded_smashgg:
+                for b in constants.PRO_URLS:
+                    name = "pro"
+                    self.data_processor.process(b, name)
+                
+                # After all the matches from this scene have been processed, calculate ranks
+                #self.data_processor.process_ranks('pro')
+                loaded_smashgg = True
+
+                #TODO uncomment
+                #self.data_processor.process_ranks(name)
+
+                #print("dallas - done loading smashgg")
             time.sleep(constants.SLEEP_TIME)

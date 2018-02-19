@@ -15,9 +15,11 @@ TAGS_TO_COALESCE = [['christmas mike', 'thanksgiving mike'],
 	['cashoo', 'hoh | cashoo', 'hoh l cashoo'],
 	['ul | chandy', 'ul| chandy', 'cnb | chandy', 'chandy'],
 	['spankey', 'spanky'],
-	['xlll', 'xiii']]
+	['xlll', 'xiii'],
+	['cheesedud6', '←/cheesedud6'],
+        ['red velvet', 'karonite', 'aos redvelvet']]
 
-AUSTIN_URLS = ('austin', ['https://challonge.com/NP9ATX###', 'https://austinsmash4.challonge.com/atx###', 'http://challonge.com/heatwave###'])
+AUSTIN_URLS = ('austin', ['https://challonge.com/NP9ATX###', 'https://austinsmash4.challonge.com/atx###', 'http://challonge.com/heatwave###', 'http://challonge.com/hw###'])
 SMASHBREWS_RULS = ('smashbrews', ['https://challonge.com/Smashbrews###'])
 COLORADO_SINGLES_URLS = ('colorado', ['http://smashco.challonge.com/CSUWW###WUS', 'http://smascho.challonge.com/FCWUA###', 'http://smascho.challonge.com/FCWUIB###'])
 COLORADO_DOUBLES_URLS = ('colorado_doubles', ['http://smashco.challonge.com/CSUWW###WUD', 'http://smashco.challonge.com/FCWUDC###'])

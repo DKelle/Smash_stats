@@ -49,10 +49,12 @@ class processData(object):
         # Get every match from this scene
         sql = "SELECT * FROM matches WHERE scene = '"+ scene +"';"
         matches =  self.db.exec(sql)
+        print("just got all matches for ranking purposes: {}".format(matches))
 
         # Iterate through each match, and build up our dict
         win_loss_dict = {}
         for match in matches:
+            print('about to use match: {}'.format(match)) 
             p1 = match[PLAYER1]
             p2 = match[PLAYER2]
             winner = match[WINNER]
@@ -67,7 +69,6 @@ class processData(object):
 
             # Add an entry to represent this match to p1
             win_loss_dict[p1][p2].append((date, winner == p1))
-            print("appending to win loss dict {}".format((date, winner, p2)))
 
             # add p2 to the dict
             if p2 not in win_loss_dict:
@@ -78,6 +79,19 @@ class processData(object):
 
             win_loss_dict[p2][p1].append((date, winner == p2))
 
+        # TODO make sure if we already have calculated ranks for these players, we update the DB
+        sql = "SELECT * FROM ranks WHERE scene = '{}'".format(str(scene))
+        res = self.db.exec(sql)
+        if len(res) > 0:
+            sql = "DELETE FROM ranks WHERE scene = '{}'".format(str(scene))
+            self.db.exec(sql)
+
         ranks = get_ranks(win_loss_dict)
+        for i, x in enumerate(ranks):
+            points, player = x
+            rank = len(ranks) - i
+            sql = "INSERT INTO ranks (scene, player, rank, points) VALUES ('{}', '{}', '{}', '{}');"\
+                    .format(str(scene), str(player), str(rank), str(points))
+            self.db.exec(sql)
         print('dallas - {}'.format(ranks))
 

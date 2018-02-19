@@ -1,19 +1,21 @@
-from flask import Blueprint, request
-from get_ranks import get_ranks
+from flask import Blueprint, request, render_template
 import json
 from database_writer import DatabaseWriter
 import constants
 import bracket_utils
+import requests
 #sys.path.insert(0, '/home/ubuntu/Smash_stats/tools')
 #from tools import  
 
 db = None
 
+BASE_URL = 'https://localhost:5000'
 endpoints = Blueprint('endpoints', __name__)
 
 @endpoints.route("/")
 def temp():
-    return "temp"
+    a = 'what up dog'
+    return render_template('hello.html', wins=a)
 
 @endpoints.route("/wins")
 def wins():
@@ -25,7 +27,8 @@ def wins():
     result = db.exec(sql)
 
     result = [str(x) for x in result]
-    return json.dumps('\n'.join(result))
+    result = '\n'.join(result)
+    return render_template('hello.html', wins=result)
 
 @endpoints.route("/losses")
 def losses():
@@ -85,7 +88,8 @@ def entrants(players=None):
         if len(urls) == 0:
             return json.dumps([])
 
-    result = [str(x) for x in result]
+    #result = [str(x) for x in result]
+    return json.dumps(urls)
     return json.dumps('\n'.join(urls))
 
 @endpoints.route("/placings")
@@ -100,6 +104,19 @@ def placings():
     sql = "SELECT * FROM placings WHERE player = '{}'".format(tag)
     results = list(db.exec(sql))
     results.sort(key=lambda x: int(x[2]))
+
+    return json.dumps(results)
+
+@endpoints.route("/ranks")
+def ranks():
+    if db == None:
+        init()
+
+    scene = request.args.get('scene', default='austin')
+
+    # Get all the urls that this player has participated in
+    sql = "SELECT * FROM ranks WHERE scene = '{}'".format(scene)
+    results = list(db.exec(sql))
 
     return json.dumps(results)
 
