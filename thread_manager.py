@@ -21,7 +21,6 @@ def run():
     valids = validURLs(scenes)
     data_processor = processData()
 
-    print('creating worker threads')
     LOG.info("Creating the following worker threads")
     # threading.Thread(target=valids.init).start()
 
@@ -30,8 +29,7 @@ def run():
     workers = [valids.init]
 
     for worker in workers:
-        print(str(worker))
-        LOG.info(str(worker))
+        LOG.info("Starting worker {}".format(str(worker)))
         t = threading.Thread(target=worker)
         t.start()
 

@@ -17,7 +17,7 @@ class validURLs(object):
 
         # Create a processor to analyze new matches
         self.data_processor = processData() 
-        print("validURL being created")
+        LOG.info("validURL being created")
 
 
     def init(self):
@@ -43,7 +43,7 @@ class validURLs(object):
 
                     # Did we find a match in the database?
                     if has_results:
-                        print("validURLs found values in the database" + str(result))
+                        LOG.info("validURLs found values in the database" + str(result))
                         first = result[0][0]
                         last = result[0][1]
 
@@ -84,6 +84,7 @@ class validURLs(object):
 
                         #TODO uncomment
                         #self.data_processor.process_ranks(name)
+                #self.data_processor.process_ranks(name)
                         
 
             # TODO temporary - have we loaded smashgg brackets?

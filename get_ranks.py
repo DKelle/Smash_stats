@@ -6,9 +6,10 @@ import datetime
 import time
 import copy
 from bracket_utils import dump_pickle_data, load_pickle_data, get_urls_with_players, get_list_of_named_scenes
+from logger import logger
 
-debug = False 
-
+debug = True 
+LOG = logger(__name__)
 TEST_DATA = {
     "A": {
         "B": (1, 0),
@@ -196,6 +197,10 @@ def create_transition_mat(win_loss_data, tags_to_index):
             print('mike vs ' + str(player_2))
             print('wins, losses', wins, losses)
             print(transition_mat[i])
+
+        if 'christmas' in player_1:
+            LOG.info('mike vs {}'.format(player_2))
+
     return transition_mat
 
 def get_total_points_given_up(tag, win_loss_data, max_days, min_days):
@@ -299,6 +304,8 @@ def random_walk(trans_mat, threshold=0.0000000000000001):
         cur_state = cur_state.dot(trans_mat)
         diff = l2(cur_state, prev_state)
         if debug: print(diff)
+
+    LOG.info('Done with the random walk for determining ranks')
     return cur_state
 
 def index_of(vals, find):
@@ -360,6 +367,7 @@ def get_ranks(win_loss_data):
 
     # Make a transition matrix that shows the probability
     # of each player beating any other given player
+    LOG.info('About to start creating a transition matrix')
     transition_mat = create_transition_mat(win_loss_data, tags_to_index)
     #print(transition_mat)
 
@@ -372,4 +380,5 @@ def get_ranks(win_loss_data):
     ranks_and_tags = list(zip(ranks, tags_to_index))
     sorted_ranks = sorted(ranks_and_tags)
 
+    LOG.info('Returning ranks')
     return sorted_ranks

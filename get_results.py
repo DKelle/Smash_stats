@@ -24,7 +24,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
     # tournament name = pulsar-premier-leauge
     # event name = rocket-league-3v3
     url_parts = url.split('/')
-    print("about to analyze smashgg bracket: {}".format(url))
+    LOG.info("about to analyze smashgg bracket: {}".format(url))
 
     if 'tournament' in url_parts and 'events' in url_parts:
         t = url_parts[url_parts.index('tournament')+1]
@@ -33,7 +33,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
         # The event will be either 'melee' or 'wiiu'
 
         players = smash.tournament_show_players(t, e)
-        print('dallas: smashgg players {}'.format(players))
+        LOG.info('dallas: smashgg players {}'.format(players))
         # Create a map of ID to tag
         tag_id_dict = {}
         for player in players:
@@ -67,7 +67,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
             db.exec(sql)
 
     else:
-        print("ERROR PARSING SMASHGG: {}".format(url))
+        LOG.info("ERROR PARSING SMASHGG: {}".format(url))
         return
 
 

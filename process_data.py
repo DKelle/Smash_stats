@@ -12,7 +12,7 @@ LOG = logger.logger(__name__)
 
 class processData(object):
     def __init__(self):
-        print('loading constants for process')
+        LOG.info('loading constants for process')
         self.dated_base_scene = bracket_utils.get_list_of_named_scenes()
         self.list_of_scene = bracket_utils.get_list_of_scenes()
         self.db = DatabaseWriter()
@@ -35,11 +35,10 @@ class processData(object):
 
             self.db.exec(sql)
 
-        print(tournament_placings)
+        LOG.info("{}".format(tournament_placings))
 
 
     def process_ranks(self, scene):
-        print("Dallas! About to process ranks")
         PLAYER1 = 0
         PLAYER2 = 1
         WINNER = 2
@@ -49,12 +48,12 @@ class processData(object):
         # Get every match from this scene
         sql = "SELECT * FROM matches WHERE scene = '"+ scene +"';"
         matches =  self.db.exec(sql)
-        print("just got all matches for ranking purposes: {}".format(matches))
+        LOG.info("just got all matches for ranking purposes: {}".format(matches))
 
         # Iterate through each match, and build up our dict
         win_loss_dict = {}
         for match in matches:
-            print('about to use match: {}'.format(match)) 
+            LOG.info('about to use match: {}'.format(match)) 
             p1 = match[PLAYER1]
             p2 = match[PLAYER2]
             winner = match[WINNER]
@@ -93,5 +92,5 @@ class processData(object):
             sql = "INSERT INTO ranks (scene, player, rank, points) VALUES ('{}', '{}', '{}', '{}');"\
                     .format(str(scene), str(player), str(rank), str(points))
             self.db.exec(sql)
-        print('dallas - {}'.format(ranks))
+        LOG.info('dallas - {}'.format(ranks))
 
