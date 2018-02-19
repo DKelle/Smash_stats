@@ -26,8 +26,6 @@ class validURLs(object):
         # Now that we have all the scenes we want to analyze,
         # continuously check for new brackets
         while True:
-
-            
             for scene in self.scenes:
 
                 # This scene will have several base URLs
@@ -53,7 +51,7 @@ class validURLs(object):
                         if not new_last == last:
                             if new_last - last > 5:
                                 with open("DEBUGOUTPUT.txt", 'w') as f:
-                                    f.write("found a SHIT TON of new tournaments for bracket: {}".format(base_url))
+                                    f.write("[validURLs.py:55]: found a SHIT TON of new tournaments for bracket: {}".format(base_url))
                             # If there's been a new last, update the database
                             sql = "UPDATE valids SET last=" + str(new_last) + " where base_url = '"+str(base_url)+"';"
                             self.db.exec(sql)
@@ -88,10 +86,16 @@ class validURLs(object):
                         
 
             # TODO temporary - have we loaded smashgg brackets?
+            name = "pro"
             if not loaded_smashgg:
                 for b in constants.PRO_URLS:
-                    name = "pro"
-                    self.data_processor.process(b, name)
+                    # Before we process this URL, check to see if we already have
+                    sql = "SELECT * FROM analyzed where base_url='{}'".format(b)
+                    res = self.db.exec(sql)
+                    if len(res) == 0:
+                        self.data_processor.process(b, name)
+                    else:
+                        LOG.info("Skpping pro bracket because it has already been analyzed: {}".format(b))
                 
                 # After all the matches from this scene have been processed, calculate ranks
                 #self.data_processor.process_ranks('pro')

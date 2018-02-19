@@ -5,6 +5,7 @@ import datetime
 import re
 import pysmash
 
+from logger import logger
 from pprint import pprint
 from constants import TAGS_TO_COALESCE
 
@@ -12,6 +13,8 @@ smash = None
 id_tag_dict = {}
 sanitized_tag_dict = {}
 debug = False 
+
+LOG = logger(__name__)
 
 def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
     global smash
@@ -133,62 +136,18 @@ def get_player_info(bracket):
         pprint(player_dict)
     return ID, tag
 
-def coalesce_tags(dated=True):
-    global wins_losses_dict
-    global dated_win_loss
-    data = wins_losses_dict if not dated else dated_win_loss
-    # 2D list
-    # Each inner list is a list of tags that should all be
-    # coalesced into one
-    tags_to_coalesce = TAGS_TO_COALESCE
-
-    for tags in tags_to_coalesce:
-        # The first tag in the list is the tag we want to
-        # combine evertyhing to
-        main_tag = tags[0]
-        other = tags[1:]
-        # coalesce 'christmas mike' and 'thanksgiving mike'
-        if main_tag in data.keys():
-            if debug:
-                print('found the tag ' + str(main_tag) + ' to coalesce')
-                print('coalescing with the tags ' + str(other))
-            for o in other:
-                base_data = data[main_tag]
-
-                # Is the name we want to coalesce with in the dict?
-                if o in data.keys():
-                    coalesce_data = data[o]
-
-                    new_data = copy.deepcopy(base_data)
-                    for key, value in coalesce_data.items():
-                        # Do we already have data about this tag?
-                        if key in new_data.keys():
-                            combine = lambda l1, l2, i: (l1[i] + l2[i])
-                            combined_wins = combine(new_data[key], coalesce_data[key], 0)
-                            combined_losses = combine(new_data[key], coalesce_data[key], 1)
-                            combined_data = (combined_wins, combined_losses)
-                            new_data[key] = combined_data
-                        else:
-                            new_data[key] = coalesce_data[key]
-
-                    data[main_tag] = new_data
-                    del data[o]
-
-        elif debug:
-            print(str(main_tag) + ' is not of one the tags in the win loss data')
-            print('Not coalescing any of the following names:\n' + str(other))
-
-def get_coalesced_tag(tag):
+def get_coalesced_tag(tag, debug=debug):
     # See if this is one of the tags we should coalesce
     for tags in TAGS_TO_COALESCE:
         # Tags is a list of all tags that are actually one player
         # eg. ['christmas mike', 'thanksgiving mike']
-        if debug:
-            print('trying to find tag in list: ' + str(tags))
+        if debug or tag == "su|hakii":
+            print('trying to find tag {} in list: {}'.format(tag, tags))
 
+        tag = tag.lower()
         if tag in tags:
-            if debug:
-                print('found ' + str(tag) + ' in list ')
+            if debug or tag == "su|hakii":
+                print('found ' + str(tags[0]) + ' in list ')
             # The first tag in this list is the main tag that we want
             # to change the others to
             # eg. ['christmas mike', 'thanksgiving mike']
@@ -222,6 +181,14 @@ def process(url, scene, db):
     result = db.exec(sql)
     if len(result) > 0:
         return
+
+    # Also see if we made it partially through analyzing this bracket
+    sql = "SELECT * FROM matches WHERE url = '{}';".format(url)
+    result = db.exec(sql)
+    if len(result) > 0:
+        # Clear out these matches so we can start from the beginning
+        sql = "DELETE FROM matches WHERE url = '{}';".format(url)
+        db.exec(sql)
 
     if "challonge" in url:
         analyze_tournament(db, url, scene, True, False)

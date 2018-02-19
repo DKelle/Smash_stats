@@ -28,6 +28,7 @@ def wins():
 
     result = [str(x) for x in result]
     result = '\n'.join(result)
+    return json.dumps(result)
     return render_template('hello.html', wins=result)
 
 @endpoints.route("/losses")

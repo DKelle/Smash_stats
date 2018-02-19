@@ -6,6 +6,7 @@ import re
 import os
 import pickle
 import pysmash
+from get_results import get_coalesced_tag
 
 DEFAULT_BASE_URLS = ['https://challonge.com/NP9ATX###', 'http://challonge.com/heatwave###', 'https://austinsmash4.challonge.com/atx###',\
         'http://challonge.com/RAA_###']
@@ -247,6 +248,9 @@ def get_tournament_placings(bracket_url):
             # Player tags are kept in <span> elements
             if span:
                 player = span.getText()
+
+                # Coalesce tags
+                player = get_coalesced_tag(player)
                 placings_map[player.lower()] = current_placing
 
     # This bracket is from smashgg

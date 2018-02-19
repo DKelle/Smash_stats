@@ -6,6 +6,7 @@ import copy
 import bracket_utils
 from get_ranks import get_ranks
 from database_writer import DatabaseWriter
+from get_results import get_coalesced_tag
 import re
 
 LOG = logger.logger(__name__)
@@ -30,6 +31,9 @@ class processData(object):
 
         for player, placing in tournament_placings.items():
             player = re.sub("['-]", '', player)
+
+            # Coalesce tag
+            player = get_coalesced_tag(player)
             sql = "INSERT INTO placings (url, player, place) VALUES " \
                     + " ('{}', '{}', '{}')".format(bracket, player, placing)
 

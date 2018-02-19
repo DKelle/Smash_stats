@@ -8,7 +8,7 @@ import copy
 from bracket_utils import dump_pickle_data, load_pickle_data, get_urls_with_players, get_list_of_named_scenes
 from logger import logger
 
-debug = True 
+debug = False 
 LOG = logger(__name__)
 TEST_DATA = {
     "A": {
