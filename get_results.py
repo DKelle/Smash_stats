@@ -141,12 +141,12 @@ def get_coalesced_tag(tag, debug=debug):
     for tags in TAGS_TO_COALESCE:
         # Tags is a list of all tags that are actually one player
         # eg. ['christmas mike', 'thanksgiving mike']
-        if debug or tag == "su|hakii":
+        if debug:
             print('trying to find tag {} in list: {}'.format(tag, tags))
 
         tag = tag.lower()
         if tag in tags:
-            if debug or tag == "su|hakii":
+            if debug:
                 print('found ' + str(tags[0]) + ' in list ')
             # The first tag in this list is the main tag that we want
             # to change the others to

@@ -9,6 +9,7 @@ import get_ranks
 import interaction
 import bracket_utils
 import gen_html
+from worker import Worker
 
 LOG = logger.logger(__name__)
 
@@ -26,13 +27,14 @@ def run():
 
     ## Create a list of worker threads
     #workers = [valids.init, data_processor.init, get_ranks.get_ranks, interaction.interact, gen_html.init]
-    workers = [valids.init]
+    threads = [valids.init]
 
-    for worker in workers:
-        LOG.info("Starting worker {}".format(str(worker)))
-        t = threading.Thread(target=worker)
+    for thread in threads:
+        LOG.info("Starting thread {}".format(str(thread)))
+        w = Worker(target=thread, name="validURLs")
+        t = threading.Thread(target=w.start)
+        t.daemon = True
         t.start()
-
 
 def main():
     run()

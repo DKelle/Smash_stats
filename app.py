@@ -9,7 +9,9 @@ if __name__ == "__main__":
 
     worker = Worker(target=thread_manager.run, name ="App")
     
-    threading.Thread(target=worker.start).start()
+    t = threading.Thread(target=worker.start)
+    t.daemon = True
+    t.start()
 
     app.register_blueprint(endpoints)
     app.run(host='0.0.0.0', debug = False)
