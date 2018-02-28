@@ -22,7 +22,7 @@ def wins():
     if db == None:
         init()
 
-    player = request.args.get('player', default="Christmas mike")
+    player = request.args.get('tag', default="christmasmike")
     sql = "SELECT * FROM matches WHERE winner = '"+str(player)+"' ORDER BY date DESC;"
     result = db.exec(sql)
 

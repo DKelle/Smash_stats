@@ -165,6 +165,8 @@ def is_valid(html):
             "Internal Server Error",
             "Not Implemented",
             "Bad Gateway",
+            "Gateway Time-out",
+            "Gateway Timeout",
             "Service Unavailable",
             "Gateway Timeout",
             "HTTP Version Not Supported",

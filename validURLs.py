@@ -50,17 +50,17 @@ class validURLs(object):
 
                         if not new_last == last:
                             if new_last - last > 5:
-                                with open("DEBUGOUTPUT.txt", 'w') as f:
+                                with open("DEBUGOUTPUT.txt", 'a') as f:
                                     f.write("[validURLs.py:55]: found a SHIT TON of new tournaments for bracket: {}".format(base_url))
                             # If there's been a new last, update the database
                             sql = "UPDATE valids SET last=" + str(new_last) + " where base_url = '"+str(base_url)+"';"
                             self.db.exec(sql)
 
-                            # Since this URL is new, we have to process the data
-                            bracket = base_url.replace('###', str(last))
 
                             # Analyze each of these new brackets
                             for i in range(last+1, new_last+1):
+                                # Since this URL is new, we have to process the data
+                                bracket = base_url.replace('###', str(i))
                                 self.data_processor.process(bracket, name)
 
                             #TODO uncomment
