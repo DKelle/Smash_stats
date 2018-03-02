@@ -11,3 +11,6 @@ clean:
 
 tail:
 	tail -f -n 50 smash.log
+
+clear:
+	python3 sql_utils.py clear

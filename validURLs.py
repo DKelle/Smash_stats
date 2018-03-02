@@ -4,6 +4,7 @@ import logger
 import bracket_utils
 import constants
 import time
+from tweet import tweet
 
 # TODO this is temporary test code
 loaded_smashgg = False
@@ -52,6 +53,12 @@ class validURLs(object):
                             if new_last - last > 5:
                                 with open("DEBUGOUTPUT.txt", 'a') as f:
                                     f.write("[validURLs.py:55]: found a SHIT TON of new tournaments for bracket: {}".format(base_url))
+
+                            else:
+                                bracket = base_url.replace('###', str(new_last))
+                                msg = "Found new bracet: {}".format(bracet)
+                                tweet(msg)
+
                             # If there's been a new last, update the database
                             sql = "UPDATE valids SET last=" + str(new_last) + " where base_url = '"+str(base_url)+"';"
                             self.db.exec(sql)

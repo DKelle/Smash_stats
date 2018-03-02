@@ -8,6 +8,7 @@ from get_ranks import get_ranks
 from database_writer import DatabaseWriter
 from get_results import get_coalesced_tag
 import re
+from tweet import tweet
 
 LOG = logger.logger(__name__)
 
@@ -39,7 +40,14 @@ class processData(object):
 
             self.db.exec(sql)
 
-        LOG.info("{}".format(tournament_placings))
+            if 'christmasmike' == player:
+                if placing < 10:
+                    msg = "Congrats on making {} dude! You're the best.".format(placing)
+                    tweet(msg)
+
+
+
+        LOG.info("tournament placings for {} are {}".format(bracket, tournament_placings))
 
 
     def process_ranks(self, scene):

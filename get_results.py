@@ -8,6 +8,7 @@ import pysmash
 from logger import logger
 from pprint import pprint
 from constants import TAGS_TO_COALESCE
+import os
 
 smash = None
 id_tag_dict = {}
@@ -196,4 +197,5 @@ def process(url, scene, db):
         analyze_smashgg_tournament(db, url, scene, True, False)
 
     sql = "INSERT INTO analyzed (base_url) VALUES ('" + str(url)+"');" 
+
     db.exec(sql)
