@@ -56,7 +56,7 @@ class validURLs(object):
 
                             else:
                                 bracket = base_url.replace('###', str(new_last))
-                                msg = "Found new bracet: {}".format(bracet)
+                                msg = "Found new bracket: {}".format(bracket)
                                 tweet(msg)
 
                             # If there's been a new last, update the database
