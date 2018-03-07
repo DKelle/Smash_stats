@@ -178,8 +178,16 @@ def is_valid(html):
     for error in errors:
         if error.lower() in str(html).lower():
             return False
-    return True
 
+    return bracket_complete(html)
+
+
+def bracket_complete(data):
+    # Are there any matches that haven't been played yet?
+    if '"player1":null' in data.lower() or '"player2":null' in data.lower():
+        return False
+    return True
+    
 def get_bracket(url):
 
     data, status = hit_url(url)
