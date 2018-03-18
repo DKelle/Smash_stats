@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template
+from flask import Blueprint, request, render_template, send_from_directory
 import json
 from database_writer import DatabaseWriter
 import constants
@@ -124,3 +124,11 @@ def ranks():
 def init():
     global db
     db = DatabaseWriter()
+    
+@endpoints.route('/graph')
+def serve_page():
+    return render_template('test.html')
+
+@endpoints.route('/templates/<path:path>')
+def serve(path):
+    return send_from_directory('templates', path)
