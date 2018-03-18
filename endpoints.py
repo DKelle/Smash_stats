@@ -1,4 +1,5 @@
 from flask import Blueprint, request, render_template, send_from_directory
+from player_web import get_web
 import json
 from database_writer import DatabaseWriter
 import constants
@@ -127,7 +128,15 @@ def init():
     
 @endpoints.route('/graph')
 def serve_page():
-    return render_template('test.html')
+    tag = request.args.get('tag', default=None)
+    data = web(tag)
+    print(data)
+    return render_template('test.html', data=data)
+
+@endpoints.route('/web')
+def web(tag=None):
+    print('about to get a web for player {}'.format(tag))
+    return json.dumps(get_web(tag))
 
 @endpoints.route('/templates/<path:path>')
 def serve(path):

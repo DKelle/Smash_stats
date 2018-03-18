@@ -8,6 +8,7 @@ import pysmash
 from logger import logger
 from pprint import pprint
 from constants import TAGS_TO_COALESCE
+from player_web import update_web
 import os
 
 smash = None
@@ -70,6 +71,9 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
 
             db.exec(sql)
 
+            # Also update the player web with this match
+            update_web(winner, loser)
+
     else:
         LOG.info("ERROR PARSING SMASHGG: {}".format(url))
         return
@@ -127,6 +131,9 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
         sql += str(player1_tag) + "', '" + str(player2_tag) + "', '" + str(winner) + "', '"+ str(date) + "', '"+str(scene) + "', '"+str(base_url)+"'); "
 
         db.exec(sql, debug=False)
+
+        # Also insert this match into the player web
+        update_web(winner, loser)
 
 def get_player_info(bracket):
     player_dict = json.loads(bracket_utils.sanitize_bracket(bracket))
