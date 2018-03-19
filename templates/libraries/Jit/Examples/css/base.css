@@ -4,7 +4,7 @@ html, body {
     font-family: "Lucida Grande", Verdana;
     font-size: 0.9em;
     text-align: center;
-    background-color:#F2F2F2;
+    background-color:#000000;
 }
 
 input, select {
@@ -99,10 +99,11 @@ a {
 
 #infovis {
     position:relative;
-    width:600px;
-    height:600px;
+    max-width:100vw;
+    height:100vh;
     margin:auto;
     overflow:hidden;
+    color:#000000;
 }
 
 /*TOOLTIPS*/
