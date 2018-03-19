@@ -1,4 +1,4 @@
-all:
+all: clear
 	rm -f smash.log
 	touch smash.log
 	python3 app.py

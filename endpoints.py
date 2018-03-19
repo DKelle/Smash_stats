@@ -1,5 +1,5 @@
 from flask import Blueprint, request, render_template, send_from_directory
-from player_web import get_web
+from player_web import get_web, get_hyper
 import json
 from database_writer import DatabaseWriter
 import constants
@@ -15,8 +15,15 @@ endpoints = Blueprint('endpoints', __name__)
 
 @endpoints.route("/")
 def temp():
-    a = 'what up dog'
-    return render_template('hello.html', wins=a)
+    return render_template('libraries/vis-4.21.0/examples/network/basicUsage.html')
+
+#TODO remove
+@endpoints.route("/hyper")
+def hyper():
+    #LOG.info('dallas: running endpont')
+    tag = request.args.get('tag', default="christmasmike")
+    data = json.dumps(get_hyper(tag))
+    return render_template('libraries/hypertree.html', data=data)
 
 @endpoints.route("/wins")
 def wins():
@@ -37,7 +44,7 @@ def losses():
     if db == None:
         init()
 
-    player = request.args.get('player', default="Christmas mike")
+    player = request.args.get('tag', default="christmasmike")
     sql = "SELECT * FROM matches WHERE (player1 = '"+str(player)+"' OR "\
             +"player2 = '"+str(player)+"') AND winner != '"+str(player)+"' ORDER BY date DESC;"
     result = db.exec(sql)
@@ -50,8 +57,8 @@ def h2h():
     if db == None:
         init()
 
-    player1 = request.args.get('player1', default="Christmas mike")
-    player2 = request.args.get('player2', default="Christmas mike")
+    player1 = request.args.get('tag1', default="christmasmike")
+    player2 = request.args.get('tag2', default="christmasmike")
     sql = "SELECT * FROM matches WHERE (player1 = '"+str(player1)+"' OR "\
             +"player2 = '"+str(player1)+"') AND (player1 = '"+str(player2)+"' OR "\
             +"player2 = '"+str(player2)+"') ORDER BY date DESC;"
@@ -130,12 +137,11 @@ def init():
 def serve_page():
     tag = request.args.get('tag', default=None)
     data = web(tag)
-    print(data)
-    return render_template('test.html', data=data)
+    #return render_template('web.html', data=data)
+    return render_template('libraries/vis-4.21.0/examples/network/basicUsage.html', data=data)
 
 @endpoints.route('/web')
 def web(tag=None):
-    print('about to get a web for player {}'.format(tag))
     return json.dumps(get_web(tag))
 
 @endpoints.route('/templates/<path:path>')

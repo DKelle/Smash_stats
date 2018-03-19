@@ -1,3 +1,5 @@
+DNS = 'ec2-18-216-108-45.us-east-2.compute.amazonaws.com'
+
 TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike'],
 	['megafox', 'su | megafox'],
 	['hakii', 'su l hakii', 'su | hakii', 'su redriot i hakii', 'hih | hakii', 'su | sleepyhakii', 'su|hakii', 'su | hakii $', 'su  redriot i hakii', 'hoh | hakii', 'su| hakii'],
