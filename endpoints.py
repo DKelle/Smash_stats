@@ -18,11 +18,16 @@ def temp():
     return render_template('libraries/vis-4.21.0/examples/network/basicUsage.html')
 
 #TODO remove
+@endpoints.route("/hyper_data")
+def hyper_data(tag='christmasmike'):
+    tag = request.args.get('tag', default=tag)
+    data = json.dumps(get_hyper(tag))
+    return data
 @endpoints.route("/hyper")
 def hyper():
     #LOG.info('dallas: running endpont')
     tag = request.args.get('tag', default="christmasmike")
-    data = json.dumps(get_hyper(tag))
+    data = hyper_data(tag)
     return render_template('libraries/hypertree.html', data=data)
 
 @endpoints.route("/wins")
