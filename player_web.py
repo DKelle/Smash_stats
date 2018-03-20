@@ -13,56 +13,13 @@ def update_web(winner, loser):
         LOG.info("Creating the player web")
     player_web.update(winner, loser)
 
-def get_hyper(tag):
-    start = time.time()
-    LOG.info('dallas: About to start calculating player data for {} at {}'.format(tag, start))
-    if player_web == None:
-        return {}
-    # First, get the node for this player
-    nid = player_web.get_id(tag, False)
-    if nid:
-        # Now, get all edges from this node
-        edges = player_web.node_to_edges_map[nid]
-
-        # Make a set of all other players this player has an edge to
-        node_ids = set([edge['source'] for edge in edges])
-        node_ids.update([edge['target'] for edge in edges])
-        LOG.info("dallas: {} has played against these opponent IDs: {}".format(tag, node_ids))
-
-        # Now that we have all node id, get a list of all nodes
-        nodes = [player_web.nid_to_node_map[nid] for nid in node_ids]
-        player_node = player_web.nid_to_node_map[nid]
-        nodes.remove(player_node)
-
-        child_list = {}
-        child_list['id'] = player_node['id']
-        child_list['name'] = player_node['label']
-        child_list['children'] = []
-
-        tag1 = player_node['label']
-        for n in nodes:
-            tag2 = n['label']
-            LOG.info('dallas: about to send reqeust for {}'.format(tag2))
-            #r = requests.get('https://{}:5000/h2h'.format(constants.DNS))
-            LOG.info('dallas: just got back reqeust for {}'.format(tag2))
-            #tournaments = json.loads(r.text)
-            child_list['children'].append({'id':n['id'],
-                                            'name':n['label'],
-                                            'data':'{}-{}'.format(tag1,tag2)})
-        end = time.time()
-        LOG.info('dallas: Just finished calculating player web data at {}. Took {}'.format(end, end-start))
-        return child_list
-
-
 def get_web(tag=None):
-
     start = time.time()
     LOG.info('dallas: About to start calculating player data for {} at {}'.format(tag, start))
     if player_web == None:
         return {}
     if tag == None:
         web = player_web.get_json()
-        LOG.info("dallas: tag is None, returning entire web")
         end = time.time()
         LOG.info('dallas: Just finished calculating player web data at {}. Took {}'.format(end, end-start))
         return web
@@ -131,8 +88,7 @@ class PlayerWeb(object):
         return self.tag_nid_map[tag]
 
     def create_node(self, tag, id):
-        # TODO fix up this link count
-        node = {"id":id, "name":tag, "count":1, "linkCount":1, "label":tag, "shortName":tag, "userCount":True, "group":"fake", "url":"www.google.com"}
+        node = {"id":id, "name":tag, "count":1, "linkCount":1, "label":tag, "shortName":tag, "userCount":True, "group":"fake", "url":"player/{}".format(id)}
         self.nodes.append(node)
         self.nid_to_node_map[id] = node
         LOG.info("Created a node for player {} with id {}".format(tag, id))
@@ -140,12 +96,6 @@ class PlayerWeb(object):
     def create_edge(self, wid, lid, id):
         edge = {"source":wid, "target":lid, "depth":9, "linkName":"www.google.com", "count":1}
         self.edges.append(edge) 
-
-        # Check to make sure these nodes are in the node list
-        if not wid in self.nid_to_node_map:
-            LOG.info('dallas: found node thats not in the map!')
-        if not lid in self.nid_to_node_map:
-            LOG.info('dallas: found node thats not in the map!')
 
         self.eid_to_edge_map[id] = edge
         LOG.info("Created an edge from node id {} to node id {}".format(wid, lid))

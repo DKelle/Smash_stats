@@ -225,23 +225,7 @@
 
     var force = control.force;
 
-    console.log('dallas: here are the problem nodes')
-    console.log(control.nodes)
-
-    console.log('dallas: here are the problem links')
-    console.log(control.links)
-
-    var newlinks = []
-    for (var i = 0; i < links.length; i++) {
-        if(control.links[i].target && control.links[i].source){
-            newlinks.push(control.links[i])
-        }
-        else{
-            console.log('this is a bad link')
-            console.log(control.links[i])
-        }
-    }
-    control.links = newlinks
+    control.links = filter_bad_links(control.links)
     force.nodes(control.nodes)
         .links(control.links)
         .start();
@@ -286,6 +270,7 @@
             if (d.url)window.open(d.url);
         })
         .on("click", function(d){
+            console.log('detected a click')
             // this is a hack so that click doesnt fire on the1st click of a dblclick
             if (!control.nodeClickInProgress ) {
                 control.nodeClickInProgress = true;
@@ -294,6 +279,7 @@
                         control.nodeClickInProgress = false;
                         if (control.options.nodeFocus) {
                             d.isCurrentlyFocused = !d.isCurrentlyFocused;
+                            console.log('abut to call do the tree viz')
                             doTheTreeViz(makeFilteredData(control));
                         }
                     }
@@ -371,16 +357,19 @@
    }
 
 function makeFilteredData(control,selectedNode){
+    console.log('about to make filtered data');
     // we'll keep only the data where filterned nodes are the source or target
     var newNodes = [];
     var newLinks = [];
 
     for (var i = 0; i < control.data.links.length ; i++) {
         var link = control.data.links[i];
-        if (link.target.isCurrentlyFocused || link.source.isCurrentlyFocused) {
-            newLinks.push(link);
-            addNodeIfNotThere(link.source,newNodes);
-            addNodeIfNotThere(link.target,newNodes);
+        if (link.target && link.source) {
+          if (link.target.isCurrentlyFocused || link.source.isCurrentlyFocused) {
+              newLinks.push(link);
+              addNodeIfNotThere(link.source,newNodes);
+              addNodeIfNotThere(link.target,newNodes);
+          }
         }
     }
     // if none are selected reinstate the whole dataset
@@ -418,6 +407,21 @@ function organizeData(control) {
     return control;
 }
 
+function filter_bad_links(links) {
+    console.log('about to find bad links')
+    //filter out the bad links
+    var newlinks = []
+    for (var i = 0; i < links.length; i++) {
+        if(links[i].target && links[i].source){
+            newlinks.push(links[i])
+        }
+        else{
+            console.log('found a bad link');
+            console.log(links[i])
+        }
+    }
+    return newlinks
+}
 
 function initialize () {
    
@@ -459,6 +463,10 @@ function initialize () {
         control.height = options.height;
         control.data = control.data.d3.data;
         control.nodes = control.data.nodes;
+
+
+        control.data.links = filter_bad_links(control.data.links)
+
         control.links = control.data.links;
         control.color = d3.scale.category20();
         control.clickHack = 200;
@@ -501,9 +509,6 @@ function getTheData() {
     dataPromise.resolve (mcpherTreeData);
     return dataPromise.promise();
 }
-          var data = JSON.parse('{{data|safe}}')
-          var links = data.d3.data.links;
-
 
 </script><script> window['mcpherTreeData'] = JSON.parse('{{data|safe}}')
 </script></head><body><div>d3.js force directed node focus:<strong>Site Tag Explorer</strong><span style="color:darslateblue;"> <small>click a node to focus, double click to visit page</small></span><aside><small>

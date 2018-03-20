@@ -1,5 +1,5 @@
 from flask import Blueprint, request, render_template, send_from_directory
-from player_web import get_web, get_hyper
+from player_web import get_web
 import json
 from database_writer import DatabaseWriter
 import constants
@@ -17,19 +17,6 @@ endpoints = Blueprint('endpoints', __name__)
 def temp():
     data = get_web()
     return render_template('libraries/interactive.html', data=data)
-
-#TODO remove
-@endpoints.route("/hyper_data")
-def hyper_data(tag='christmasmike'):
-    tag = request.args.get('tag', default=tag)
-    data = json.dumps(get_hyper(tag))
-    return data
-@endpoints.route("/hyper")
-def hyper():
-    #LOG.info('dallas: running endpont')
-    tag = request.args.get('tag', default="christmasmike")
-    data = hyper_data(tag)
-    return render_template('libraries/hypertree.html', data=data)
 
 @endpoints.route("/wins")
 def wins():
