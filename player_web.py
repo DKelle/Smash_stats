@@ -11,6 +11,8 @@ def update_web(winner, loser):
     if player_web == None:
         player_web = PlayerWeb()
         LOG.info("Creating the player web")
+    if 'christmas' in winner or 'christmas' in loser:
+        LOG.info('dallas:  found a match between {} and {}'.format(winner,loser))
     player_web.update(winner, loser)
 
 def get_web(tag=None):
@@ -49,8 +51,8 @@ class PlayerWeb(object):
         self.edge_id_map = {}
         self.eid_to_edge_map = {}
         self.nid_to_node_map = {}
-        self.current_node_id = 1
-        self.current_edge_id = 1
+        self.current_node_id = 0 
+        self.current_edge_id = 0
         self.node_to_edges_map = {}
         self.nodes = []
         self.edges = []
