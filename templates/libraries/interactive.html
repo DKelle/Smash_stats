@@ -1,0 +1,511 @@
+
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8" />
+  <title>d3.js from Excel - ramblings.mcpher.com</title>
+  <!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame
+  Remove this if you use the .htaccess -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+ <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <script type="text/javascript">
+   google.load("jquery", "1");
+   google.setOnLoadCallback(function() {
+        initialize().then (
+            function (control) {
+                doTheTreeViz(control);
+            }
+        );
+   });
+  </script> <style>
+
+   body {
+    position: relative;
+    font-family: "Helvetica Neue", Helvetica, sans-serif;
+    margin: 1em auto 4em auto;
+    width: 960px;
+   }
+
+   h1 {
+    font-size: 64px;
+    font-weight: 300;
+    letter-spacing: -2px;
+    margin: .3em 0 .1em 0;
+   }
+
+   h2 {
+    margin-top: 2em;
+   }
+
+   h1, h2 {
+    text-rendering: optimizeLegibility;
+   }
+
+   h2 a {
+    color: #ccc;
+    left: -20px;
+    position: absolute;
+    width: 740px;
+   }
+
+   footer {
+    font-size: small;
+    margin-top: 8em;
+   }
+
+   header aside {
+    margin-top: 20px;
+   }
+
+   header aside, footer aside {
+    color: #636363;
+    text-align: right;
+   }
+
+   aside {
+ float:right;
+ display:inline;
+ font-size: small;
+   }
+   .attribution {
+    font-size: small;
+    margin-bottom: 2em;
+   }
+
+   body > p, li > p {
+    line-height: 1.5em;
+   }
+
+   body > p {
+    width: 720px;
+   }
+
+   body > blockquote {
+    width: 640px;
+   }
+
+   li {
+    width: 680px;
+   }
+
+   pre, code, textarea {
+    font-family: "Menlo", monospace;
+   }
+
+   code {
+    line-height: 1em;
+   }
+
+   textarea {
+    font-size: 100%;
+   }
+
+   body > pre {
+    border-left: solid 2px #ccc;
+    padding-left: 18px;
+    margin: 2em 0 2em -20px;
+   }
+
+   .html .value, .javascript .string, .javascript .regexp {
+    color: #756bb1;
+   }
+
+   .html .tag, .css .tag, .javascript .keyword {
+    color: #3182bd;
+   }
+
+   .comment {
+    color: #636363;
+   }
+
+   .html .doctype, .javascript .number {
+    color: #31a354;
+   }
+
+   .html .attribute, .css .attribute, .javascript .class, .javascript .special {
+    color: #e6550d;
+   }
+
+   svg {
+    font: 10px sans-serif;
+   }
+
+   .axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+   }
+
+   sup, sub {
+    line-height: 0;
+   }
+
+   q:before, blockquote:before {
+    content: "?";
+   }
+
+   q:after, blockquote:after {
+    content: "?";
+   }
+
+   blockquote:before {
+    position: absolute;
+    left: 2em;
+   }
+
+   blockquote:after {
+    position: absolute;
+   }
+
+  </style>
+  <style>
+   #chart {
+    height: 600px;
+   }
+   .node rect {
+    cursor: move;
+    fill-opacity: .9;
+    shape-rendering: crispEdges;
+   }
+   .node text {
+    pointer-events: none;
+    text-shadow: 0 1px 0 #fff;
+   }
+   .link {
+    fill: none;
+    stroke: #000;
+    stroke-opacity: .2;
+   }
+   .link:hover {
+    stroke-opacity: .5;
+   }
+
+   circle.node-dot {
+    fill: DarkSlateGray;
+    stroke: SlateGray;
+    stroke-width: 1px;
+   }
+
+
+   line.link {
+    fill: none;
+    stroke: SlateGray;
+    stroke-width: 1.5px;
+   }
+
+   marker#defaultMarker {
+    fill: SlateGray;
+   }
+
+   line.link.defaultMarker {
+    stroke: SlateGray;
+   }
+
+   circle {
+    fill: #ccc;
+    stroke: #333;
+    stroke-width: 1.5px;
+   }
+
+   text {
+    pointer-events: none;
+   }
+
+   text.shadow {
+    stroke: #fff;
+    stroke-width: 3px;
+    stroke-opacity: .8;
+   }
+
+  </style>  <script>
+  function doTheTreeViz(control) {
+
+    var svg = control.svg;
+
+    var force = control.force;
+    console.log('dallas: nodes are')
+    console.log(control.nodes)
+    console.log('dalls: links are')
+    console.log(control.links)
+
+    force.nodes(control.nodes)
+        .links(control.links)
+        .start();
+
+    // Update the links
+    var link = svg.selectAll("line.link")
+        .data(control.links, function(d) { return d.unique; } );
+ 
+   // Enter any new links
+    link.enter().insert("svg:line", ".node")
+        .attr("class", "link")
+        .attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; })
+      .append("svg:title")
+        .text(function(d) { return d.source[control.options.nodeLabel] + ":" + d.target[control.options.nodeLabel] ; });
+    
+    // Exit any old links.
+    link.exit().remove();
+
+
+  // Update the nodes
+    var node = svg.selectAll("g.node")
+        .data(control.nodes, function(d) { return d.unique; });
+
+    node.select("circle")
+        .style("fill", function(d) {
+            return getColor(d);
+        })
+        .attr("r", function(d) {
+            return getRadius(d);
+        })
+
+  // Enter any new nodes.
+    var nodeEnter = node.enter()
+      .append("svg:g")
+        .attr("class", "node")
+        .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+        .on("dblclick", function(d){
+            control.nodeClickInProgress=false;
+            if (d.url)window.open(d.url);
+        })
+        .on("click", function(d){
+            // this is a hack so that click doesnt fire on the1st click of a dblclick
+            if (!control.nodeClickInProgress ) {
+                control.nodeClickInProgress = true;
+                setTimeout(function(){
+                    if (control.nodeClickInProgress) { 
+                        control.nodeClickInProgress = false;
+                        if (control.options.nodeFocus) {
+                            d.isCurrentlyFocused = !d.isCurrentlyFocused;
+                            doTheTreeViz(makeFilteredData(control));
+                        }
+                    }
+                },control.clickHack); 
+            }
+        })
+        .call(force.drag);
+
+    nodeEnter
+      .append("svg:circle")
+        .attr("r", function(d) {
+            return getRadius(d);
+        })
+        .style("fill", function(d) {
+            return getColor(d);
+        })
+      .append("svg:title")
+        .text(function(d) { return d[control.options.nodeLabel]; });
+
+   if (control.options.nodeLabel) {       
+       // text is done once for shadow as well as for text
+        nodeEnter.append("svg:text")
+            .attr("x", control.options.labelOffset)
+            .attr("dy", ".31em")
+            .attr("class", "shadow")
+            .style("font-size",control.options.labelFontSize + "px")
+            .text(function(d) {
+                return d.shortName ? d.shortName : d.name;
+            });
+        nodeEnter.append("svg:text")
+            .attr("x", control.options.labelOffset)
+            .attr("dy", ".35em")
+            .attr("class", "text")
+            .style("font-size",control.options.labelFontSize + "px")
+            .text(function(d) {
+                return d.shortName ? d.shortName : d.name;
+            });
+    }
+
+    // Exit any old nodes.
+    node.exit().remove();
+    control.link = svg.selectAll("line.link");
+    control.node = svg.selectAll("g.node");
+    force.on("tick", tick);
+
+
+
+    if (control.options.linkName) {
+        link.append("title")
+            .text(function(d) {
+                return d[control.options.linkName];
+        });
+    }
+
+
+    function tick() {
+        link.attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
+        node.attr("transform", function(d) {
+            return "translate(" + d.x + "," + d.y + ")";
+        });
+
+    }
+ 
+    function getRadius(d) {
+     var r = control.options.radius * (control.options.nodeResize ? Math.sqrt(d[control.options.nodeResize]) / Math.PI : 1);
+     return control.options.nodeFocus && d.isCurrentlyFocused ? control.options.nodeFocusRadius  : r;
+    }
+    function getColor(d) {
+        return control.options.nodeFocus && d.isCurrentlyFocused ? control.options.nodeFocusColor  : control.color(d.group) ;
+    }
+
+   }
+
+function makeFilteredData(control,selectedNode){
+    // we'll keep only the data where filterned nodes are the source or target
+    var newNodes = [];
+    var newLinks = [];
+
+    for (var i = 0; i < control.data.links.length ; i++) {
+        var link = control.data.links[i];
+        if (link.target.isCurrentlyFocused || link.source.isCurrentlyFocused) {
+            newLinks.push(link);
+            addNodeIfNotThere(link.source,newNodes);
+            addNodeIfNotThere(link.target,newNodes);
+        }
+    }
+    // if none are selected reinstate the whole dataset
+    if (newNodes.length > 0) {
+        control.links = newLinks;
+        control.nodes = newNodes;
+    }
+    else {
+        control.nodes = control.data.nodes;
+        control.links = control.data.links;
+    }
+    return control;
+    
+    function addNodeIfNotThere( node, nodes) {
+        for ( var i=0; i < nodes.length; i++) {
+            if (nodes[i].unique == node.unique) return i;
+        }
+        return nodes.push(node) -1;
+    }
+}
+function organizeData(control) {
+    console.log('dallas: this is control')
+    console.log(JSON.stringify(control))
+    console.log('dallas: about to die')
+
+    for (var i=0; i < control.nodes.length; i ++ ) {
+        var node = control.nodes[i]; 
+        node.unique = i;
+        node.isCurrentlyFocused = false;
+    }
+    
+    for (var i=0; i < control.links.length; i ++ ) {
+        var link = control.links[i];
+        link.unique = i;
+        link.source = control.nodes[link.source];
+        link.target = control.nodes[link.target];
+    }
+    return control;
+}
+
+
+function initialize () {
+   
+    var initPromise = $.Deferred();
+
+    getTheData().then( function (data) {  
+        console.log('about to get the data')
+        var control = {};
+        console.log('data is')
+        console.log(JSON.stringify(data))
+        control.data = data;
+        control.divName = "#chart";
+
+        control.options = $.extend({
+            stackHeight : 12,
+            radius : 5,
+            fontSize : 14,
+            labelFontSize : 8,
+            nodeLabel : null,
+            markerWidth : 0,
+            markerHeight : 0,
+            width : $(control.divName).outerWidth(),
+            gap : 1.5,
+            nodeResize : "",
+            linkDistance : 80,
+            charge : -120,
+            styleColumn : null,
+            styles : null,
+            linkName : null,
+            nodeFocus: true,
+            nodeFocusRadius: 25,
+            nodeFocusColor: "black",
+            labelOffset: "5",
+            gravity: .05,
+            height : $(control.divName).outerHeight()
+        }, control.data.d3.options);
+    
+        
+        var options = control.options;
+        console.log('control options are')
+        console.log(JSON.stringify(options))
+        options.gap = options.gap * options.radius;
+        control.width = options.width;
+        control.height = options.height;
+        control.data = control.data.d3.data;
+        control.nodes = control.data.nodes;
+        control.links = control.data.links;
+        control.color = d3.scale.category20();
+        control.clickHack = 200;
+        organizeData(control);
+    
+        control.svg = d3.select(control.divName)
+            .append("svg:svg")
+            .attr("width", control.width)
+            .attr("height", control.height);
+        
+    
+        // get list of unique values in stylecolumn
+        control.linkStyles = [];
+        if (control.options.styleColumn) {
+         var x;
+         for (var i = 0; i < control.links.length; i++) {
+          if (control.linkStyles.indexOf( x = control.links[i][control.options.styleColumn].toLowerCase()) == -1)
+           control.linkStyles.push(x);
+         }
+        } 
+        else
+         control.linkStyles[0] = "defaultMarker";
+        
+        control.force = d3.layout.force().
+            size([control.width, control.height])
+            .linkDistance(control.options.linkDistance)
+            .charge(control.options.charge)
+            .gravity(control.options.gravity);
+    
+    
+       initPromise.resolve(control);
+    });
+    return initPromise.promise();
+}
+
+            
+function getTheData() {
+    var dataPromise = $.Deferred();
+    // return a promise if data is being received asynch and resolve it when done.
+    dataPromise.resolve (mcpherTreeData);
+    return dataPromise.promise();
+}
+</script><script> window['mcpherTreeData'] = {"d3": {"options": {"fontSize": 9, "radius": 2.5, "nodeLabel": "label", "nodeFocus": true, "height": 800, "nodeFocusColor": "black", "charge": -220, "linkName": "tag", "labelFontSize": 9, "linkDistance": 150, "nodeFocusRadius": 25, "gravity": 0.1, "nodeResize": "count"}, "data": {"nodes": [{"count": 1, "group": "fake", "name": "reverie", "label": "reverie", "url": "www.google.com", "shortName": "reverie", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "kd", "label": "kd", "url": "www.google.com", "shortName": "kd", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "willow", "label": "willow", "url": "www.google.com", "shortName": "willow", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "chumpchange", "label": "chumpchange", "url": "www.google.com", "shortName": "chumpchange", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "segosaurus", "label": "segosaurus", "url": "www.google.com", "shortName": "segosaurus", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "barefoot", "label": "barefoot", "url": "www.google.com", "shortName": "barefoot", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "oooozzzz", "label": "oooozzzz", "url": "www.google.com", "shortName": "oooozzzz", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "raven", "label": "raven", "url": "www.google.com", "shortName": "raven", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "sauce doc", "label": "sauce doc", "url": "www.google.com", "shortName": "sauce doc", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "nvade", "label": "nvade", "url": "www.google.com", "shortName": "nvade", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "edweezy", "label": "edweezy", "url": "www.google.com", "shortName": "edweezy", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "thexkingxchile", "label": "thexkingxchile", "url": "www.google.com", "shortName": "thexkingxchile", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "mr.puff", "label": "mr.puff", "url": "www.google.com", "shortName": "mr.puff", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "chozo", "label": "chozo", "url": "www.google.com", "shortName": "chozo", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "hakii", "label": "hakii", "url": "www.google.com", "shortName": "hakii", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "father", "label": "father", "url": "www.google.com", "shortName": "father", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "aeryn", "label": "aeryn", "url": "www.google.com", "shortName": "aeryn", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "cashoo", "label": "cashoo", "url": "www.google.com", "shortName": "cashoo", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "maro", "label": "maro", "url": "www.google.com", "shortName": "maro", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "redvelvet", "label": "redvelvet", "url": "www.google.com", "shortName": "redvelvet", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "wolf", "label": "wolf", "url": "www.google.com", "shortName": "wolf", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "forbiddenone", "label": "forbiddenone", "url": "www.google.com", "shortName": "forbiddenone", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "prof. cube", "label": "prof. cube", "url": "www.google.com", "shortName": "prof. cube", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "yojimitsu", "label": "yojimitsu", "url": "www.google.com", "shortName": "yojimitsu", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "dragonite", "label": "dragonite", "url": "www.google.com", "shortName": "dragonite", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "grandi", "label": "grandi", "url": "www.google.com", "shortName": "grandi", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "bp", "label": "bp", "url": "www.google.com", "shortName": "bp", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "sassy", "label": "sassy", "url": "www.google.com", "shortName": "sassy", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "tru", "label": "tru", "url": "www.google.com", "shortName": "tru", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "grugg", "label": "grugg", "url": "www.google.com", "shortName": "grugg", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "socks", "label": "socks", "url": "www.google.com", "shortName": "socks", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "crump", "label": "crump", "url": "www.google.com", "shortName": "crump", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "brucifer", "label": "brucifer", "url": "www.google.com", "shortName": "brucifer", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "mikeffect", "label": "mikeffect", "url": "www.google.com", "shortName": "mikeffect", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "fcar", "label": "fcar", "url": "www.google.com", "shortName": "fcar", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "fx", "label": "fx", "url": "www.google.com", "shortName": "fx", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "zay", "label": "zay", "url": "www.google.com", "shortName": "zay", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "mufin", "label": "mufin", "url": "www.google.com", "shortName": "mufin", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "trane", "label": "trane", "url": "www.google.com", "shortName": "trane", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "jaydee", "label": "jaydee", "url": "www.google.com", "shortName": "jaydee", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "gallery", "label": "gallery", "url": "www.google.com", "shortName": "gallery", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "deeeek", "label": "deeeek", "url": "www.google.com", "shortName": "deeeek", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "nyhita", "label": "nyhita", "url": "www.google.com", "shortName": "nyhita", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "type r", "label": "type r", "url": "www.google.com", "shortName": "type r", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "takis", "label": "takis", "url": "www.google.com", "shortName": "takis", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "jka", "label": "jka", "url": "www.google.com", "shortName": "jka", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "kaiju", "label": "kaiju", "url": "www.google.com", "shortName": "kaiju", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "no jay", "label": "no jay", "url": "www.google.com", "shortName": "no jay", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "papa g", "label": "papa g", "url": "www.google.com", "shortName": "papa g", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "nuvi", "label": "nuvi", "url": "www.google.com", "shortName": "nuvi", "userCount": true, "linkCount": 1}, {"count": 1, "group": "fake", "name": "eze", "label": "eze", "url": "www.google.com", "shortName": "eze", "userCount": true, "linkCount": 1}], "links": [{"target": 2, "count": 1, "source": 1, "depth": 9, "linkName": "www.google.com"}, {"target": 4, "count": 1, "source": 3, "depth": 9, "linkName": "www.google.com"}, {"target": 6, "count": 1, "source": 5, "depth": 9, "linkName": "www.google.com"}, {"target": 8, "count": 1, "source": 7, "depth": 9, "linkName": "www.google.com"}, {"target": 10, "count": 1, "source": 9, "depth": 9, "linkName": "www.google.com"}, {"target": 12, "count": 1, "source": 11, "depth": 9, "linkName": "www.google.com"}, {"target": 14, "count": 1, "source": 13, "depth": 9, "linkName": "www.google.com"}, {"target": 1, "count": 1, "source": 15, "depth": 9, "linkName": "www.google.com"}, {"target": 17, "count": 1, "source": 16, "depth": 9, "linkName": "www.google.com"}, {"target": 19, "count": 1, "source": 18, "depth": 9, "linkName": "www.google.com"}, {"target": 21, "count": 1, "source": 20, "depth": 9, "linkName": "www.google.com"}, {"target": 3, "count": 1, "source": 22, "depth": 9, "linkName": "www.google.com"}, {"target": 24, "count": 1, "source": 23, "depth": 9, "linkName": "www.google.com"}, {"target": 5, "count": 1, "source": 25, "depth": 9, "linkName": "www.google.com"}, {"target": 27, "count": 1, "source": 26, "depth": 9, "linkName": "www.google.com"}, {"target": 7, "count": 1, "source": 28, "depth": 9, "linkName": "www.google.com"}, {"target": 30, "count": 1, "source": 29, "depth": 9, "linkName": "www.google.com"}, {"target": 9, "count": 1, "source": 31, "depth": 9, "linkName": "www.google.com"}, {"target": 33, "count": 1, "source": 32, "depth": 9, "linkName": "www.google.com"}, {"target": 11, "count": 1, "source": 34, "depth": 9, "linkName": "www.google.com"}, {"target": 36, "count": 1, "source": 35, "depth": 9, "linkName": "www.google.com"}, {"target": 13, "count": 1, "source": 37, "depth": 9, "linkName": "www.google.com"}, {"target": 39, "count": 1, "source": 38, "depth": 9, "linkName": "www.google.com"}, {"target": 16, "count": 1, "source": 15, "depth": 9, "linkName": "www.google.com"}, {"target": 20, "count": 1, "source": 18, "depth": 9, "linkName": "www.google.com"}, {"target": 23, "count": 1, "source": 22, "depth": 9, "linkName": "www.google.com"}, {"target": 26, "count": 1, "source": 25, "depth": 9, "linkName": "www.google.com"}, {"target": 29, "count": 1, "source": 28, "depth": 9, "linkName": "www.google.com"}, {"target": 31, "count": 1, "source": 32, "depth": 9, "linkName": "www.google.com"}, {"target": 35, "count": 1, "source": 34, "depth": 9, "linkName": "www.google.com"}, {"target": 37, "count": 1, "source": 38, "depth": 9, "linkName": "www.google.com"}, {"target": 18, "count": 1, "source": 15, "depth": 9, "linkName": "www.google.com"}, {"target": 25, "count": 1, "source": 22, "depth": 9, "linkName": "www.google.com"}, {"target": 32, "count": 1, "source": 28, "depth": 9, "linkName": "www.google.com"}, {"target": 38, "count": 1, "source": 34, "depth": 9, "linkName": "www.google.com"}, {"target": 22, "count": 1, "source": 15, "depth": 9, "linkName": "www.google.com"}, {"target": 28, "count": 1, "source": 34, "depth": 9, "linkName": "www.google.com"}, {"target": 34, "count": 1, "source": 15, "depth": 9, "linkName": "www.google.com"}, {"target": 39, "count": 1, "source": 2, "depth": 9, "linkName": "www.google.com"}, {"target": 33, "count": 1, "source": 4, "depth": 9, "linkName": "www.google.com"}, {"target": 6, "count": 1, "source": 30, "depth": 9, "linkName": "www.google.com"}, {"target": 8, "count": 1, "source": 27, "depth": 9, "linkName": "www.google.com"}, {"target": 10, "count": 1, "source": 24, "depth": 9, "linkName": "www.google.com"}, {"target": 12, "count": 1, "source": 21, "depth": 9, "linkName": "www.google.com"}, {"target": 17, "count": 1, "source": 14, "depth": 9, "linkName": "www.google.com"}, {"target": 2, "count": 1, "source": 13, "depth": 9, "linkName": "www.google.com"}, {"target": 11, "count": 1, "source": 36, "depth": 9, "linkName": "www.google.com"}, {"target": 9, "count": 1, "source": 4, "depth": 9, "linkName": "www.google.com"}, {"target": 30, "count": 1, "source": 7, "depth": 9, "linkName": "www.google.com"}, {"target": 27, "count": 1, "source": 5, "depth": 9, "linkName": "www.google.com"}, {"target": 24, "count": 1, "source": 3, "depth": 9, "linkName": "www.google.com"}, {"target": 21, "count": 1, "source": 19, "depth": 9, "linkName": "www.google.com"}, {"target": 14, "count": 1, "source": 1, "depth": 9, "linkName": "www.google.com"}, {"target": 13, "count": 1, "source": 26, "depth": 9, "linkName": "www.google.com"}, {"target": 23, "count": 1, "source": 36, "depth": 9, "linkName": "www.google.com"}, {"target": 4, "count": 1, "source": 20, "depth": 9, "linkName": "www.google.com"}, {"target": 16, "count": 1, "source": 7, "depth": 9, "linkName": "www.google.com"}, {"target": 5, "count": 1, "source": 37, "depth": 9, "linkName": "www.google.com"}, {"target": 3, "count": 1, "source": 35, "depth": 9, "linkName": "www.google.com"}, {"target": 19, "count": 1, "source": 31, "depth": 9, "linkName": "www.google.com"}, {"target": 1, "count": 1, "source": 29, "depth": 9, "linkName": "www.google.com"}, {"target": 26, "count": 1, "source": 36, "depth": 9, "linkName": "www.google.com"}, {"target": 7, "count": 1, "source": 20, "depth": 9, "linkName": "www.google.com"}, {"target": 35, "count": 1, "source": 37, "depth": 9, "linkName": "www.google.com"}, {"target": 29, "count": 1, "source": 31, "depth": 9, "linkName": "www.google.com"}, {"target": 36, "count": 1, "source": 32, "depth": 9, "linkName": "www.google.com"}, {"target": 38, "count": 1, "source": 20, "depth": 9, "linkName": "www.google.com"}, {"target": 18, "count": 1, "source": 37, "depth": 9, "linkName": "www.google.com"}, {"target": 31, "count": 1, "source": 25, "depth": 9, "linkName": "www.google.com"}, {"target": 20, "count": 1, "source": 32, "depth": 9, "linkName": "www.google.com"}, {"target": 25, "count": 1, "source": 37, "depth": 9, "linkName": "www.google.com"}, {"target": 32, "count": 1, "source": 22, "depth": 9, "linkName": "www.google.com"}, {"target": 28, "count": 1, "source": 37, "depth": 9, "linkName": "www.google.com"}, {"target": 22, "count": 1, "source": 37, "depth": 9, "linkName": "www.google.com"}, {"target": 34, "count": 1, "source": 37, "depth": 9, "linkName": "www.google.com"}, {"target": 37, "count": 1, "source": 15, "depth": 9, "linkName": "www.google.com"}, {"target": 16, "count": 1, "source": 33, "depth": 9, "linkName": "www.google.com"}, {"target": 2, "count": 1, "source": 40, "depth": 9, "linkName": "www.google.com"}, {"target": 42, "count": 1, "source": 41, "depth": 9, "linkName": "www.google.com"}, {"target": 44, "count": 1, "source": 43, "depth": 9, "linkName": "www.google.com"}, {"target": 27, "count": 1, "source": 18, "depth": 9, "linkName": "www.google.com"}, {"target": 45, "count": 1, "source": 23, "depth": 9, "linkName": "www.google.com"}, {"target": 8, "count": 1, "source": 46, "depth": 9, "linkName": "www.google.com"}, {"target": 47, "count": 1, "source": 38, "depth": 9, "linkName": "www.google.com"}, {"target": 48, "count": 1, "source": 35, "depth": 9, "linkName": "www.google.com"}, {"target": 6, "count": 1, "source": 49, "depth": 9, "linkName": "www.google.com"}, {"target": 50, "count": 1, "source": 32, "depth": 9, "linkName": "www.google.com"}, {"target": 11, "count": 1, "source": 49, "depth": 9, "linkName": "www.google.com"}, {"target": 33, "count": 1, "source": 15, "depth": 9, "linkName": "www.google.com"}, {"target": 40, "count": 1, "source": 41, "depth": 9, "linkName": "www.google.com"}]}}};
+</script></head><body><div>d3.js force directed node focus:<strong>Site Tag Explorer</strong><span style="color:darslateblue;"> <small>click a node to focus, double click to visit page</small></span><aside><small>
+   <a href='http://ramblings.mcpher.com'>ramblings.mcpher.com</a><br>
+    works best on Chrome<br> ackowledgements:<a href='http://bost.ocks.org/mike/'>Mike Bostok for d3.js</a></small>
+   </aside>
+</div>
+  <div id="chart">
+
+  </div>
+
+ </body>
+</html>
+
