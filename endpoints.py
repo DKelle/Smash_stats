@@ -17,7 +17,7 @@ endpoints = Blueprint('endpoints', __name__)
 def temp():
     tag = request.args.get('tag', default="christmasmike")
     data = get_web()
-    return render_template('libraries/interactive.html', data=data, tag=tag)
+    return render_template('libraries/html/interactive.html', data=data, tag=tag)
 
 @endpoints.route("/wins")
 def wins():
