@@ -2,7 +2,7 @@ import logger
 import time
 import requests
 import constants
-import json
+from json import dumps
 LOG = logger.logger(__name__)
 
 player_web = None
@@ -132,7 +132,7 @@ class PlayerWeb(object):
 
     def create_node(self, tag, id):
         # TODO fix up this link count
-        node = {"name":tag, "count":1, "linkCount":1, "label":tag, "shortName":tag, "userCount":True, "group":"fake", "url":"www.google.com"}
+        node = {"id":id, "name":tag, "count":1, "linkCount":1, "label":tag, "shortName":tag, "userCount":True, "group":"fake", "url":"www.google.com"}
         self.nodes.append(node)
         self.nid_to_node_map[id] = node
         LOG.info("Created a node for player {} with id {}".format(tag, id))
@@ -140,6 +140,13 @@ class PlayerWeb(object):
     def create_edge(self, wid, lid, id):
         edge = {"source":wid, "target":lid, "depth":9, "linkName":"www.google.com", "count":1}
         self.edges.append(edge) 
+
+        # Check to make sure these nodes are in the node list
+        if not wid in self.nid_to_node_map:
+            LOG.info('dallas: found node thats not in the map!')
+        if not lid in self.nid_to_node_map:
+            LOG.info('dallas: found node thats not in the map!')
+
         self.eid_to_edge_map[id] = edge
         LOG.info("Created an edge from node id {} to node id {}".format(wid, lid))
         self.update_node_to_edges(wid, lid, id)
@@ -151,7 +158,7 @@ class PlayerWeb(object):
 
         json = {"d3":{"options":{"radius":2.5,"fontSize":9,"labelFontSize":9,"gravity":0.1,"height":800,"nodeFocusColor":"black","nodeFocusRadius":25,"nodeFocus":True,"linkDistance":150,"charge":-220,"nodeResize":"count","nodeLabel":"label","linkName":"tag"}, 'data':data}}
         
-        return json
+        return dumps(json)
 
     def update_node_to_edges(self, wid, lid, eid):
         if wid not in self.node_to_edges_map:

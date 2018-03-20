@@ -15,7 +15,8 @@ endpoints = Blueprint('endpoints', __name__)
 
 @endpoints.route("/")
 def temp():
-    return render_template('libraries/vis-4.21.0/examples/network/basicUsage.html')
+    data = get_web()
+    return render_template('libraries/interactive.html', data=data)
 
 #TODO remove
 @endpoints.route("/hyper_data")
