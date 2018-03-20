@@ -31,7 +31,7 @@ class processData(object):
         tournament_placings = bracket_utils.get_tournament_placings(bracket)
 
         for player, placing in tournament_placings.items():
-            player = re.sub("['-]", '', player)
+            player = re.sub("['-_]", '', player)
 
             # Coalesce tag
             player = get_coalesced_tag(player)
@@ -44,8 +44,6 @@ class processData(object):
                 if placing < 10:
                     msg = "Congrats on making {} dude! You're the best.".format(placing)
                     #tweet(msg)
-
-
 
         LOG.info("tournament placings for {} are {}".format(bracket, tournament_placings))
 

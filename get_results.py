@@ -47,7 +47,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
             # sanitize the tag
             tag = ''.join([i if ord(i) < 128 else ' ' for i in tag])
             #TODO sql injection
-            tag = re.sub("['-]", '', tag)
+            tag = re.sub("['-_]", '', tag)
             
             #TODO coalesce here
             tag_id_dict[id] = tag
@@ -119,8 +119,8 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
         player2_tag = get_coalesced_tag(player2_tag)
 
         # TODO sql injection
-        player1_tag = re.sub("['-]", '', player1_tag)
-        player2_tag = re.sub("['-]", '', player2_tag)
+        player1_tag = re.sub("['-_]", '', player1_tag)
+        player2_tag = re.sub("['-_]", '', player2_tag)
 
         #Now that we have both players, and the winner ID, what's the tag of the winner?
         winner = player1_tag if int(winner_id) == int(player1_id) else player2_tag

@@ -10,10 +10,52 @@
  <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
   <script type="text/javascript">
+   function get_node_from_tag(nodes, tag) {
+       console.log(tag);
+       for (var i = 0; i < nodes.length; i++) {
+           n = nodes[i];
+           if (n.name == tag) {
+                console.log('found the requested tag!');
+                return n
+           }
+       }
+       return nodes[0]
+   }
+
+   function get_all_links_with_node(control, n) {
+       console.log('about to get all links with the node');
+       links = [];
+       for (var i = 0; i < control.data.links.length ; i++) {
+           var link = control.data.links[i];
+           if (link.target && link.source) {
+             if (link.target.name == n.name || link.source.name == n.name) {
+                 links.push(link);
+             }
+           }
+       }
+       return links;
+   }
+
+   function get_all_nodes_with_links(control, links) {
+      let nodes = new Set();
+      for (var i = 0; i < links.length; i++){
+          link = links[i];
+          nodes.add(link.source);
+          nodes.add(link.target);
+      }
+      return Array.from(nodes);
+   }
    google.load("jquery", "1");
    google.setOnLoadCallback(function() {
         initialize().then (
             function (control) {
+                var initial_node = get_node_from_tag(control.data.nodes, '{{tag}}');
+                initial_node.isCurrentlyFocused = initial_node.isCurrentlyFocused;
+                ls = get_all_links_with_node(control, initial_node);
+                ns = get_all_nodes_with_links(control, links);
+                control.links = ls;
+                control.nodes = ns;
+                console.log('found these relevant links');
                 doTheTreeViz(control);
             }
         );
@@ -220,6 +262,8 @@
 
   </style>  <script>
   function doTheTreeViz(control) {
+      console.log('inside do the viz with control:')
+      console.log(control)
 
     var svg = control.svg;
 
@@ -256,8 +300,10 @@
         .style("fill", function(d) {
             return getColor(d);
         })
+        // TODO this controls the radis
         .attr("r", function(d) {
-            return getRadius(d);
+            //return getRadius(d);
+            return 10;
         })
 
   // Enter any new nodes.
@@ -270,7 +316,6 @@
             if (d.url)window.open(d.url);
         })
         .on("click", function(d){
-            console.log('detected a click')
             // this is a hack so that click doesnt fire on the1st click of a dblclick
             if (!control.nodeClickInProgress ) {
                 control.nodeClickInProgress = true;
@@ -278,8 +323,9 @@
                     if (control.nodeClickInProgress) { 
                         control.nodeClickInProgress = false;
                         if (control.options.nodeFocus) {
+                            console.log('clicked was just detected and control is');
+                            console.log(control)
                             d.isCurrentlyFocused = !d.isCurrentlyFocused;
-                            console.log('abut to call do the tree viz')
                             doTheTreeViz(makeFilteredData(control));
                         }
                     }
@@ -357,8 +403,14 @@
    }
 
 function makeFilteredData(control,selectedNode){
-    console.log('about to make filtered data');
     // we'll keep only the data where filterned nodes are the source or target
+    console.log('inside make filtered with control and node');
+    console.log(control);
+    console.log(selectedNode);
+
+    console.log('this is a test');
+    control.nodes = []
+    console.log(control);
     var newNodes = [];
     var newLinks = [];
 
@@ -408,16 +460,11 @@ function organizeData(control) {
 }
 
 function filter_bad_links(links) {
-    console.log('about to find bad links')
     //filter out the bad links
     var newlinks = []
     for (var i = 0; i < links.length; i++) {
         if(links[i].target && links[i].source){
             newlinks.push(links[i])
-        }
-        else{
-            console.log('found a bad link');
-            console.log(links[i])
         }
     }
     return newlinks
