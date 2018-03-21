@@ -23,6 +23,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
     if smash == None:
         smash = pysmash.SmashGG()
 
+    winner_loser_pairs = []
     # Exctract the tournament and event names
     # eg url:
     # https://smash.gg/tournament/pulsar-premier-league/events/rocket-league-3v3/brackets/68179
@@ -72,12 +73,13 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
             db.exec(sql)
 
             # Also update the player web with this match
-            update_web(winner, loser)
+            winner_loser_pairs.append((winner, loser))
 
     else:
         LOG.info("ERROR PARSING SMASHGG: {}".format(url))
         return
 
+    update_web(winner_loser_pairs)
 
 def analyze_tournament(db, url, scene, dated, urls_per_player=False):
     #Scrape the challonge website for the raw bracket
@@ -92,6 +94,7 @@ def analyze_tournament(db, url, scene, dated, urls_per_player=False):
     analyze_bracket(db, sanitized, url, scene, dated, urls_per_player)
 
 def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player=False):
+    winner_loser_pairs = []
     #continuously find the next instances of 'player1' and 'player2'
     if debug: print('analyz a bracket. Dated? ' + str(dated))
     while 'player1' in bracket and 'player2' in bracket:
@@ -122,6 +125,14 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
         player1_tag = re.sub("['-_]", '', player1_tag)
         player2_tag = re.sub("['-_]", '', player2_tag)
 
+        # Check if these players are already in the players table
+        for p in [player1_tag, player2_tag]:
+            sql = "SELECT * FROM players WHERE tag='{}';".format(p)
+            res = db.exec(sql)
+            if len(res) == 0:
+                sql = "INSERT INTO players (tag) VALUES ('{}');".format(p)
+                db.exec(sql)
+
         #Now that we have both players, and the winner ID, what's the tag of the winner?
         winner = player1_tag if int(winner_id) == int(player1_id) else player2_tag
         loser = player1_tag if winner == player2_tag else player2_tag
@@ -133,7 +144,8 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
         db.exec(sql, debug=False)
 
         # Also insert this match into the player web
-        update_web(winner, loser)
+        winner_loser_pairs.append((winner, loser))
+    update_web(winner_loser_pairs)
 
 def get_player_info(bracket):
     player_dict = json.loads(bracket_utils.sanitize_bracket(bracket))

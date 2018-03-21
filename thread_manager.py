@@ -6,9 +6,7 @@ import threading
 import logger
 import constants
 import get_ranks
-import interaction
 import bracket_utils
-import gen_html
 from worker import Worker
 
 LOG = logger.logger(__name__)

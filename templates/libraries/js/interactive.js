@@ -107,8 +107,8 @@ function doTheTreeViz(control) {
 		})
 		// TODO this controls the radis
 		.attr("r", function(d) {
-			//return getRadius(d);
-			return 10;
+			return getRadius(d);
+			//return 10;
 		})
 
 	// Enter any new nodes.
@@ -206,7 +206,7 @@ function doTheTreeViz(control) {
 
 	function getRadius(d) {
 		var r = control.options.radius * (control.options.nodeResize ? Math.sqrt(d[control.options.nodeResize]) / Math.PI : 1);
-		return control.options.nodeFocus && d.isCurrentlyFocused ? control.options.nodeFocusRadius : r;
+		return control.options.nodeFocus && d.isCurrentlyFocused ? 15 : 7;
 	}
 
 	function getColor(d) {

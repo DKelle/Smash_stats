@@ -21,10 +21,10 @@ class processData(object):
 
     def process(self, bracket, scene):
         # Send this bracket to get_results
-        get_results.process(bracket, scene, self.db)
-
-        self.insert_placing_data(bracket)
-
+        html, status = bracket_utils.hit_url(bracket)
+        if status == 200 and bracket_utils.is_valid(html):
+            get_results.process(bracket, scene, self.db)
+            self.insert_placing_data(bracket)
 
     def insert_placing_data(self, bracket):
         # Get the html from the 'standings' of this tournament

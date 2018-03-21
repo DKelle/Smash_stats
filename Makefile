@@ -17,3 +17,6 @@ clear:
 
 watch:
 	watch python3 sql_utils.py watch valids
+
+test: clear
+	python3 tests.py

@@ -6,14 +6,15 @@ from json import dumps
 LOG = logger.logger(__name__)
 
 player_web = None
-def update_web(winner, loser):
+def update_web(winner_loser_pairs):
     global player_web
-    if player_web == None:
-        player_web = PlayerWeb()
-        LOG.info("Creating the player web")
-    if 'christmas' in winner or 'christmas' in loser:
-        LOG.info('dallas:  found a match between {} and {}'.format(winner,loser))
-    player_web.update(winner, loser)
+    for winner, loser in winner_loser_pairs:
+        if player_web == None:
+            player_web = PlayerWeb()
+            LOG.info("Creating the player web")
+        if 'christmas' in winner or 'christmas' in loser:
+            LOG.info('dallas:  found a match between {} and {}'.format(winner,loser))
+        player_web.update(winner, loser)
 
 def get_web(tag=None):
     start = time.time()

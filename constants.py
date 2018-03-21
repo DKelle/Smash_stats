@@ -71,6 +71,8 @@ PRO_URLS = ["https://smash.gg/tournament/super-smash-con-2017/events/wii-u-singl
         "https://smash.gg/tournament/super-smash-con-2016/events/wii-u-singles"]
 SLEEP_TIME = 5 
 
+TEST_URLS = ('test', ['https://challonge.com/smash_web_test_###'])
+
 """
 Data structure we need -
 dictionary where key is tag_1:
