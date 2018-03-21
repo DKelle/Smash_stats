@@ -333,7 +333,10 @@ function initialize() {
 		control.svg = d3.select(control.divName)
 			.append("svg:svg")
 			.attr("width", control.width)
-			.attr("height", control.height);
+			.attr("height", control.height)
+			.call(d3.behavior.zoom().on("zoom", function () {
+				control.svg.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
+			}));
 
 		// get list of unique values in stylecolumn
 		control.linkStyles = [];
