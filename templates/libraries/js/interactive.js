@@ -1,3 +1,19 @@
+google.load("jquery", "1");
+google.setOnLoadCallback(function() {
+	initialize().then(
+		function(control) {
+			var initial_node = get_node_from_tag(control.data.nodes, tag);
+			initial_node.isCurrentlyFocused = initial_node.isCurrentlyFocused;
+			ls = get_all_links_with_node(control, initial_node);
+			ns = get_all_nodes_with_links(control, links, initial_node);
+			control.links = ls;
+			control.nodes = ns;
+			console.log('found these relevant links');
+			doTheTreeViz(control);
+		}
+	);
+});
+
 function get_node_from_tag(nodes, tag) {
 	console.log(tag);
 	for (var i = 0; i < nodes.length; i++) {
@@ -24,30 +40,18 @@ function get_all_links_with_node(control, n) {
 	return links;
 }
 
-function get_all_nodes_with_links(control, links) {
+function get_all_nodes_with_links(control, links, initial_node) {
 	let nodes = new Set();
+    nodes.add(initial_node);
 	for (var i = 0; i < links.length; i++) {
 		link = links[i];
 		nodes.add(link.source);
 		nodes.add(link.target);
 	}
-	return Array.from(nodes);
+    ns = Array.from(nodes);
+    ns[0].isCurrentlyFocused = true;
+	return ns;
 }
-google.load("jquery", "1");
-google.setOnLoadCallback(function() {
-	initialize().then(
-		function(control) {
-			var initial_node = get_node_from_tag(control.data.nodes, 'hakii');
-			initial_node.isCurrentlyFocused = initial_node.isCurrentlyFocused;
-			ls = get_all_links_with_node(control, initial_node);
-			ns = get_all_nodes_with_links(control, links);
-			control.links = ls;
-			control.nodes = ns;
-			console.log('found these relevant links');
-			doTheTreeViz(control);
-		}
-	);
-});
 
 function doTheTreeViz(control) {
 	console.log('inside do the viz with control:')
@@ -126,8 +130,6 @@ function doTheTreeViz(control) {
 					if (control.nodeClickInProgress) {
 						control.nodeClickInProgress = false;
 						if (control.options.nodeFocus) {
-							console.log('clicked was just detected and control is');
-							console.log(control)
 							d.isCurrentlyFocused = !d.isCurrentlyFocused;
 							doTheTreeViz(makeFilteredData(control));
 						}

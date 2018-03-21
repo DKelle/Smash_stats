@@ -14,3 +14,6 @@ tail:
 
 clear:
 	python3 sql_utils.py clear
+
+watch:
+	watch python3 sql_utils.py watch valids

@@ -184,8 +184,11 @@ def is_valid(html):
 
 def bracket_complete(data):
     # Are there any matches that haven't been played yet?
+    if "player1" not in data.lower() and "player2" not in data.lower():
+        return False
     if '"player1":null' in data.lower() or '"player2":null' in data.lower():
         return False
+
     return True
     
 def get_bracket(url):
