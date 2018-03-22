@@ -335,7 +335,8 @@ function initialize() {
 			.attr("width", control.width)
 			.attr("height", control.height)
 			.call(d3.behavior.zoom().on("zoom", function () {
-				control.svg.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
+                control.svg.attr("transform", d3.event.transform);
+				//control.svg.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
 			}));
 
 		// get list of unique values in stylecolumn

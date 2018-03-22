@@ -1,20 +1,33 @@
 import logger
+import threading
 import time
 import requests
 import constants
+import queue
+from worker import Worker
 from json import dumps
 LOG = logger.logger(__name__)
 
 player_web = None
+q = None
 def update_web(winner_loser_pairs):
+    if player_web == None:
+        init_player_web()
+    q.put_nowait(winner_loser_pairs)
+
+def init_player_web():
     global player_web
-    for winner, loser in winner_loser_pairs:
-        if player_web == None:
-            player_web = PlayerWeb()
-            LOG.info("Creating the player web")
-        if 'christmas' in winner or 'christmas' in loser:
-            LOG.info('dallas:  found a match between {} and {}'.format(winner,loser))
-        player_web.update(winner, loser)
+    global q
+    q = queue.Queue()
+    player_web = PlayerWeb(q)
+
+    # Start running the player web in a thread
+    w = Worker(target=player_web.run, name="PlayerWeb")
+    t = threading.Thread(target=w.start)
+    t.daemon = True
+    t.start()
+
+    LOG.info("Creating the player web")
 
 def get_web(tag=None):
     start = time.time()
@@ -47,7 +60,8 @@ def get_web(tag=None):
             return json
 
 class PlayerWeb(object):
-    def __init__(self):
+    def __init__(self, *args):
+        self.q = args[0]
         self.tag_nid_map = {}
         self.edge_id_map = {}
         self.eid_to_edge_map = {}
@@ -57,6 +71,18 @@ class PlayerWeb(object):
         self.node_to_edges_map = {}
         self.nodes = []
         self.edges = []
+
+    def run(self):
+        while True:
+            try:
+                winner_loser_pairs = self.q.get(timeout=5)
+            except queue.Empty:
+                pass
+            except Exception:
+                LOG.info('The player web has hit an unexpected exception! Dying')
+
+            for winner, loser in winner_loser_pairs:
+                self.update(winner, loser)
 
     def update(self, winner, loser):
         wid = self.get_id(winner)
