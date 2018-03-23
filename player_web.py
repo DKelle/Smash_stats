@@ -6,6 +6,7 @@ import constants
 import queue
 from worker import Worker
 from json import dumps
+from random import randint
 LOG = logger.logger(__name__)
 
 player_web = None
@@ -117,7 +118,8 @@ class PlayerWeb(object):
         return self.tag_nid_map[tag]
 
     def create_node(self, tag, id):
-        node = {"id":id, "name":tag, "count":1, "linkCount":1, "label":tag, "shortName":tag, "userCount":True, "group":"fake", "url":"player/{}".format(id)}
+        group = randint(0,9)
+        node = {"id":id, "name":tag, "count":1, "linkCount":1, "label":tag, "shortName":tag, "userCount":True, "group":group, "url":"player/{}".format(id)}
         self.nodes.append(node)
         self.nid_to_node_map[id] = node
         LOG.info("Created a node for player {} with id {}".format(tag, id))

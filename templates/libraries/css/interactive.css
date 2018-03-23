@@ -170,8 +170,6 @@ blockquote:after {
 
 circle.node-dot {
  fill: DarkSlateGray;
- stroke: SlateGray;
- stroke-width: 1px;
 }
 
 
@@ -191,8 +189,6 @@ line.link.defaultMarker {
 
 circle {
  fill: #ccc;
- stroke: #333;
- stroke-width: 1.5px;
 }
 
 text {
