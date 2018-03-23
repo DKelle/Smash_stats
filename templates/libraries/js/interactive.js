@@ -109,7 +109,12 @@ function doTheTreeViz(control) {
 		.attr("r", function(d) {
 			return getRadius(d);
 			//return 10;
-		})
+		});
+
+	node.append('circle')
+		.attr('r', 3)
+		.style('fill', 'black');
+
 
 	// Enter any new nodes.
 	var nodeEnter = node.enter()
@@ -151,6 +156,10 @@ function doTheTreeViz(control) {
 		.text(function(d) {
 			return d[control.options.nodeLabel];
 		});
+
+	nodeEnter.append("circle")
+		.attr("r", 3)
+		.style("fill", 'black');
 
 	if (control.options.nodeLabel) {
 		// text is done once for shadow as well as for text
@@ -206,7 +215,7 @@ function doTheTreeViz(control) {
 
 	function getRadius(d) {
 		var r = control.options.radius * (control.options.nodeResize ? Math.sqrt(d[control.options.nodeResize]) / Math.PI : 1);
-		return control.options.nodeFocus && d.isCurrentlyFocused ? 15 : 7;
+		return control.options.nodeFocus && d.isCurrentlyFocused ? 25 : 10;
 	}
 
 	function getColor(d) {
@@ -334,16 +343,10 @@ function initialize() {
 			.append("svg:svg")
 			.attr("width", control.width)
 			.attr("height", control.height);
-			//.call(d3.behavior.zoom().on("zoom", function () {
-            //    //control.svg.attr("transform", "translate(" + margin.left + "," + margin.right + " )");
-            //    //control.svg.attr("transform", "scale(" + d3.event.scale + ")");
-			//	control.svg.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
-			//}));
 
-		// get list of unique values in stylecolumn
-
+		// Panning and zooming
 		var zoomListener = d3.behavior.zoom()
-		  .scaleExtent([0.1, 1.75])
+		  .scaleExtent([0.1, 8])
 		  .on("zoom", zoomHandler);
 
 		var dragListener = d3.behavior.drag()
@@ -354,7 +357,6 @@ function initialize() {
 
 		zoomListener(control.svg); 
 		control.svg.call(dragListener);
-
 
 		var dragging = 0;   
 		var dragX = 0, dragY = 0;
@@ -369,28 +371,27 @@ function initialize() {
 		  dragY = 0;
 		}); 
 
+		function zoomHandler() {
+			var pos = d3.mouse(this);
+			var scale = d3.event.scale;
 
-function zoomHandler() {
-	console.log('hits0')
-    var pos = d3.mouse(this);
-    var scale = d3.event.scale;
+			var trans = d3.transform(control.svg.attr("transform"));
+			var tpos = trans.translate;
+			var tscale = trans.scale;
+			var tx = tpos[0];
+			var ty = tpos[1];
+			var mx = pos[0] - control.width/2;
+			var my = pos[1] - control.height/2;
 
-    var trans = d3.transform(control.svg.attr("transform"));
-    var tpos = trans.translate;
-    var tscale = trans.scale;
-    var tx = tpos[0];
-    var ty = tpos[1];
-    var mx = pos[0] - control.width/2;
-    var my = pos[1] - control.height/2;
+			var dx =  (mx - tx - dragX)/tscale[0];
+			var dy =  (my - ty - dragY)/tscale[1];
+			var dx2 = (mx - dx)/scale - dx;
+			var dy2 = (my - dy)/scale - dy;
 
-    var dx =  (mx - tx - dragX)/tscale[0];
-    var dy =  (my - ty - dragY)/tscale[1];
-    var dx2 = (mx - dx)/scale - dx;
-    var dy2 = (my - dy)/scale - dy;
+			var tform = "translate(" + dx + "," + dy + ")scale(" + scale + ")translate(" + dx2 + "," + dy2 + ")"
+			control.svg.attr("transform", tform); 
+		}
 
-    var tform = "translate(" + dx + "," + dy + ")scale(" + scale + ")translate(" + dx2 + "," + dy2 + ")"
-    control.svg.attr("transform", tform); 
-}
 
 		control.linkStyles = [];
 		if (control.options.styleColumn) {
