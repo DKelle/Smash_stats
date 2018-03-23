@@ -18,7 +18,6 @@ def run():
     base_urls = bracket_utils.get_list_of_scenes()
     scenes = [Scene(x[0], x[1]) for x in base_urls]
     valids = validURLs(scenes)
-    data_processor = processData()
 
     LOG.info("Creating the following worker threads")
     # threading.Thread(target=valids.init).start()

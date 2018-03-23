@@ -24,7 +24,6 @@ def analyze_test_data():
 
 def run_tests(db):
     test_web(db)
-    input('about to start db etest')
     test_all_players_exist(db)
     test_all_matches_exist(db)
     test_placings(db)
