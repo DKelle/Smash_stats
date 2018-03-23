@@ -11,7 +11,7 @@ def main():
     analyze_test_data()
 
     # start running the tests
-    db = DatabaseWriter()
+    db = DatabaseWriter(db='smash_test')
     run_tests(db)
 
 def analyze_test_data():
@@ -139,10 +139,17 @@ def test_placings(db):
 
     print('placing tests have passed')
 
-
-    pass
 def test_valids(db):
-    pass
+    print('About to test valids...')
+    # The valid tournaments are 2-7
+    sql = "SELECT first, last FROM valids";
+    res = db.exec(sql, testing=True)
+    first = res[0][0]
+    last = res[0][1]
+    assert first == 2
+    assert last == 7
+    print('Valids tests have passed')
+
 def test_analyzed(db):
     print('About to test analyzed')
     for match_data in all_match_data:
