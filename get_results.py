@@ -39,6 +39,15 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
         # The event will be either 'melee' or 'wiiu'
 
         players = smash.tournament_show_players(t, e)
+
+        # Check if these players are already in the players table
+        for p in players:
+            sql = "SELECT * FROM players WHERE tag='{}';".format(p)
+            res = db.exec(sql)
+            if len(res) == 0:
+                sql = "INSERT INTO players (tag) VALUES ('{}');".format(p)
+                db.exec(sql)
+
         LOG.info('dallas: smashgg players {}'.format(players))
         # Create a map of ID to tag
         tag_id_dict = {}
@@ -95,6 +104,7 @@ def analyze_tournament(db, url, scene, dated, urls_per_player=False):
 
 def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player=False):
     winner_loser_pairs = []
+    players = set()
     #continuously find the next instances of 'player1' and 'player2'
     if debug: print('analyz a bracket. Dated? ' + str(dated))
     while 'player1' in bracket and 'player2' in bracket:
@@ -125,13 +135,8 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
         player1_tag = re.sub("['-_]", '', player1_tag)
         player2_tag = re.sub("['-_]", '', player2_tag)
 
-        # Check if these players are already in the players table
-        for p in [player1_tag, player2_tag]:
-            sql = "SELECT * FROM players WHERE tag='{}';".format(p)
-            res = db.exec(sql)
-            if len(res) == 0:
-                sql = "INSERT INTO players (tag) VALUES ('{}');".format(p)
-                db.exec(sql)
+        players.add(player1_tag)
+        players.add(player2_tag)
 
         #Now that we have both players, and the winner ID, what's the tag of the winner?
         winner = player1_tag if int(winner_id) == int(player1_id) else player2_tag
@@ -146,6 +151,15 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
         # Also insert this match into the player web
         winner_loser_pairs.append((winner, loser))
     update_web(winner_loser_pairs)
+
+    # Check if these players are already in the players table
+    for p in players:
+        sql = "SELECT * FROM players WHERE tag='{}';".format(p)
+        res = db.exec(sql)
+        if len(res) == 0:
+            sql = "INSERT INTO players (tag) VALUES ('{}');".format(p)
+            db.exec(sql)
+
 
 def get_player_info(bracket):
     player_dict = json.loads(bracket_utils.sanitize_bracket(bracket))

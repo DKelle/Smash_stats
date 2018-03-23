@@ -333,13 +333,65 @@ function initialize() {
 		control.svg = d3.select(control.divName)
 			.append("svg:svg")
 			.attr("width", control.width)
-			.attr("height", control.height)
-			.call(d3.behavior.zoom().on("zoom", function () {
-                control.svg.attr("transform", d3.event.transform);
-				//control.svg.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
-			}));
+			.attr("height", control.height);
+			//.call(d3.behavior.zoom().on("zoom", function () {
+            //    //control.svg.attr("transform", "translate(" + margin.left + "," + margin.right + " )");
+            //    //control.svg.attr("transform", "scale(" + d3.event.scale + ")");
+			//	control.svg.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
+			//}));
 
 		// get list of unique values in stylecolumn
+
+		var zoomListener = d3.behavior.zoom()
+		  .scaleExtent([0.1, 1.75])
+		  .on("zoom", zoomHandler);
+
+		var dragListener = d3.behavior.drag()
+			.on("drag", function() {
+				dragX = d3.event.dx;
+				dragY = d3.event.dy;
+			});
+
+		zoomListener(control.svg); 
+		control.svg.call(dragListener);
+
+
+		var dragging = 0;   
+		var dragX = 0, dragY = 0;
+
+		dragListener.on("dragstart", function() {
+		  dragging = 1;
+		}); 
+
+		dragListener.on("dragend", function() {
+		  dragging = 0;
+		  dragX = 0;
+		  dragY = 0;
+		}); 
+
+
+function zoomHandler() {
+	console.log('hits0')
+    var pos = d3.mouse(this);
+    var scale = d3.event.scale;
+
+    var trans = d3.transform(control.svg.attr("transform"));
+    var tpos = trans.translate;
+    var tscale = trans.scale;
+    var tx = tpos[0];
+    var ty = tpos[1];
+    var mx = pos[0] - control.width/2;
+    var my = pos[1] - control.height/2;
+
+    var dx =  (mx - tx - dragX)/tscale[0];
+    var dy =  (my - ty - dragY)/tscale[1];
+    var dx2 = (mx - dx)/scale - dx;
+    var dy2 = (my - dy)/scale - dy;
+
+    var tform = "translate(" + dx + "," + dy + ")scale(" + scale + ")translate(" + dx2 + "," + dy2 + ")"
+    control.svg.attr("transform", tform); 
+}
+
 		control.linkStyles = [];
 		if (control.options.styleColumn) {
 			var x;
@@ -360,6 +412,7 @@ function initialize() {
 	});
 	return initPromise.promise();
 }
+
 
 function getTheData() {
 	var dataPromise = $.Deferred();
