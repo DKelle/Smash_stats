@@ -5,7 +5,6 @@ import time
 import copy
 import bracket_utils
 from get_ranks import get_ranks
-from database_writer import DatabaseWriter
 from get_results import get_coalesced_tag
 import re
 from tweet import tweet
@@ -13,11 +12,11 @@ from tweet import tweet
 LOG = logger.logger(__name__)
 
 class processData(object):
-    def __init__(self):
+    def __init__(self, db):
         LOG.info('loading constants for process')
         self.dated_base_scene = bracket_utils.get_list_of_named_scenes()
         self.list_of_scene = bracket_utils.get_list_of_scenes()
-        self.db = DatabaseWriter()
+        self.db = db
 
     def process(self, bracket, scene):
         # Send this bracket to get_results

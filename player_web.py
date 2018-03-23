@@ -33,7 +33,7 @@ def get_web(tag=None):
     start = time.time()
     LOG.info('dallas: About to start calculating player data for {} at {}'.format(tag, start))
     if player_web == None:
-        return {}
+        return '{}'
     if tag == None:
         web = player_web.get_json()
         end = time.time()

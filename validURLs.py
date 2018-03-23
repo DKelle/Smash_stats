@@ -15,10 +15,11 @@ class validURLs(object):
     def __init__(self, scenes, testing=False):
         self.testing = testing
         self.scenes = scenes
-        self.db = DatabaseWriter()
+        db_name = 'smash_test' if testing else 'smash'
+        self.db = DatabaseWriter(db=db_name)
 
         # Create a processor to analyze new matches
-        self.data_processor = processData() 
+        self.data_processor = processData(self.db) 
         LOG.info("validURL being created")
 
 

@@ -24,6 +24,7 @@ def analyze_test_data():
 
 def run_tests(db):
     test_web(db)
+    input('about to start db etest')
     test_all_players_exist(db)
     test_all_matches_exist(db)
     test_placings(db)
@@ -33,6 +34,8 @@ def run_tests(db):
     pass
 
 def test_web(db):
+    print('About to run web tests...')
+    web = get_web()
     web = loads(get_web())
     data = web['d3']['data']
     nodes = data['nodes']
