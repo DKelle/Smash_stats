@@ -19,6 +19,12 @@ TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike'],
 	['spankey', 'spanky'],
 	['xlll', 'xiii'],
 	['cheesedud6', '←/cheesedud6'],
+	['kj', 'go! kj'],
+	['jtag', 'tgl | jtag'],
+	['jka', 'tgl | jka'],
+	['fcar', 'tgl | fcar'],
+	['resident', 'tgl | resident'],
+	['minty!', 'tgl | minty!', 'minty'],
         ['red velvet', 'karonite', 'aos redvelvet']]
 
 AUSTIN_URLS = ('austin', ['https://challonge.com/NP9ATX###', 'https://austinsmash4.challonge.com/atx###', 'http://challonge.com/heatwave###', 'http://challonge.com/hw###'])
@@ -70,6 +76,7 @@ PRO_URLS = ["https://smash.gg/tournament/super-smash-con-2017/events/wii-u-singl
         "https://smash.gg/tournament/super-smash-con-2016/events/melee-singles",
         "https://smash.gg/tournament/super-smash-con-2016/events/wii-u-singles"]
 SLEEP_TIME = 5 
+TOURNAMENTS_PER_RANK = 75
 
 TEST_URLS = ('test', ['https://challonge.com/smash_web_test_###'])
 

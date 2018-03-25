@@ -1,3 +1,4 @@
+import bracket_utils
 from validURLs import validURLs
 from constants import TEST_URLS
 from scene import Scene
@@ -25,6 +26,7 @@ def analyze_test_data():
 def run_tests(db):
     test_web(db)
     test_all_players_exist(db)
+    test_get_matches_by_date(db)
     test_all_matches_exist(db)
     test_placings(db)
     test_valids(db)
@@ -149,7 +151,7 @@ def test_valids(db):
     first = res[0][0]
     last = res[0][1]
     assert first == 2
-    assert last == 7
+    assert last == 10
     print('Valids tests have passed')
 
 def test_analyzed(db):
@@ -169,7 +171,37 @@ def test_analyzed(db):
     assert len(res) == 0
     print('analyzed tests passed')
 
+def test_get_matches_by_date(db):
+    print('About to get the most recent matches')
+    # TODO bump this up as you make more tournaments
+    N = 3
+    last_n = bracket_utils.get_last_n_tournaments(db, N, 'test')
+
+    # Get expected value
+    expected = [data['url'] for data in all_match_data[-N:]]
+
+    # Test these are the same
+    for n in last_n:
+        print('Testing that {} is one of the last recent tournaments...'.format(n))
+        assert n in expected
+    for n in expected:
+        assert n in last_n
+
+    # Get all the matches from these urls
+    act_matches = bracket_utils.get_matches_from_urls(db, last_n)
+    expected_matches = [data['matches'] for data in all_match_data[-N:]]
+    for match in expected_matches:
+        for p1 in match:
+            for p2 in match[p1]:
+                sql = 'select * from matches where (player1="{}" AND player2="{}") OR (player1="{}" AND player2="{}");'.format(p1,p2,p2,p1)
+                res = db.exec(sql, testing=True)
+                assert len(res) > 0
+
+    print('All match-date testing has passed')
+
+
 def test_endpoints(db):
+    # TODO implement this pls
     pass
 
 if __name__ == "__main__":

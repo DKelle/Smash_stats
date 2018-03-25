@@ -194,12 +194,16 @@ def get_date(url):
     url = url + "/log"
     bracket, status = bracket_utils.hit_url(url)
 
+    # TODO figure out what to do if this string is not in
+    s2 = '2015-03-07'
+    if 'created_at' not in bracket:
+        return s2
+
     first_occurance = str(bracket).index('created_at')
     bracket = bracket[first_occurance:]
 
     #TODO if one day this code randomly stop working, it's probably this
     s = 'created_at":"'
-    s2 = '2015-03-07'
     i = len(s)
     i2 = len(s2) + i
     date = bracket[i:i2]

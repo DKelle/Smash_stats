@@ -336,3 +336,17 @@ def get_list_of_named_scenes():
     base_urls = [['austin', austin], ['smashbrews', smashbrews], ['colorado', colorado_singles], ['colorado_doubles', colorado_doubles], ['sms', sms]]
     return base_urls
 
+def get_last_n_tournaments(db, n, scene):
+    sql = "select url, date from matches where scene='{}' group by url, date order by date desc, url desc limit {};".format(scene, n)
+    res = db.exec(sql)
+    urls = [r[0] for r in res]
+    return urls
+
+def get_matches_from_urls(db, urls):
+    matches = set()
+    for url in urls:
+        sql = "SELECT * FROM matches WHERE url='{}';".format(url)
+        res = set(db.exec(sql))
+        matches |= set(res)
+
+    return matches

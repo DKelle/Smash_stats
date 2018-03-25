@@ -51,7 +51,6 @@ def get_web(tag=None):
             # Make a set of all other players this player has an edge to
             node_ids = set([edge['source'] for edge in edges])
             node_ids.update([edge['target'] for edge in edges])
-            LOG.info("dallas: {} has played against these opponent IDs: {}".format(tag, node_ids))
 
             # Now that we have all node id, get a list of all nodes
             nodes = [player_web.nid_to_node_map[nid] for nid in node_ids]

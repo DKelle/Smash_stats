@@ -81,8 +81,7 @@ class validURLs(object):
                             bracket = base_url.replace('###', str(i))
                             self.data_processor.process(bracket, name)
 
-                        #TODO uncomment
-                        #self.data_processor.process_ranks(name)
+                        self.data_processor.process_ranks(name)
 
                 else:
                     # We need to create first and last from scratch
@@ -98,9 +97,7 @@ class validURLs(object):
                         bracket = base_url.replace('###', str(i))
                         self.data_processor.process(bracket, name)
 
-                    #TODO uncomment
-                    #self.data_processor.process_ranks(name)
-            #self.data_processor.process_ranks(name)
+                    self.data_processor.process_ranks(name)
                     
 
         # TODO temporary - have we loaded smashgg brackets?

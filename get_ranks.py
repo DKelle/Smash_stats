@@ -85,7 +85,7 @@ def get_win_loss_score(win_loss, tag, tag2, max_days, min_days):
     loss_total = 0
 
     for match in matches:
-        if debug: print('match is ' + str(match))
+        if debug: LOG.info('match is ' + str(match))
         win = (not match[1])
         date = match[0]
         score = date_to_points(date, max_days, min_days)
@@ -102,19 +102,19 @@ def date_to_points(date, max_days, min_days):
     today = datetime.datetime.today()
     current_date = datetime.datetime(today.year, today.month, today.day)
     date = datetime.datetime.strptime(date,'%Y-%m-%d')
-    if debug: print('getting the score of a match that was on ' + str(date))
+    if debug: LOG.info('getting the score of a match that was on ' + str(date))
     delta = float((today - date).days)
 
     # How many days are we from the oldest tournament?
-    days_from_oldest = max_days - delta
+    days_from_oldest = max(1, max_days - delta)
 
     # This tournament somewhere between newest and oldest tournaments
     # If 0 was oldest, and 100 was newst, what is this?
     day_range = max(1, max_days - min_days)
     percentage = days_from_oldest * 100 / day_range
-    if debug: print('this was X days ago ' + str(percentage) )
+    if debug: LOG.info('this was X days ago ' + str(percentage) )
     score = percentage ** exponent
-    if debug: print('this score is delta ^ exp = ', str(percentage), str(exponent), str(score))
+    if debug: LOG.info('this score is delta ^ exp = {}, {}, {}'.format( str(percentage), str(exponent), str(score)))
     return score
 
 def get_newest_tournament(win_loss_data):
@@ -157,7 +157,7 @@ def create_transition_mat(win_loss_data, tags_to_index):
     # Start a transition matrix, and fill it with zeros
     transition_mat = zeros(num_players)
     if debug:
-        print("this should be zeros")
+        LOG.info("this should be zeros")
         pprint.pprint(transition_mat)
 
     for i in range(num_players):
@@ -172,14 +172,18 @@ def create_transition_mat(win_loss_data, tags_to_index):
             if player_2 in win_loss.keys():
                 # Get the total amount of points this player has given up
                 total_points_given_up = get_total_points_given_up(player_1, win_loss_data, max_days, min_days)
+                if debug: LOG.info('dallas 2: player {} has given up {} total points'.format(player_1, total_points_given_up))
 
                 lost_to_p2 = get_points_given_up_to(player_1, player_2, win_loss_data, max_days, min_days)
+                if debug: LOG.info('dallas 2: player {} has given up {} to {}'.format(player_1, lost_to_p2, player_2))
                 #wins, losses = get_win_loss_score(win_loss, player_2, player_1)
             else:
                 # If these players haven't played, assume that their chance
                 # of winning is thier own win/loss ratio
                 total_points_given_up = get_win_loss_ratio(player_1, win_loss_data)
+                if debug: LOG.info('dallas: player {} has given up {} total points'.format(player_1, total_points_given_up))
                 lost_to_p2 = get_win_loss_ratio(player_2, win_loss_data)
+                if debug: LOG.info('dallas: player {} has given up {} to {}'.format(player_1, lost_to_p2, player_2))
 
             ratio = (lost_to_p2 + epsilon) / (total_points_given_up + epsilon)
             #total_matches = wins + losses
@@ -193,13 +197,6 @@ def create_transition_mat(win_loss_data, tags_to_index):
             row_sum += value
 
         transition_mat[i][i] = 1 - row_sum
-        if 'christmas' in player_1 and debug:
-            print('mike vs ' + str(player_2))
-            print('wins, losses', wins, losses)
-            print(transition_mat[i])
-
-        if 'christmas' in player_1:
-            LOG.info('mike vs {}'.format(player_2))
 
     return transition_mat
 
@@ -237,7 +234,7 @@ def get_total_played(tag, win_loss_data):
             total += len(win_loss[opponent])
 
     if debug:
-        print('the total number of matches played by ' + str(tag) + ' is ' + str(total))
+        LOG.info('the total number of matches played by {} is {}'.format( str(tag) + ' is ' + str(total)))
     return total
 
 def get_win_loss_ratio(player, win_loss_dict):
@@ -270,9 +267,9 @@ def get_eigen_vector(transition_mat):
     vals, vectors = numpy.linalg.eig(transition_mat)
 
     if debug:
-        print('Eigen values are ')
-        pprint.pprint(vals)
-        print('Eigen vectors are ')
+        LOG.info('Eigen values are ')
+        pprint. pprint(vals)
+        LOG.info('Eigen vectors are ')
         pprint.pprint(vectors)
 
     # Find the index of eigen value 1
@@ -286,7 +283,7 @@ def get_eigen_vector(transition_mat):
     for i in range(1000):
         s = s.dot(mat)
         if debug:
-            print("found eigen vector manually")
+            LOG.info("found eigen vector manually")
             pprint.pprint(s)
 
     return s
@@ -303,7 +300,7 @@ def random_walk(trans_mat, threshold=0.0000000000000001):
         prev_state = cur_state
         cur_state = cur_state.dot(trans_mat)
         diff = l2(cur_state, prev_state)
-        if debug: print(diff)
+        if debug: LOG.info(diff)
 
     LOG.info('Done with the random walk for determining ranks')
     return cur_state
@@ -314,9 +311,9 @@ def index_of(vals, find):
         val = vals[i]
         diff = abs(find-val)
         if diff < .001:
-            if debug: print('found the index of ' + str(vals[i]) + ' and the index is ' + str(i))
+            if debug: LOG.info('found the index of ' + str(vals[i]) + ' and the index is ' + str(i))
             return i
-    if debug: print("Could not find an eigen vector!")
+    if debug: LOG.info("Could not find an eigen vector!")
 
 def print_results(ranks, player_urls=None):
     basic = False
@@ -327,7 +324,7 @@ def print_results(ranks, player_urls=None):
         # Create a map of tags to PR, if any
         PR = 1
         best_players = reversed([x[-1] for i, x in enumerate(ranks)])
-        print(best_players)
+        LOG.info(best_players)
         for tag in best_players:
             if tag in player_urls and len(player_urls[tag]) > 2:
               PR_map[tag] = PR
@@ -340,12 +337,12 @@ def print_results(ranks, player_urls=None):
         # this is going to be slow
         tag = x[1]
         if basic:
-            print(str(players-i) + '/' + str(players) + ' - ' + str(x[-1]))
+            LOG.info(str(players-i) + '/' + str(players) + ' - ' + str(x[-1]))
         elif tag in PR_map:
             PR = PR_map[tag]
-            print(str(players-i) + '/' + str(players) + ' - ' + str(x) + ' - PR ' + str(PR))
+            LOG.info(str(players-i) + '/' + str(players) + ' - ' + str(x) + ' - PR ' + str(PR))
         else:
-            print(str(players-i) + '/' + str(players) + ' - ' + str(x))
+            LOG.info(str(players-i) + '/' + str(players) + ' - ' + str(x))
 
 def get_total_matches_played(win_loss_data):
     total = 0
@@ -357,7 +354,7 @@ def get_total_matches_played(win_loss_data):
                     total += 1
 
     if debug:
-        print('total matches played is ' + str(total))
+        LOG.info('total matches played is ' + str(total))
     return total
 
 def get_ranks(win_loss_data):

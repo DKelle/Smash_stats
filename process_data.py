@@ -54,10 +54,12 @@ class processData(object):
         DATE = 3
         SCENE = 4
 
-        # Get every match from this scene
-        sql = "SELECT * FROM matches WHERE scene = '"+ scene +"';"
-        matches =  self.db.exec(sql)
-        LOG.info("just got all matches for ranking purposes: {}".format(matches))
+        LOG.info('dallas: about to start processing ranks')
+        # Get only the last n tournaments, so it doesn't take too long to process
+        n = constants.TOURNAMENTS_PER_RANK
+        recent_tournaments = bracket_utils.get_last_n_tournaments(self.db, n, scene)
+        matches = bracket_utils.get_matches_from_urls(self.db, recent_tournaments)
+
 
         # Iterate through each match, and build up our dict
         win_loss_dict = {}
@@ -101,5 +103,3 @@ class processData(object):
             sql = "INSERT INTO ranks (scene, player, rank, points) VALUES ('{}', '{}', '{}', '{}');"\
                     .format(str(scene), str(player), str(rank), str(points))
             self.db.exec(sql)
-        LOG.info('dallas - {}'.format(ranks))
-
