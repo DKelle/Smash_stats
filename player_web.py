@@ -177,15 +177,23 @@ class PlayerWeb(object):
             rank = worst_rank if not tag in ranks else ranks[tag]
 
             # calulate the size off of the rank
-            interval = worst_rank / 15
-            default_size = 6
-            size = max(default_size, (worst_rank - rank) / interval * default_size)
+            min_size = 10
+            max_size = 50
+            size = min_size 
+            if worst_rank > 1:
+                rank = worst_rank - rank
+                normalized_rank = (rank+0.0)*(max_size+0.0)/(worst_rank+0.0)
+                # Filter out anything lower than min_size
+                size = max(min_size, normalized_rank)
+                # Filter out anything lager than max_size
+                size = min(size, max_size)
+
             ranked_node['radius'] = size
             LOG.info('dallas; setting the radius of node {} to {}'.format(tag, size))
             ranked_nodes.append(ranked_node)
         data = {'nodes': ranked_nodes, "links": self.edges}
 
-        json = {"d3":{"options":{"radius":2.5,"fontSize":9,"labelFontSize":9,"gravity":0.1,"height":800,"nodeFocusColor":"black","nodeFocusRadius":25,"nodeFocus":True,"linkDistance":150,"charge":-220,"nodeResize":"count","nodeLabel":"label","linkName":"tag"}, 'data':data}}
+        json = {"d3":{"options":{"radius":2.5,"fontSize":9,"labelFontSize":9,"gravity":.05,"height":800,"nodeFocusColor":"black","nodeFocusRadius":25,"nodeFocus":True,"linkDistance":150,"charge":-1000,"nodeResize":"count","nodeLabel":"label","linkName":"tag"}, 'data':data}}
         
         return dumps(json)
 
