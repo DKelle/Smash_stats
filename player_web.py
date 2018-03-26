@@ -11,6 +11,8 @@ LOG = logger.logger(__name__)
 
 player_web = None
 q = None
+ranks = {}
+worst_rank = 1 
 def update_web(winner_loser_pairs):
     if player_web == None:
         init_player_web()
@@ -30,11 +32,16 @@ def init_player_web():
 
     LOG.info("Creating the player web")
 
-def get_web(tag=None):
+def get_web(tag=None, db=None):
+    LOG.info('dallas: about to get the web, and db is {}'.format(db))
     start = time.time()
     LOG.info('dallas: About to start calculating player data for {} at {}'.format(tag, start))
     if player_web == None:
         return '{}'
+
+    # Make sure we have the most updated ranks
+    init_ranks(db)
+
     if tag == None:
         web = player_web.get_json()
         end = time.time()
@@ -58,6 +65,33 @@ def get_web(tag=None):
             end = time.time()
             LOG.info('dallas: Just finished calculating player web data at {}. Took {}'.format(end, end-start))
             return json
+
+def init_ranks(db):
+    global ranks
+    global worst_rank
+    ranks = {}
+
+    if db == None:
+        ranks = {}
+        return
+
+    sql = "SELECT count(rank) FROM ranks;"
+    res = db.exec(sql)
+    # Do we even have rank info yet?
+    if res[0][0] == 0:
+        return
+
+    LOG.info('dallas: tyring to get the worse rank adn found {}'.format(res))
+    worst_rank = res[0][0]
+
+    sql = "SELECT * FROM ranks"
+    res = db.exec(sql)
+
+    for r in res:
+        player = r[1]
+        rank = int(r[2])
+        LOG.info('dallas: setting the rank of {} to {}'.format(player, rank))
+        ranks[player] = rank
 
 class PlayerWeb(object):
     def __init__(self, *args):
@@ -117,7 +151,9 @@ class PlayerWeb(object):
         return self.tag_nid_map[tag]
 
     def create_node(self, tag, id):
+        # TODO get the city that this player plays in, and add him to that group
         group = randint(0,9)
+
         node = {"id":id, "name":tag, "count":1, "linkCount":1, "label":tag, "shortName":tag, "userCount":True, "group":group, "url":"player/{}".format(id)}
         self.nodes.append(node)
         self.nid_to_node_map[id] = node
@@ -134,7 +170,20 @@ class PlayerWeb(object):
     def get_json(self):
         LOG.info("About to return the json for the player web")
         LOG.info("There are {} nodes and {} edges".format(len(self.nodes), len(self.edges)))
-        data = {'nodes': self.nodes, "links": self.edges}
+        ranked_nodes = []
+        for node in self.nodes:
+            ranked_node = node
+            tag = ranked_node['name']
+            rank = worst_rank if not tag in ranks else ranks[tag]
+
+            # calulate the size off of the rank
+            interval = worst_rank / 15
+            default_size = 6
+            size = max(default_size, (worst_rank - rank) / interval * default_size)
+            ranked_node['radius'] = size
+            LOG.info('dallas; setting the radius of node {} to {}'.format(tag, size))
+            ranked_nodes.append(ranked_node)
+        data = {'nodes': ranked_nodes, "links": self.edges}
 
         json = {"d3":{"options":{"radius":2.5,"fontSize":9,"labelFontSize":9,"gravity":0.1,"height":800,"nodeFocusColor":"black","nodeFocusRadius":25,"nodeFocus":True,"linkDistance":150,"charge":-220,"nodeResize":"count","nodeLabel":"label","linkName":"tag"}, 'data':data}}
         

@@ -215,7 +215,8 @@ function doTheTreeViz(control) {
 
 	function getRadius(d) {
 		var r = control.options.radius * (control.options.nodeResize ? Math.sqrt(d[control.options.nodeResize]) / Math.PI : 1);
-		return control.options.nodeFocus && d.isCurrentlyFocused ? 25 : 10;
+        var r = d.radius;
+		return control.options.nodeFocus && d.isCurrentlyFocused ? 25 : r;
 	}
 
 	function getColor(d) {

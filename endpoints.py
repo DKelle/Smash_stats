@@ -15,8 +15,11 @@ endpoints = Blueprint('endpoints', __name__)
 
 @endpoints.route("/")
 def temp():
+    if db == None:
+        init()
+
     tag = request.args.get('tag', default="christmasmike")
-    data = get_web()
+    data = get_web(db=db)
     return render_template('libraries/html/interactive.html', data=data, tag=tag)
     #return render_template('libraries/html/temp.html', data=data, tag=tag)
 
@@ -124,10 +127,6 @@ def ranks():
 
     return json.dumps(results)
 
-def init():
-    global db
-    db = DatabaseWriter()
-    
 @endpoints.route('/graph')
 def serve_page():
     tag = request.args.get('tag', default=None)
@@ -137,8 +136,15 @@ def serve_page():
 
 @endpoints.route('/web')
 def web(tag=None):
-    return json.dumps(get_web(tag))
+    if db == None:
+        init()
 
+    return json.dumps(get_web(tag, db=db))
+
+def init():
+    global db
+    db = DatabaseWriter()
+    
 @endpoints.route('/templates/<path:path>')
 def serve(path):
     return send_from_directory('templates', path)

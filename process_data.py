@@ -101,5 +101,5 @@ class processData(object):
             points, player = x
             rank = len(ranks) - i
             sql = "INSERT INTO ranks (scene, player, rank, points) VALUES ('{}', '{}', '{}', '{}');"\
-                    .format(str(scene), str(player), str(rank), str(points))
+                    .format(str(scene), str(player), int(rank), str(points))
             self.db.exec(sql)
