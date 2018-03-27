@@ -14,13 +14,18 @@ BASE_URL = 'https://localhost:5000'
 endpoints = Blueprint('endpoints', __name__)
 
 @endpoints.route("/")
-def temp():
+def main():
     if db == None:
         init()
 
     tag = request.args.get('tag', default="christmasmike")
     data = get_web(db=db)
     return render_template('libraries/html/interactive.html', data=data, tag=tag)
+    #return render_template('libraries/html/temp.html', data=data, tag=tag)
+
+@endpoints.route("/temp")
+def temp():
+    return render_template('libraries/temp.html')
     #return render_template('libraries/html/temp.html', data=data, tag=tag)
 
 @endpoints.route("/wins")

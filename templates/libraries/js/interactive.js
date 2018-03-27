@@ -310,7 +310,7 @@ function initialize() {
 			nodeLabel: null,
 			markerWidth: 0,
 			markerHeight: 0,
-			width: $(control.divName).outerWidth(),
+			width: window.innerWidth,
 			gap: 1.5,
 			nodeResize: "",
 			linkDistance: 80,
@@ -323,7 +323,7 @@ function initialize() {
 			nodeFocusColor: "black",
 			labelOffset: "5",
 			gravity: .05,
-			height: $(control.divName).outerHeight()
+			height: window.innerHeight
 		}, control.data.d3.options);
 
 		var options = control.options;
@@ -340,10 +340,13 @@ function initialize() {
 		control.clickHack = 200;
 		organizeData(control);
 
+        console.log('DALLAS HEIGHT AND WIDTH ARE ' + control.width + ' ' + control.height);
 		control.svg = d3.select(control.divName)
 			.append("svg:svg")
 			.attr("width", control.width)
-			.attr("height", control.height);
+			.attr("height", control.height)
+            .attr("viewBox", "0 0 " + control.width + " " + control.height )
+            .attr("preserveAspectRatio", "xMinYMin");
 
 		// Panning and zooming
 		var zoomListener = d3.behavior.zoom()
