@@ -25,6 +25,7 @@ TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike'],
 	['fcar', 'tgl | fcar'],
 	['resident', 'tgl | resident'],
 	['minty!', 'tgl | minty!', 'minty'],
+	['willow', 'willowette'],
         ['red velvet', 'karonite', 'aos redvelvet']]
 
 AUSTIN_URLS = ('austin', ['https://challonge.com/NP9ATX###', 'https://austinsmash4.challonge.com/atx###', 'http://challonge.com/heatwave###', 'http://challonge.com/hw###'])

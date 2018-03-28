@@ -13,16 +13,16 @@ player_web = None
 q = None
 ranks = {}
 worst_rank = 1 
-def update_web(winner_loser_pairs, scenes, db):
+def update_web(winner_loser_pairs):
     if player_web == None:
-        init_player_web(scenes, db)
+        init_player_web()
     q.put_nowait(winner_loser_pairs)
 
-def init_player_web(scenes, db):
+def init_player_web():
     global player_web
     global q
     q = queue.Queue()
-    player_web = PlayerWeb(q, scenes, db)
+    player_web = PlayerWeb(q)
 
     # Start running the player web in a thread
     w = Worker(target=player_web.run, name="PlayerWeb")
@@ -31,6 +31,9 @@ def init_player_web(scenes, db):
     t.start()
 
     LOG.info("Creating the player web")
+
+def update_group(tag, group_id):
+    player_web.update_group_id(tag, group_id)
 
 def get_web(tag=None, db=None):
     LOG.info('dallas: about to get the web, and db is {}'.format(db))
@@ -96,8 +99,6 @@ def init_ranks(db):
 class PlayerWeb(object):
     def __init__(self, *args):
         self.q = args[0]
-        self.scenes = args[1]
-        self.db = args[2]
         self.tag_nid_map = {}
         self.edge_id_map = {}
         self.eid_to_edge_map = {}
@@ -150,43 +151,28 @@ class PlayerWeb(object):
             self.current_node_id = self.current_node_id + 1
         elif not tag in self.tag_nid_map:
             return None
-        elif tag in self.tag_nid_map:
-            # update this nodes group ID
-            nid = self.tag_nid_map[tag]
-            node = self.nodes[nid]
-            # TODO remove
-            LOG.info('dallas: about to see if this group ID has changed... It was {}'.format(node['group']))
-            group = self.get_group_id(tag)
-            node['group'] = group
-            # TODO remove
-            LOG.info('dallas: and it is now {}'.format(group))
-
-            # Save this node back to our maps
-            self.nodes[nid] = node
-            self.nid_to_node_map[nid] = node
         return self.tag_nid_map[tag]
 
     def create_node(self, tag, id):
-        group = self.get_group_id(tag)
-        node = {"id":id, "name":tag, "count":1, "linkCount":1, "label":tag, "shortName":tag, "userCount":True, "group":group, "url":"player/{}".format(id)}
+        node = {"id":id, "name":tag, "count":1, "linkCount":1, "label":tag, "shortName":tag, "userCount":True, "group":0, "url":"player/{}".format(id)}
         self.nodes.append(node)
         self.nid_to_node_map[id] = node
         LOG.info("Created a node for player {} with id {}".format(tag, id))
 
-    def get_group_id(self, tag):
-        sql = "SELECT matches_per_scene FROM players WHERE tag='{}';".format(tag)
-        res = self.db.exec(sql)
-        if len(res) > 0:
-            matches_per_scene = loads(res[0][-1])
-            # Find the scene that this players has played in most often
-            sort = [(k, matches_per_scene[k]) for k in sorted(matches_per_scene, key=matches_per_scene.get, reverse=True)]
-            max_scene = sort[0][0]
-            group = self.scenes.index(max_scene)
-        else:
-            LOG.exc('Trying to create a node for a player that has no scene counts!!! {}'.format(tag))
-            group = randint(0,9)
 
-        return group
+    def update_group_id(tag, group_id):
+        # update this nodes group ID
+        nid = self.tag_nid_map[tag]
+        node = self.nodes[nid]
+        # TODO remove
+        LOG.info('dallas: about to see if this group ID has changed... It was {}'.format(node['group']))
+        node['group'] = group_id
+        # TODO remove
+        LOG.info('dallas: and it is now {}'.format(group_id))
+
+        # Save this node back to our maps
+        self.nodes[nid] = node
+        self.nid_to_node_map[nid] = node
 
 
     def create_edge(self, wid, lid, id):
