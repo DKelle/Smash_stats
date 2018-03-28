@@ -13,4 +13,3 @@ class Scene(object):
 
     def get_name(self):
         return self.scene_name
-

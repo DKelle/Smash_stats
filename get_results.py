@@ -88,7 +88,9 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
         LOG.info("ERROR PARSING SMASHGG: {}".format(url))
         return
 
-    update_web(winner_loser_pairs)
+    # we need to pass a list of scenes to the player web
+    scenes = bracket_utils.get_list_of_scene_names()
+    update_web(winner_loser_pairs, scenes, db)
 
 def analyze_tournament(db, url, scene, dated, urls_per_player=False):
     #Scrape the challonge website for the raw bracket
@@ -150,15 +152,34 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
 
         # Also insert this match into the player web
         winner_loser_pairs.append((winner, loser))
-    update_web(winner_loser_pairs)
+    # we need to pass a list of scenes to the player web
+    scenes = bracket_utils.get_list_of_scene_names()
+    update_web(winner_loser_pairs, scenes, db)
 
     # Check if these players are already in the players table
+    scenes = bracket_utils.get_list_of_scene_names()
     for p in players:
         sql = "SELECT * FROM players WHERE tag='{}';".format(p)
         res = db.exec(sql)
         if len(res) == 0:
-            sql = "INSERT INTO players (tag) VALUES ('{}');".format(p)
+            # This player has never player before. Assume they have no matches in any other scene
+            matches_per_scene = {s:0 for s in scenes}
+            if scene in scenes:
+                matches_per_scene[scene] = 1
+                matches_per_scene_str = json.dumps(matches_per_scene)
+            sql = "INSERT INTO players (tag, matches_per_scene) VALUES ('{}', '{}');".format(p, matches_per_scene_str)
             db.exec(sql)
+        else:
+            # This player has already played in other scenes. Update the counts
+            matches_per_scene = json.loads(res[0][-1])
+            if not scene in matches_per_scene:
+                matches_per_scene[scene] = 0
+            matches_per_scene[scene] = matches_per_scene[scene] + 1
+            # TODO remove
+            LOG.info('Updating players scene count: {} {}'.format(p, matches_per_scene))
+            sql = "UPDATE players SET matches_per_scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), p)
+            db.exec(sql)
+
 
 
 def get_player_info(bracket):

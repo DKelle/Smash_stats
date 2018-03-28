@@ -42,7 +42,7 @@ class processData(object):
             if 'christmasmike' == player:
                 if placing < 10:
                     msg = "Congrats on making {} dude! You're the best.".format(placing)
-                    #tweet(msg)
+                    tweet(msg)
 
         LOG.info("tournament placings for {} are {}".format(bracket, tournament_placings))
 
