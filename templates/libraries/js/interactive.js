@@ -4,6 +4,12 @@ google.setOnLoadCallback(function() {
 		function(control) {
 			var initial_node = get_node_from_tag(control.data.nodes, tag);
 			initial_node.isCurrentlyFocused = initial_node.isCurrentlyFocused;
+
+             initial_node.fixed = true;
+             initial_node.x = control.width/2;
+             initial_node.y = control.height/2;
+
+            console.log('dallas, here is initial node' + JSON.stringify(initial_node));
 			ls = get_all_links_with_node(control, initial_node);
 			ns = get_all_nodes_with_links(control, links, initial_node);
 			control.links = ls;
@@ -336,7 +342,7 @@ function initialize() {
 		control.data.links = filter_bad_links(control.data.links)
 
 		control.links = control.data.links;
-		control.color = d3.scale.category20();
+		control.color = d3.scale.category10();
 		control.clickHack = 200;
 		organizeData(control);
 
@@ -358,6 +364,13 @@ function initialize() {
 				dragX = d3.event.dx;
 				dragY = d3.event.dy;
 			});
+
+        function resize() {
+                var width = window.innerWidth, height = window.innerHeight;
+                control.svg.attr("width", width).attr("height", height);
+                    control.force.size([width, height]).resume();
+        }
+        window.addEventListener('resize', resize); 
 
 		zoomListener(control.svg); 
 		control.svg.call(dragListener);
@@ -392,7 +405,7 @@ function initialize() {
 			var dx2 = (mx - dx)/scale - dx;
 			var dy2 = (my - dy)/scale - dy;
 
-			var tform = "translate(" + dx + "," + dy + ")scale(" + scale + ")translate(" + dx2 + "," + dy2 + ")"
+			var tform = "translate(" + dx + "," + dy + ")scale(" + scale + ")translate(" + dx2 + "," + dy2 + ")";
 			control.svg.attr("transform", tform); 
 		}
 
