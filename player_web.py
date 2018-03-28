@@ -160,19 +160,22 @@ class PlayerWeb(object):
         LOG.info("Created a node for player {} with id {}".format(tag, id))
 
 
-    def update_group_id(tag, group_id):
+    def update_group_id(self, tag, group_id):
         # update this nodes group ID
-        nid = self.tag_nid_map[tag]
-        node = self.nodes[nid]
-        # TODO remove
-        LOG.info('dallas: about to see if this group ID has changed... It was {}'.format(node['group']))
-        node['group'] = group_id
-        # TODO remove
-        LOG.info('dallas: and it is now {}'.format(group_id))
+        if tag in self.tag_nid_map:
+            nid = self.tag_nid_map[tag]
+            node = self.nodes[nid]
+            # TODO remove
+            LOG.info('dallas: about to see if this group ID has changed... It was {}'.format(node['group']))
+            node['group'] = group_id
+            # TODO remove
+            LOG.info('dallas: and it is now {}'.format(group_id))
 
-        # Save this node back to our maps
-        self.nodes[nid] = node
-        self.nid_to_node_map[nid] = node
+            # Save this node back to our maps
+            self.nodes[nid] = node
+            self.nid_to_node_map[nid] = node
+        else:
+            LOG.info("ERROR: tyring to update group for non existant tag: {}".format(tag))
 
 
     def create_edge(self, wid, lid, id):
