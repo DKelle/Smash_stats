@@ -192,7 +192,7 @@ class PlayerWeb(object):
             ranked_nodes.append(ranked_node)
         data = {'nodes': ranked_nodes, "links": self.edges}
 
-        json = {"d3":{"options":{"radius":2.5,"fontSize":9,"labelFontSize":9,"gravity":.05,"nodeFocusColor":"black","nodeFocusRadius":25,"nodeFocus":True,"linkDistance":150,"charge":-1000,"nodeResize":"count","nodeLabel":"label","linkName":"tag"}, 'data':data}}
+        json = {"d3":{"options":{"radius":2.5,"fontSize":9,"labelFontSize":9,"gravity":.5,"nodeFocusColor":"black","nodeFocusRadius":25,"nodeFocus":True,"linkDistance":150,"charge":-1000,"nodeResize":"count","nodeLabel":"label","linkName":"tag"}, 'data':data}}
         
         return dumps(json)
 

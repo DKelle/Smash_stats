@@ -405,6 +405,17 @@ function initialize() {
 			var dx2 = (mx - dx)/scale - dx;
 			var dy2 = (my - dy)/scale - dy;
 
+			console.log('dallas: trans is this' + JSON.stringify(trans))
+			var newViewBox = [
+				(-trans.translate[0] * 2 / scale),
+				(-trans.translate[1] * 2/ scale),
+				(control.width / scale),
+				(control.height / scale)
+			].join(" ");
+			console.log('dallas: biewbox is this' + JSON.stringify(newViewBox))
+
+			control.svg.attr('viewBox', newViewBox);
+
 			var tform = "translate(" + dx + "," + dy + ")scale(" + scale + ")translate(" + dx2 + "," + dy2 + ")";
 			control.svg.attr("transform", tform); 
 		}

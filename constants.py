@@ -6,7 +6,7 @@ TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike'],
 	['lucy', 'ttn | lucy'],
 	['sassy', 'atx | sassy'],
 	['crump', 'donald crump', 'captain crump', 'abc | crump'],
-	['dragonite', 'su dragonite', 'su | dragonite', 'tpwn | dragonite', 'tpwn | dragonite_pr', 'tpwn| dragonite (gnw)', 'atx hoh | dragonite', 'dragonite_pr', 'hoh | dragonite', 'mega dragonite', 'tpwn|dragonite'],
+	['dragonite', 'su dragonite', 'su | dragonite', 'tpwn | dragonite', 'tpwn | dragonite_pr', 'tpwn| dragonite (gnw)', 'atx hoh | dragonite', 'dragonite_pr', 'hoh | dragonite', 'mega dragonite', 'tpwn|dragonite', 'armada | dragonite', 'aes | dragonite'],
 	['gallium', 's.e.s punk'],
 	['mt', 'mt_'],
 	['fx | albert', 'albert'],
@@ -27,6 +27,7 @@ TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike'],
 	['minty!', 'tgl | minty!', 'minty'],
 	['willow', 'willowette'],
 	['messiah', 'maple'],
+	['tenni', 'go! tenni'],
         ['red velvet', 'karonite', 'aos redvelvet']]
 
 AUSTIN_URLS = ('austin', ['http://challonge.com/heatwave###', 'https://challonge.com/NP9ATX###', 'http://challonge.com/hw###', 'https://austinsmash4.challonge.com/atx###'])
