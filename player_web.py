@@ -139,14 +139,18 @@ class PlayerWeb(object):
         # update this nodes group ID
         if tag in self.tag_nid_map:
             nid = self.tag_nid_map[tag]
-            node = self.nodes[nid]
-            node['group'] = group_id
+            LOG.info('dallas: tyring to update group in player web for player {}. nid is {}, len of nodes is {}'.format(tag,nid,len(self.nodes)))
+            if len(self.nodes) >  nid:
+                node = self.nodes[nid]
+                node['group'] = group_id
 
-            # Save this node back to our maps
-            self.nodes[nid] = node
-            self.nid_to_node_map[nid] = node
+                # Save this node back to our maps
+                self.nodes[nid] = node
+                self.nid_to_node_map[nid] = node
+            else:
+                LOG.info("dallas: ERROR: tyring to update group for non existant node: {}".format(tag))
         else:
-            LOG.info("ERROR: tyring to update group for non existant tag: {}".format(tag))
+            LOG.info("dallas: ERROR: tyring to update group for non existant tag: {}".format(tag))
 
     def update_ranks(self, tag_rank_map):
         self.tag_rank_map.update(tag_rank_map)

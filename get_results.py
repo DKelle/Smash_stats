@@ -213,6 +213,7 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
             update_group(p, group_id)
             db.exec(sql)
         else:
+            LOG.info('dallas: have detected that {} has played before'.format(p))
             # This player has already played in other scenes. Update the counts
             matches_per_scene = json.loads(res[0][2])
 
@@ -220,8 +221,10 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
             sort = [(k, matches_per_scene[k]) for k in sorted(matches_per_scene, key=matches_per_scene.get, reverse=True)]
             max_scene = sort[0][0]
             group_id_before = scenes.index(max_scene)
+            LOG.info('dallas: here is this players matches per scene {}, which is ndex {}'.format(matches_per_scene, group_id_before))
 
             if not scene in matches_per_scene:
+                LOG.info('dallas: the scene {} is not in their list'.format(scene))
                 matches_per_scene[scene] = 0
             matches_per_scene[scene] = matches_per_scene[scene] + 1
 
@@ -229,26 +232,23 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
             sort = [(k, matches_per_scene[k]) for k in sorted(matches_per_scene, key=matches_per_scene.get, reverse=True)]
             max_scene = sort[0][0]
             group_id_after = scenes.index(max_scene)
+            LOG.info('dallas: this is their matches per scene and group id after{}, {}'.format(matches_per_scene, group_id_after))
 
             # If this player just changed scenes, update the player web
             if not group_id_before == group_id_after:
+                LOG.info('about to update group for player {}'.format(p))
                 update_group(p, group_id_after)
+                LOG.info('dallas: Chaning the scene of player {} to {}'.format(p, scene))
+                # Update this players scene in the DB
+                sql = "UPDATE players SET matches_per_scene='{}', scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), scene, p)
+                db.exec(sql)
 
-                # If this player just changed scenes, update the player web
-                if not group_id_before == group_id_after:
-                    update_group(p, group_id_after)
-
-                    LOG.info('dallas: Chaning the scene of player {} to {}'.format(p, scene))
-                    # Update this players scene in the DB
-                    sql = "UPDATE players SET matches_per_scene='{}', scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), scene, p)
-                    db.exec(sql)
-
-                else:
-                    # TODO remove
-                    LOG.info('Updating players scene count: {} {}'.format(p, matches_per_scene))
-                    # This players scene didn't change, keep it the same
-                    sql = "UPDATE players SET matches_per_scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), p)
-                    db.exec(sql)
+            else:
+                # TODO remove
+                LOG.info('dallas: Updating players scene count: {} {}'.format(p, matches_per_scene))
+                # This players scene didn't change, keep it the same
+                sql = "UPDATE players SET matches_per_scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), p)
+                db.exec(sql)
 
 
 
