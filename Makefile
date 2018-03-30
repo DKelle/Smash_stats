@@ -3,6 +3,11 @@ all: clear
 	touch smash.log
 	python3 app.py
 
+noclear:
+	rm -f smash.log
+	touch smash.log
+	python3 app.py
+
 kill:
 	sh kill.sh
 

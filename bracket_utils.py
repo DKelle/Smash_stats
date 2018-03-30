@@ -337,7 +337,7 @@ def get_list_of_named_scenes():
     return base_urls
 
 def get_list_of_scene_names():
-    return ['sms', 'austin', 'smashbrews', 'colorado', 'colorado_doubles', 'pro', 'test']
+    return ['sms', 'austin', 'smashbrews', 'colorado', 'colorado_doubles', 'pro', 'pro_wiiu', 'test']
 
 def get_last_n_tournaments(db, n, scene):
     sql = "select url, date from matches where scene='{}' group by url, date order by date desc, url desc limit {};".format(scene, n)

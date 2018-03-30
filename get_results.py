@@ -18,6 +18,10 @@ debug = False
 
 LOG = logger(__name__)
 
+def sanitize_tag(tag):
+    tag = ''.join([i if ord(i) < 128 else ' ' for i in tag])
+    return re.sub("[^a-z A-Z 0-9]",'',tag.lower())
+
 def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
     global smash
     if smash == None:
@@ -42,7 +46,11 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
 
         # Check if these players are already in the players table
         scenes = bracket_utils.get_list_of_scene_names()
-        for p in players:
+        for player in players:
+            p = sanitize_tag(player['tag'].lower())
+            p = re.sub("['-_]", '', p)
+            LOG.info('dallas: here is the tag we are about to select {}'.format(p))
+
             sql = "SELECT * FROM players WHERE tag='{}';".format(p)
             res = db.exec(sql)
             if len(res) == 0:
@@ -76,7 +84,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
 
                 # If this player just changed scenes, update the player web
                 if not group_id_before == group_id_after:
-                    update_group(tag, group_id_after)
+                    update_group(p, group_id_after)
 
                     # Update this players scene in the DB
                     sql = "UPDATE players SET matches_per_scene='{}', scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), scene, p)
@@ -94,9 +102,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
             id = int(player["entrant_id"])
             tag = player["tag"]
             # sanitize the tag
-            tag = ''.join([i if ord(i) < 128 else ' ' for i in tag])
-            #TODO sql injection
-            tag = re.sub("['-_]", '', tag)
+            tag = sanitize_tag(tag)
             
             #TODO coalesce here
             tag_id_dict[id] = tag
@@ -172,9 +178,8 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
         player1_tag = get_coalesced_tag(player1_tag)
         player2_tag = get_coalesced_tag(player2_tag)
 
-        # TODO sql injection
-        player1_tag = re.sub("['-_]", '', player1_tag)
-        player2_tag = re.sub("['-_]", '', player2_tag)
+        player1_tag = sanitize_tag(player1_tag)
+        player2_tag = sanitize_tag(player2_tag)
 
         players.add(player1_tag)
         players.add(player2_tag)

@@ -142,6 +142,7 @@ function doTheTreeViz(control) {
 						control.nodeClickInProgress = false;
 						if (control.options.nodeFocus) {
 							d.isCurrentlyFocused = !d.isCurrentlyFocused;
+                            d.fixed = false;
 							doTheTreeViz(makeFilteredData(control));
 						}
 					}

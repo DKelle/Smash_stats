@@ -34,6 +34,8 @@ def init_player_web():
     LOG.info("Creating the player web")
 
 def update_group(tag, group_id):
+    if player_web == None:
+        init_player_web()
     player_web.update_group_id(tag, group_id)
 
 def update_ranks(tag_rank_map):
@@ -88,13 +90,12 @@ class PlayerWeb(object):
         while True:
             try:
                 winner_loser_pairs = self.q.get(timeout=5)
+                for winner, loser in winner_loser_pairs:
+                    self.update(winner, loser)
             except queue.Empty:
                 pass
             except Exception:
                 LOG.info('The player web has hit an unexpected exception! Dying')
-
-            for winner, loser in winner_loser_pairs:
-                self.update(winner, loser)
 
     def update(self, winner, loser):
         wid = self.get_id(winner)
