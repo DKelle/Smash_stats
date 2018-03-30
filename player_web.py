@@ -171,11 +171,13 @@ class PlayerWeb(object):
             # default to a low rank
             rank, total_ranked = worst_rank, worst_rank
             if self.tag_rank_map and tag in self.tag_rank_map:
+                LOG.info('Found rank for player {}. He is {} out of {}'.format(tag, rank, total_ranked))
                 rank, total_ranked = self.tag_rank_map[tag]['rank'], self.tag_rank_map[tag]['total_ranked']
 
             # calulate the size off of the rank
-            min_size = 10
-            max_size = 50
+            power = 6.0
+            min_size = pow(10, (1.0/power))
+            max_size = pow(65, (1.0/power))
             size = min_size 
             if total_ranked > 1:
                 rank = total_ranked - rank
@@ -184,6 +186,7 @@ class PlayerWeb(object):
                 size = max(min_size, normalized_rank)
                 # Filter out anything lager than max_size
                 size = min(size, max_size)
+            size = pow(size, power)
 
             ranked_node['radius'] = size
             ranked_nodes.append(ranked_node)

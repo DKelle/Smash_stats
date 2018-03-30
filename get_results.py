@@ -58,7 +58,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
                 db.exec(sql)
             else:
                 # This player has already played in other scenes. Update the counts
-                matches_per_scene = json.loads(res[0][-1])
+                matches_per_scene = json.loads(res[0][2])
 
                 # Which scene was this player a part of before?
                 sort = [(k, matches_per_scene[k]) for k in sorted(matches_per_scene, key=matches_per_scene.get, reverse=True)]
@@ -224,10 +224,6 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
             if not scene in matches_per_scene:
                 matches_per_scene[scene] = 0
             matches_per_scene[scene] = matches_per_scene[scene] + 1
-            # TODO remove
-            LOG.info('Updating players scene count: {} {}'.format(p, matches_per_scene))
-            sql = "UPDATE players SET matches_per_scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), p)
-            db.exec(sql)
 
             # Which scene is this player a part of now?
             sort = [(k, matches_per_scene[k]) for k in sorted(matches_per_scene, key=matches_per_scene.get, reverse=True)]
@@ -237,6 +233,23 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
             # If this player just changed scenes, update the player web
             if not group_id_before == group_id_after:
                 update_group(p, group_id_after)
+
+                # If this player just changed scenes, update the player web
+                if not group_id_before == group_id_after:
+                    update_group(p, group_id_after)
+
+                    LOG.info('dallas: Chaning the scene of player {} to {}'.format(p, scene))
+                    # Update this players scene in the DB
+                    sql = "UPDATE players SET matches_per_scene='{}', scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), scene, p)
+                    db.exec(sql)
+
+                else:
+                    # TODO remove
+                    LOG.info('Updating players scene count: {} {}'.format(p, matches_per_scene))
+                    # This players scene didn't change, keep it the same
+                    sql = "UPDATE players SET matches_per_scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), p)
+                    db.exec(sql)
+
 
 
 
