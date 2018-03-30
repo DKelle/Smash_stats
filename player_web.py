@@ -40,16 +40,16 @@ def update_ranks(tag_rank_map):
     player_web.update_ranks(tag_rank_map)
 
 def get_web(tag=None, db=None):
-    LOG.info('dallas: about to get the web, and db is {}'.format(db))
+    LOG.info('About to get the web, and db is {}'.format(db))
     start = time.time()
-    LOG.info('dallas: About to start calculating player data for {} at {}'.format(tag, start))
+    LOG.info('About to start calculating player data for {} at {}'.format(tag, start))
     if player_web == None:
         return '{}'
 
     if tag == None:
         web = player_web.get_json()
         end = time.time()
-        LOG.info('dallas: Just finished calculating player web data at {}. Took {}'.format(end, end-start))
+        LOG.info('Just finished calculating player web data at {}. Took {}'.format(end, end-start))
         return web
     else:
         # First, get the node for this player
@@ -67,7 +67,7 @@ def get_web(tag=None, db=None):
             nodes = [player_web.nid_to_node_map[nid] for nid in node_ids]
             json = {'nodes': nodes, "edges": edges}
             end = time.time()
-            LOG.info('dallas: Just finished calculating player web data at {}. Took {}'.format(end, end-start))
+            LOG.info('Just finished calculating player web data at {}. Took {}'.format(end, end-start))
             return json
 
 class PlayerWeb(object):
@@ -149,8 +149,6 @@ class PlayerWeb(object):
             LOG.info("ERROR: tyring to update group for non existant tag: {}".format(tag))
 
     def update_ranks(self, tag_rank_map):
-        # TODO remove
-        LOG.info('dallas: about to update ranks')
         self.tag_rank_map.update(tag_rank_map)
 
     def create_edge(self, wid, lid, id):
@@ -174,8 +172,6 @@ class PlayerWeb(object):
             rank, total_ranked = worst_rank, worst_rank
             if self.tag_rank_map and tag in self.tag_rank_map:
                 rank, total_ranked = self.tag_rank_map[tag]['rank'], self.tag_rank_map[tag]['total_ranked']
-                # TODO remove
-                LOG.info('dallas: found rank! {} is {} out of {}'.format(tag, rank, total_ranked))
 
             # calulate the size off of the rank
             min_size = 10
@@ -190,7 +186,6 @@ class PlayerWeb(object):
                 size = min(size, max_size)
 
             ranked_node['radius'] = size
-            LOG.info('dallas; setting the radius of node {} to {}'.format(tag, size))
             ranked_nodes.append(ranked_node)
         data = {'nodes': ranked_nodes, "links": self.edges}
 

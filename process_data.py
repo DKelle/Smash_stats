@@ -111,8 +111,6 @@ class processData(object):
 
             if len(res) == 0 or res[0][0] == scene:
                 # Also create a list to update the player web
-                # TODO remove
-                LOG.info('dallas: creating rank entry for {}. Hes {} out of {}'.format(player, rank, len(ranks)))
                 map = {'rank':rank, 'total_ranked':len(ranks)}
                 tag_rank_map[player] = map
         player_web.update_ranks(tag_rank_map)
