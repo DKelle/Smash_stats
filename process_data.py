@@ -3,6 +3,7 @@ import constants
 import get_results
 import time
 import copy
+import player_web
 import bracket_utils
 from get_ranks import get_ranks
 from get_results import get_coalesced_tag
@@ -42,7 +43,7 @@ class processData(object):
             if 'christmasmike' == player:
                 if placing < 10:
                     msg = "Congrats on making {} dude! You're the best.".format(placing)
-                    tweet(msg)
+                    #tweet(msg)
 
         LOG.info("tournament placings for {} are {}".format(bracket, tournament_placings))
 
@@ -54,7 +55,7 @@ class processData(object):
         DATE = 3
         SCENE = 4
 
-        LOG.info('dallas: about to start processing ranks')
+        LOG.info('About to start processing ranks')
         # Get only the last n tournaments, so it doesn't take too long to process
         n = constants.TOURNAMENTS_PER_RANK
         recent_tournaments = bracket_utils.get_last_n_tournaments(self.db, n, scene)
@@ -64,7 +65,6 @@ class processData(object):
         # Iterate through each match, and build up our dict
         win_loss_dict = {}
         for match in matches:
-            LOG.info('about to use match: {}'.format(match)) 
             p1 = match[PLAYER1]
             p2 = match[PLAYER2]
             winner = match[WINNER]
@@ -89,7 +89,7 @@ class processData(object):
 
             win_loss_dict[p2][p1].append((date, winner == p2))
 
-        # TODO make sure if we already have calculated ranks for these players, we update the DB
+        # make sure if we already have calculated ranks for these players, we update the DB
         sql = "SELECT * FROM ranks WHERE scene = '{}'".format(str(scene))
         res = self.db.exec(sql)
         if len(res) > 0:
@@ -97,9 +97,22 @@ class processData(object):
             self.db.exec(sql)
 
         ranks = get_ranks(win_loss_dict)
+        tag_rank_map = {}
         for i, x in enumerate(ranks):
             points, player = x
             rank = len(ranks) - i
             sql = "INSERT INTO ranks (scene, player, rank, points) VALUES ('{}', '{}', '{}', '{}');"\
                     .format(str(scene), str(player), int(rank), str(points))
             self.db.exec(sql)
+
+            # Only count this player if this is the scene he/she belongs to
+            sql = "SELECT scene FROM players WHERE tag='{}';".format(player)
+            res = self.db.exec(sql)
+
+            if len(res) == 0 or res[0][0] == scene:
+                # Also create a list to update the player web
+                # TODO remove
+                LOG.info('dallas: creating rank entry for {}. Hes {} out of {}'.format(player, rank, len(ranks)))
+                map = {'rank':rank, 'total_ranked':len(ranks)}
+                tag_rank_map[player] = map
+        player_web.update_ranks(tag_rank_map)

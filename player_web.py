@@ -11,6 +11,7 @@ LOG = logger.logger(__name__)
 
 player_web = None
 q = None
+db = None
 ranks = {}
 worst_rank = 1 
 def update_web(winner_loser_pairs):
@@ -35,15 +36,15 @@ def init_player_web():
 def update_group(tag, group_id):
     player_web.update_group_id(tag, group_id)
 
+def update_ranks(tag_rank_map):
+    player_web.update_ranks(tag_rank_map)
+
 def get_web(tag=None, db=None):
     LOG.info('dallas: about to get the web, and db is {}'.format(db))
     start = time.time()
     LOG.info('dallas: About to start calculating player data for {} at {}'.format(tag, start))
     if player_web == None:
         return '{}'
-
-    # Make sure we have the most updated ranks
-    init_ranks(db)
 
     if tag == None:
         web = player_web.get_json()
@@ -69,33 +70,6 @@ def get_web(tag=None, db=None):
             LOG.info('dallas: Just finished calculating player web data at {}. Took {}'.format(end, end-start))
             return json
 
-def init_ranks(db):
-    global ranks
-    global worst_rank
-    ranks = {}
-
-    if db == None:
-        ranks = {}
-        return
-
-    sql = "SELECT count(rank) FROM ranks;"
-    res = db.exec(sql)
-    # Do we even have rank info yet?
-    if res[0][0] == 0:
-        return
-
-    LOG.info('dallas: tyring to get the worse rank adn found {}'.format(res))
-    worst_rank = res[0][0]
-
-    sql = "SELECT * FROM ranks"
-    res = db.exec(sql)
-
-    for r in res:
-        player = r[1]
-        rank = int(r[2])
-        LOG.info('dallas: setting the rank of {} to {}'.format(player, rank))
-        ranks[player] = rank
-
 class PlayerWeb(object):
     def __init__(self, *args):
         self.q = args[0]
@@ -108,6 +82,7 @@ class PlayerWeb(object):
         self.node_to_edges_map = {}
         self.nodes = []
         self.edges = []
+        self.tag_rank_map = {}
 
     def run(self):
         while True:
@@ -165,11 +140,7 @@ class PlayerWeb(object):
         if tag in self.tag_nid_map:
             nid = self.tag_nid_map[tag]
             node = self.nodes[nid]
-            # TODO remove
-            LOG.info('dallas: about to see if this group ID has changed... It was {}'.format(node['group']))
             node['group'] = group_id
-            # TODO remove
-            LOG.info('dallas: and it is now {}'.format(group_id))
 
             # Save this node back to our maps
             self.nodes[nid] = node
@@ -177,6 +148,10 @@ class PlayerWeb(object):
         else:
             LOG.info("ERROR: tyring to update group for non existant tag: {}".format(tag))
 
+    def update_ranks(self, tag_rank_map):
+        # TODO remove
+        LOG.info('dallas: about to update ranks')
+        self.tag_rank_map.update(tag_rank_map)
 
     def create_edge(self, wid, lid, id):
         edge = {"source":wid, "target":lid, "depth":9, "linkName":"www.google.com", "count":1}
@@ -192,16 +167,23 @@ class PlayerWeb(object):
         ranked_nodes = []
         for node in self.nodes:
             ranked_node = node
+            total_ranked = worst_rank
             tag = ranked_node['name']
-            rank = worst_rank if not tag in ranks else ranks[tag]
+            
+            # default to a low rank
+            rank, total_ranked = worst_rank, worst_rank
+            if self.tag_rank_map and tag in self.tag_rank_map:
+                rank, total_ranked = self.tag_rank_map[tag]['rank'], self.tag_rank_map[tag]['total_ranked']
+                # TODO remove
+                LOG.info('dallas: found rank! {} is {} out of {}'.format(tag, rank, total_ranked))
 
             # calulate the size off of the rank
             min_size = 10
             max_size = 50
             size = min_size 
-            if worst_rank > 1:
-                rank = worst_rank - rank
-                normalized_rank = (rank+0.0)*(max_size+0.0)/(worst_rank+0.0)
+            if total_ranked > 1:
+                rank = total_ranked - rank
+                normalized_rank = (rank+0.0)*(max_size+0.0)/(total_ranked+0.0)
                 # Filter out anything lower than min_size
                 size = max(min_size, normalized_rank)
                 # Filter out anything lager than max_size
