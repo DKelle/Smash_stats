@@ -6,26 +6,25 @@ google.setOnLoadCallback(function() {
 			initial_node.isCurrentlyFocused = initial_node.isCurrentlyFocused;
 
              initial_node.fixed = true;
+             console.log('just set fixed to '+initial_node.fixed)
              initial_node.x = control.width/2;
              initial_node.y = control.height/2;
 
-            console.log('dallas, here is initial node' + JSON.stringify(initial_node));
 			ls = get_all_links_with_node(control, initial_node);
 			ns = get_all_nodes_with_links(control, links, initial_node);
 			control.links = ls;
 			control.nodes = ns;
-			console.log('found these relevant links');
 			doTheTreeViz(control);
 		}
 	);
 });
 
+
+
 function get_node_from_tag(nodes, tag) {
-	console.log(tag);
 	for (var i = 0; i < nodes.length; i++) {
 		n = nodes[i];
 		if (n.name == tag) {
-			console.log('found the requested tag!');
 			return n
 		}
 	}
@@ -33,7 +32,6 @@ function get_node_from_tag(nodes, tag) {
 }
 
 function get_all_links_with_node(control, n) {
-	console.log('about to get all links with the node');
 	links = [];
 	for (var i = 0; i < control.data.links.length; i++) {
 		var link = control.data.links[i];
@@ -60,8 +58,6 @@ function get_all_nodes_with_links(control, links, initial_node) {
 }
 
 function doTheTreeViz(control) {
-	console.log('inside do the viz with control:')
-	console.log(control)
 
 	var svg = control.svg;
 
@@ -142,7 +138,15 @@ function doTheTreeViz(control) {
 						control.nodeClickInProgress = false;
 						if (control.options.nodeFocus) {
 							d.isCurrentlyFocused = !d.isCurrentlyFocused;
-                            d.fixed = false;
+                            if  (d.fixed == 6 || !d.fixed) {
+                                d.fixed = true;
+                                console.log('dallas is fixed? ' + d.fixed)
+                            }
+                            else {
+                                d.fixed = false;
+                                console.log('dallas is fixed? ' + d.fixed)
+                            }
+                            console.log('dallas is fixed? ' + d.fixed)
 							doTheTreeViz(makeFilteredData(control));
 						}
 					}
@@ -234,13 +238,8 @@ function doTheTreeViz(control) {
 
 function makeFilteredData(control, selectedNode) {
 	// we'll keep only the data where filterned nodes are the source or target
-	console.log('inside make filtered with control and node');
-	console.log(control);
-	console.log(selectedNode);
 
-	console.log('this is a test');
 	control.nodes = []
-	console.log(control);
 	var newNodes = [];
 	var newLinks = [];
 
@@ -339,6 +338,9 @@ function initialize() {
 		control.height = options.height;
 		control.data = control.data.d3.data;
 		control.nodes = control.data.nodes;
+        control.cur = [0, 0]
+        control.last_mouse = [0, 0]
+        control.last_vb = [0, 0]
 
 		control.data.links = filter_bad_links(control.data.links)
 
@@ -347,13 +349,36 @@ function initialize() {
 		control.clickHack = 200;
 		organizeData(control);
 
-        console.log('DALLAS HEIGHT AND WIDTH ARE ' + control.width + ' ' + control.height);
 		control.svg = d3.select(control.divName)
 			.append("svg:svg")
 			.attr("width", control.width)
 			.attr("height", control.height)
             .attr("viewBox", "0 0 " + control.width + " " + control.height )
             .attr("preserveAspectRatio", "xMinYMin");
+
+		// On mouse move
+		function handler(e) {
+			e = e || window.event;
+
+			var pageX = e.pageX;
+			var pageY = e.pageY;
+
+			// IE 8
+			if (pageX === undefined) {
+				pageX = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+				pageY = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+			}
+
+			control.last_mouse = control.cur;
+			control.cur = [pageX, pageY];
+			console.log('last mouse: ' +control.last_mouse);
+			console.log('cur: '+control.cur);
+		}
+		// attach handler to the click event of the document
+		if (document.attachEvent) document.attachEvent('onclick', handler);
+		else document.addEventListener('click', handler);
+		document.onmousemove = handler;
+
 
 		// Panning and zooming
 		var zoomListener = d3.behavior.zoom()
@@ -388,10 +413,11 @@ function initialize() {
 		  dragX = 0;
 		  dragY = 0;
 		}); 
-
+        
 		function zoomHandler() {
-			var pos = d3.mouse(this);
+			var pos = control.cur;
 			var scale = d3.event.scale;
+			var temptrans = d3.event.translate;
 
 			var trans = d3.transform(control.svg.attr("transform"));
 			var tpos = trans.translate;
@@ -406,19 +432,33 @@ function initialize() {
 			var dx2 = (mx - dx)/scale - dx;
 			var dy2 = (my - dy)/scale - dy;
 
-			console.log('dallas: trans is this' + JSON.stringify(trans))
+            var temp = 0;
+            if (dy < 0) { temp = 50; }
+            else { temp = -50; }
+            oldView = control.svg.viewBox;
+            dmouse = [control.last_mouse[0] - pos[0], control.last_mouse[1] - pos[1]];
+            control.last_mouse = pos;
+            console.log('this is last mouse and pos and dmous ' + JSON.stringify(control.last_mouse) + ' ' + JSON.stringify(pos) + ' ' + JSON.stringify(dmouse));
+            //console.log('dallas: here is the old w h ' +JSON.stringify(oldView))
+            //console.log('dallas: this is scale and translate:' + JSON.stringify(scale) + " " + JSON.stringify(trans)); 
+            //console.log('dallas: this is dx dy:' + JSON.stringify(dx) + " " + JSON.stringify(dy)); 
+            // Only change the viewbox if it is not a huge jump
+            //var dist  = oldView.x - dx;
+            //console.log('dallas: this si the distance '+JSON.stringify(dist))
 			var newViewBox = [
-				(-trans.translate[0] * 2 / scale),
-				(-trans.translate[1] * 2/ scale),
+                control.last_vb[0] + dmouse[0],
+                control.last_vb[1] + dmouse[1],
 				(control.width / scale),
 				(control.height / scale)
 			].join(" ");
-			console.log('dallas: biewbox is this' + JSON.stringify(newViewBox))
 
-			control.svg.attr('viewBox', newViewBox);
+			control.last_vb[0] += dmouse[0],
+			control.last_vb[1] += dmouse[1],
+
+            control.svg.attr('viewBox', newViewBox);
 
 			var tform = "translate(" + dx + "," + dy + ")scale(" + scale + ")translate(" + dx2 + "," + dy2 + ")";
-			control.svg.attr("transform", tform); 
+			//control.svg.attr("transform", tform); 
 		}
 
 
