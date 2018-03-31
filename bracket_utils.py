@@ -320,11 +320,10 @@ def get_urls_with_players(players=["Christmas Mike", "christmasmike"], base_urls
 def get_list_of_scenes():
     austin = constants.AUSTIN_URLS
     smashbrews = constants.SMASHBREWS_RULS
-    colorado_singles = constants.COLORADO_SINGLES_URLS
+    colorado = constants.COLORADO_SINGLES_URLS
     colorado_doubles = constants.COLORADO_DOUBLES_URLS
-    colorado = constants.COLORADO_SINGLES_URLS + constants.COLORADO_DOUBLES_URLS
     sms = constants.SMS_URLS
-    base_urls = [sms, austin, smashbrews, colorado_singles, colorado_doubles, colorado]
+    base_urls = [sms, austin, smashbrews, colorado_doubles, colorado]
     return base_urls
 
 def get_list_of_named_scenes():
@@ -337,7 +336,7 @@ def get_list_of_named_scenes():
     return base_urls
 
 def get_list_of_scene_names():
-    return ['sms', 'austin', 'smashbrews', 'colorado', 'colorado_doubles', 'pro', 'pro_wiiu', 'test']
+    return ['sms', 'austin', 'smashbrews', 'colorado', 'colorado_doubles', 'pro', 'pro_wiiu', 'test1', 'test2']
 
 def get_last_n_tournaments(db, n, scene):
     sql = "select url, date from matches where scene='{}' group by url, date order by date desc, url desc limit {};".format(scene, n)

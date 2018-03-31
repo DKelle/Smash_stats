@@ -1,5 +1,6 @@
 from database_writer import DatabaseWriter
 from process_data import processData
+from threading import Thread
 import logger
 import bracket_utils
 import constants
@@ -26,81 +27,37 @@ class validURLs(object):
     def init(self):
         if not self.testing:
             while True:
-                self.run_loop()
+                LOG.info('dallas: about to create analyziz threads')
+                self.create_analysis_threads()
+                LOG.info('dallas: just finished with analysis threads')
                 time.sleep(constants.SLEEP_TIME)
+                LOG.info('dallas: Just finished sleeping')
 
         # If we are testing, we only want to run once, and then check our state
         else:
-            self.run_loop()
+            self.create_analysis_threads()
 
-
-    def run_loop(self):
-        global loaded_smashgg
-
-        # Now that we have all the scenes we want to analyze,
-        # continuously check for new brackets
+    def create_analysis_threads(self):
+        # Create one thread to analyze each scene
+        threads = []
         for scene in self.scenes:
+            t = Thread(target=self.analyze_scene, args=(scene,))
+            LOG.info('dallas: Trying to start the analysis thread for {}'.format(scene.get_name()))
+            t.start()
+            threads.append(t)
 
-            # This scene will have several base URLs
-            base_urls = scene.get_base_urls()
-            name = scene.get_name()
-            for base_url in base_urls:
-                
-                # attempt to load this data from the database
-                sql = "SELECT first,last FROM valids WHERE base_url = '" + str(base_url) + "';"
-                result = self.db.exec(sql)
-                has_results = len(result) > 0 
+        for t in threads:
+            LOG.info('dallas: abouto call join for the analysis thread  {}'.format(scene.get_name()))
+            t.join()
+            LOG.info('dallas: joining for the analysis thread  {}'.format(scene.get_name()))
 
-                # Did we find a match in the database?
-                if has_results:
-                    LOG.info("validURLs found values in the database" + str(result))
-                    first = result[0][0]
-                    last = result[0][1]
+        # TODO uncomment
+        # These threads are done working. Analyze smashgg brackets
+        # if no loaded_smashgg:
+        #     self.analyze_smashgg()
 
-                    # Check for a new valid URL
-                    new_last = bracket_utils._get_last_valid_url(base_url, last-1)
-
-                    if not new_last == last:
-                        if new_last - last > 5:
-                            with open("DEBUGOUTPUT.txt", 'a') as f:
-                                f.write("[validURLs.py:55]: found a SHIT TON of new tournaments for bracket: {}".format(base_url))
-
-                        else:
-                            bracket = base_url.replace('###', str(new_last))
-                            msg = "Found new bracket: {}".format(bracket)
-                            tweet(msg)
-
-                        # If there's been a new last, update the database
-                        sql = "UPDATE valids SET last=" + str(new_last) + " where base_url = '"+str(base_url)+"';"
-                        self.db.exec(sql)
-
-
-                        # Analyze each of these new brackets
-                        for i in range(last+1, new_last+1):
-                            # Since this URL is new, we have to process the data
-                            bracket = base_url.replace('###', str(i))
-                            self.data_processor.process(bracket, name)
-
-                        self.data_processor.process_ranks(name)
-
-                else:
-                    # We need to create first and last from scratch
-                    first = bracket_utils._get_first_valid_url(base_url)
-                    last = bracket_utils._get_last_valid_url(base_url, first)
-
-                    # This is new data, we need to put it into the db
-                    sql = "INSERT INTO valids (base_url, first, last, scene) VALUES ("
-                    sql += "'"+str(base_url)+"', "+str(first)+ ", "+str(last)+", '"+str(name)+"');"
-                    self.db.exec(sql)
-
-                    for i in range(first, last+1):
-                        bracket = base_url.replace('###', str(i))
-                        self.data_processor.process(bracket, name)
-
-                    self.data_processor.process_ranks(name)
-                    
-
-        # TODO temporary - have we loaded smashgg brackets?
+    def analyze_smashgg(self):
+        global loaded_smashgg
         name = "pro"
         if not loaded_smashgg and not self.testing:
             for b in constants.PRO_URLS:
@@ -116,5 +73,150 @@ class validURLs(object):
             #self.data_processor.process_ranks('pro')
             loaded_smashgg = True
 
-            #TODO uncomment
-            #self.data_processor.process_ranks(name)
+            self.data_processor.process_ranks(name)
+
+    def analyze_scene(self, scene):
+        # This scene will have several base URLs
+        base_urls = scene.get_base_urls()
+        name = scene.get_name()
+        for base_url in base_urls:
+            
+            # attempt to load this data from the database
+            LOG.info('dallas about to start this analysis thread for scene {}'.format(scene.get_name()))
+            sql = "SELECT first,last FROM valids WHERE base_url = '" + str(base_url) + "';"
+            result = self.db.exec(sql)
+            has_results = len(result) > 0 
+
+            # Did we find a match in the database?
+            if has_results:
+                LOG.info("validURLs found values in the database" + str(result))
+                first = result[0][0]
+                last = result[0][1]
+
+                # Check for a new valid URL
+                new_last = bracket_utils._get_last_valid_url(base_url, last-1)
+
+                if not new_last == last:
+                    if new_last - last > 5:
+                        with open("DEBUGOUTPUT.txt", 'a') as f:
+                            f.write("[validURLs.py:55]: found a SHIT TON of new tournaments for bracket: {}".format(base_url))
+
+                    else:
+                        bracket = base_url.replace('###', str(new_last))
+                        msg = "Found new bracket: {}".format(bracket)
+                        tweet(msg)
+
+                    # If there's been a new last, update the database
+                    sql = "UPDATE valids SET last=" + str(new_last) + " where base_url = '"+str(base_url)+"';"
+                    self.db.exec(sql)
+
+
+                    # Analyze each of these new brackets
+                    for i in range(last+1, new_last+1):
+                        # Since this URL is new, we have to process the data
+                        bracket = base_url.replace('###', str(i))
+                        self.data_processor.process(bracket, name)
+
+                    self.data_processor.process_ranks(name)
+
+            else:
+                # We need to create first and last from scratch
+                first = bracket_utils._get_first_valid_url(base_url)
+                last = bracket_utils._get_last_valid_url(base_url, first)
+
+                # This is new data, we need to put it into the db
+                sql = "INSERT INTO valids (base_url, first, last, scene) VALUES ("
+                sql += "'"+str(base_url)+"', "+str(first)+ ", "+str(last)+", '"+str(name)+"');"
+                self.db.exec(sql)
+
+                for i in range(first, last+1):
+                    bracket = base_url.replace('###', str(i))
+                    self.data_processor.process(bracket, name)
+
+                self.data_processor.process_ranks(name)
+                
+
+    # TODO remove this whole function
+    #def run_loop(self):
+    #    global loaded_smashgg
+
+    #    # TODO temporary - have we loaded smashgg brackets?
+    #    name = "pro"
+    #    if not loaded_smashgg and not self.testing:
+    #        for b in constants.PRO_URLS:
+    #            # Before we process this URL, check to see if we already have
+    #            sql = "SELECT * FROM analyzed where base_url='{}'".format(b)
+    #            res = self.db.exec(sql)
+    #            if len(res) == 0:
+    #                self.data_processor.process(b, name)
+    #            else:
+    #                LOG.info("Skpping pro bracket because it has already been analyzed: {}".format(b))
+    #        
+    #        # After all the matches from this scene have been processed, calculate ranks
+    #        #self.data_processor.process_ranks('pro')
+    #        loaded_smashgg = True
+
+    #        self.data_processor.process_ranks(name)
+
+    #    # Now that we have all the scenes we want to analyze,
+    #    # continuously check for new brackets
+    #    for scene in self.scenes:
+
+    #        # This scene will have several base URLs
+    #        base_urls = scene.get_base_urls()
+    #        name = scene.get_name()
+    #        for base_url in base_urls:
+    #            
+    #            # attempt to load this data from the database
+    #            sql = "SELECT first,last FROM valids WHERE base_url = '" + str(base_url) + "';"
+    #            result = self.db.exec(sql)
+    #            has_results = len(result) > 0 
+
+    #            # Did we find a match in the database?
+    #            if has_results:
+    #                LOG.info("validURLs found values in the database" + str(result))
+    #                first = result[0][0]
+    #                last = result[0][1]
+
+    #                # Check for a new valid URL
+    #                new_last = bracket_utils._get_last_valid_url(base_url, last-1)
+
+    #                if not new_last == last:
+    #                    if new_last - last > 5:
+    #                        with open("DEBUGOUTPUT.txt", 'a') as f:
+    #                            f.write("[validURLs.py:55]: found a SHIT TON of new tournaments for bracket: {}".format(base_url))
+
+    #                    else:
+    #                        bracket = base_url.replace('###', str(new_last))
+    #                        msg = "Found new bracket: {}".format(bracket)
+    #                        tweet(msg)
+
+    #                    # If there's been a new last, update the database
+    #                    sql = "UPDATE valids SET last=" + str(new_last) + " where base_url = '"+str(base_url)+"';"
+    #                    self.db.exec(sql)
+
+
+    #                    # Analyze each of these new brackets
+    #                    for i in range(last+1, new_last+1):
+    #                        # Since this URL is new, we have to process the data
+    #                        bracket = base_url.replace('###', str(i))
+    #                        self.data_processor.process(bracket, name)
+
+    #                    self.data_processor.process_ranks(name)
+
+    #            else:
+    #                # We need to create first and last from scratch
+    #                first = bracket_utils._get_first_valid_url(base_url)
+    #                last = bracket_utils._get_last_valid_url(base_url, first)
+
+    #                # This is new data, we need to put it into the db
+    #                sql = "INSERT INTO valids (base_url, first, last, scene) VALUES ("
+    #                sql += "'"+str(base_url)+"', "+str(first)+ ", "+str(last)+", '"+str(name)+"');"
+    #                self.db.exec(sql)
+
+    #                for i in range(first, last+1):
+    #                    bracket = base_url.replace('###', str(i))
+    #                    self.data_processor.process(bracket, name)
+
+    #                self.data_processor.process_ranks(name)
+    #                

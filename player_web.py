@@ -176,8 +176,8 @@ class PlayerWeb(object):
             # default to a low rank
             rank, total_ranked = worst_rank, worst_rank
             if self.tag_rank_map and tag in self.tag_rank_map:
-                LOG.info('Found rank for player {}. He is {} out of {}'.format(tag, rank, total_ranked))
                 rank, total_ranked = self.tag_rank_map[tag]['rank'], self.tag_rank_map[tag]['total_ranked']
+                LOG.info('Found rank for player {}. He is {} out of {}'.format(tag, rank, total_ranked))
 
             # calulate the size off of the rank
             power = 6.0

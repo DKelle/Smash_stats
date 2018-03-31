@@ -82,7 +82,9 @@ PRO_URLS = ["https://smash.gg/tournament/super-smash-con-2017/events/wii-u-singl
 SLEEP_TIME = 5 
 TOURNAMENTS_PER_RANK = 75
 
-TEST_URLS = ('test', ['https://challonge.com/smash_web_test_###'])
+
+TEST_URLS = [('test1', ['https://challonge.com/smash_web_test_###']),
+        ('test2', ['https://challonge.com/smash_web_scene_two_###'])]
 
 """
 Data structure we need -

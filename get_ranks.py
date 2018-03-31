@@ -172,18 +172,14 @@ def create_transition_mat(win_loss_data, tags_to_index):
             if player_2 in win_loss.keys():
                 # Get the total amount of points this player has given up
                 total_points_given_up = get_total_points_given_up(player_1, win_loss_data, max_days, min_days)
-                if debug: LOG.info('dallas 2: player {} has given up {} total points'.format(player_1, total_points_given_up))
 
                 lost_to_p2 = get_points_given_up_to(player_1, player_2, win_loss_data, max_days, min_days)
-                if debug: LOG.info('dallas 2: player {} has given up {} to {}'.format(player_1, lost_to_p2, player_2))
                 #wins, losses = get_win_loss_score(win_loss, player_2, player_1)
             else:
                 # If these players haven't played, assume that their chance
                 # of winning is thier own win/loss ratio
                 total_points_given_up = get_win_loss_ratio(player_1, win_loss_data)
-                if debug: LOG.info('dallas: player {} has given up {} total points'.format(player_1, total_points_given_up))
                 lost_to_p2 = get_win_loss_ratio(player_2, win_loss_data)
-                if debug: LOG.info('dallas: player {} has given up {} to {}'.format(player_1, lost_to_p2, player_2))
 
             ratio = (lost_to_p2 + epsilon) / (total_points_given_up + epsilon)
             #total_matches = wins + losses

@@ -6,7 +6,7 @@ import copy
 import player_web
 import bracket_utils
 from get_ranks import get_ranks
-from get_results import get_coalesced_tag
+from get_results import get_coalesced_tag, sanitize_tag
 import re
 from tweet import tweet
 
@@ -31,7 +31,7 @@ class processData(object):
         tournament_placings = bracket_utils.get_tournament_placings(bracket)
 
         for player, placing in tournament_placings.items():
-            player = re.sub("['-_]", '', player)
+            player = sanitize_tag(player)
 
             # Coalesce tag
             player = get_coalesced_tag(player)
@@ -60,7 +60,6 @@ class processData(object):
         n = constants.TOURNAMENTS_PER_RANK
         recent_tournaments = bracket_utils.get_last_n_tournaments(self.db, n, scene)
         matches = bracket_utils.get_matches_from_urls(self.db, recent_tournaments)
-
 
         # Iterate through each match, and build up our dict
         win_loss_dict = {}
