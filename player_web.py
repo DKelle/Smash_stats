@@ -13,19 +13,24 @@ lock = threading.Lock()
 
 player_web = None
 q = None
+group_ids_q = None
 db = None
 ranks = {}
 worst_rank = 1 
 def update_web(winner_loser_pairs):
     if player_web == None:
         init_player_web()
-    q.put_nowait(winner_loser_pairs)
+
+    for pair in winner_loser_pairs:
+        q.put_nowait(pair)
 
 def init_player_web():
     global player_web
     global q
+    global group_ids_q
     q = queue.Queue()
-    player_web = PlayerWeb(q)
+    group_ids_q = queue.Queue()
+    player_web = PlayerWeb(q, group_ids_q)
 
     # Start running the player web in a thread
     w = Worker(target=player_web.run, name="PlayerWeb")
@@ -35,10 +40,12 @@ def init_player_web():
 
     LOG.info("Creating the player web")
 
-def update_group(tag, group_id):
+def update_group(tag_gid_pairs):
     if player_web == None:
         init_player_web()
-    player_web.update_group_id(tag, group_id)
+
+    for pair in tag_gid_pairs:
+        group_ids_q.put_nowait(pair)
 
 def update_ranks(tag_rank_map):
     player_web.update_ranks(tag_rank_map)
@@ -77,6 +84,8 @@ def get_web(tag=None, db=None):
 class PlayerWeb(object):
     def __init__(self, *args):
         self.q = args[0]
+        self.group_ids_q = args[1]
+        self.retry_group_q = queue.Queue()
         self.tag_nid_map = {}
         self.edge_id_map = {}
         self.eid_to_edge_map = {}
@@ -90,14 +99,40 @@ class PlayerWeb(object):
 
     def run(self):
         while True:
+            # Try to update nodes and links
             try:
-                winner_loser_pairs = self.q.get(timeout=5)
-                for winner, loser in winner_loser_pairs:
-                    self.update(winner, loser)
+                winner_loser_pair = self.q.get(timeout=2)
+                self.update(winner_loser_pair[0], winner_loser_pair[1])
             except queue.Empty:
                 pass
             except Exception:
                 LOG.info('The player web has hit an unexpected exception! Dying')
+
+            # Try to update group ids
+            try:
+                tag_gid_pair = self.group_ids_q.get(timeout=2)
+                self.update_group_id(tag_gid_pair[0], tag_gid_pair[1])
+            except queue.Empty:
+                pass
+            except Exception:
+                LOG.info('dallas: failed to assign group for tag, gid {} {}'.format(tag_gid_pair[0], tag_gid_pair[1]))
+                # If we failed, put this on the retry queue for later
+                self.retry_group_q.put_nowait([tag_gid_pair[0], tag_gid_pair[1], 1])
+
+            # See if we have any groups to retry
+            try:
+                tag_gid_pair = self.retry_group_q.get(timeout=2)
+                LOG.info('dallas: about to retry this tag {}'.format(tag_gid_pair[0]))
+                self.update_group_id(tag_gid_pair[0], tag_gid_pair[1])
+            except queue.Empty:
+                pass
+            except Exception:
+                # If we failed, put this on the retry queue for later
+                # But only retry a max of 10 times
+                if tag_gid_pair[2] < 10:
+                    self.retry_group_q.put_nowait([tag_gid_pair[0], tag_gid_pair[1], tag_gid_pair[2]+1])
+                else:
+                    LOG.info('dallas: tag {} has hit mas retrys'.format(tag_gid_pair[0]))
 
     def update(self, winner, loser):
         with lock:
@@ -144,7 +179,7 @@ class PlayerWeb(object):
             # update this nodes group ID
             if tag in self.tag_nid_map:
                 nid = self.tag_nid_map[tag]
-                LOG.info('tyring to update group in player web for player {}. nid is {}, len of nodes is {}'.format(tag,nid,len(self.nodes)))
+                LOG.info('dallas: trying to update tag {} to group {}'.format(tag, group_id))
                 if len(self.nodes) >  nid:
                     node = self.nodes[nid]
                     node['group'] = group_id
@@ -154,8 +189,10 @@ class PlayerWeb(object):
                     self.nid_to_node_map[nid] = node
                 else:
                     LOG.info("ERROR: tyring to update group for non existant node: {}".format(tag))
+                    raise Exception
             else:
                 LOG.info("ERROR: tyring to update group for non existant tag: {}".format(tag))
+                raise Exception
 
     def update_ranks(self, tag_rank_map):
         self.tag_rank_map.update(tag_rank_map)
@@ -199,9 +236,6 @@ class PlayerWeb(object):
             ranked_node['radius'] = size
             ranked_nodes.append(ranked_node)
 
-        scenes = ['sms', 'austin', 'smashbrews', 'colorado', 'colorado_doubles', 'pro', 'pro_wiiu']
-        for i, s in enumerate(scenes):
-            ranked_nodes.append({"id":self.current_node_id+i, 'radius':0, "name":'', "count":1, "linkCount":1, "label":'', "shortName":'', "userCount":True, "group":i, "url":"player/{}".format(id)})
 
         data = {'nodes': ranked_nodes, "links": self.edges}
 

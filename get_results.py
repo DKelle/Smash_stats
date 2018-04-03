@@ -59,10 +59,12 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
                     matches_per_scene[scene] = 1
                     matches_per_scene_str = json.dumps(matches_per_scene)
                     sql = "INSERT INTO players (tag, matches_per_scene, scene) VALUES ('{}', '{}', '{}');".format(p, matches_per_scene_str, scene)
+                    db.exec(sql)
                 # Set this players scene in the web since they do not have one yet
                 group_id = scenes.index(scene)
+                # TODO remove
+                LOG.info('dallas: setting up {} to have group {}'.format(p, group_id))
                 tag_gid_pairs.append((p, group_id))
-                db.exec(sql)
             else:
                 # This player has already played in other scenes. Update the counts
                 matches_per_scene = json.loads(res[0][2])
@@ -83,7 +85,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
 
                 # If this player just changed scenes, update the player web
                 if not group_id_before == group_id_after:
-                    tag_gid_pairs.append((p, group_id))
+                    tag_gid_pairs.append((p, group_id_after))
 
                     # Update this players scene in the DB
                     sql = "UPDATE players SET matches_per_scene='{}', scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), scene, p)
@@ -135,8 +137,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
     # we need to pass a list of scenes to the player web
     scenes = bracket_utils.get_list_of_scene_names()
     update_web(winner_loser_pairs)
-    for tag, gid in tag_gid_pairs:
-        update_group(tag, gid)
+    update_group(tag_gid_pairs)
 
 def analyze_tournament(db, url, scene, dated, urls_per_player=False):
     #Scrape the challonge website for the raw bracket
@@ -201,6 +202,7 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
     scenes = bracket_utils.get_list_of_scene_names()
     update_web(winner_loser_pairs)
 
+    tag_gid_pairs = []
     # Check if these players are already in the players table
     scenes = bracket_utils.get_list_of_scene_names()
     for p in players:
@@ -216,7 +218,7 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
 
             # Set this players scene in the web since they do not have one yet
             group_id = scenes.index(scene)
-            update_group(p, group_id)
+            tag_gid_pairs.append((p, group_id))
             db.exec(sql)
         else:
             # This player has already played in other scenes. Update the counts
@@ -242,7 +244,7 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
             # If this player just changed scenes, update the player web
             if not group_id_before == group_id_after:
                 LOG.info('about to update group for player {}'.format(p))
-                update_group(p, group_id_after)
+                tag_gid_pairs.append((p, group_id_after))
                 LOG.info('Chaning the scene of player {} to {}'.format(p, scene))
                 # Update this players scene in the DB
                 sql = "UPDATE players SET matches_per_scene='{}', scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), scene, p)
@@ -255,7 +257,7 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
                 sql = "UPDATE players SET matches_per_scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), p)
                 db.exec(sql)
 
-
+    update_group(tag_gid_pairs)
 
 
 def get_player_info(bracket):

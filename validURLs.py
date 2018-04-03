@@ -42,44 +42,46 @@ class validURLs(object):
         # Create one thread to analyze each scene
         threads = []
 
-        for scene in self.scenes:
+        #for scene in self.scenes:
 
-            t = Thread(target=self.analyze_scene, args=(scene,))
-            LOG.info('dallas: Trying to start the analysis thread for {}'.format(scene.get_name()))
+        #    t = Thread(target=self.analyze_scene, args=(scene,))
+        #    LOG.info('dallas: Trying to start the analysis thread for {}'.format(scene.get_name()))
+        #    t.start()
+        #    threads.append(t)
+
+        # First, start the pros
+        if not loaded_smashgg and not self.testing:
+            # Start 1 thread for melee and 1 thread for wiiu
+            LOG.info('dallas: about to start pros')
+            urls = constants.PRO_MELEE
+            LOG.info('dallas: about to start pros with these urls {}'.format(urls))
+            t = Thread(target=self.analyze_smashgg, args=(urls, 'pro',))
+            t.daemon = True
             t.start()
             threads.append(t)
 
-        # First, start the pros
-        #if not loaded_smashgg and not self.testing:
-        #    num_threads = 4
-        #    LOG.info('dallas: about to start pros')
-        #    name = 'pro'
-        #    for i in range(num_threads):
-        #        length = len(constants.PRO_URLS) / num_threads
-        #        i1 = int(length * i)
-        #        i2 = int(length * (i+1))
-        #        LOG.info('dallas: here are indices {} {}'.format(i1, i2))
-        #        urls = constants.PRO_URLS[i1:i2]
-        #        LOG.info('dallas: about to start pros with these urls {}'.format(urls))
-        #        t = Thread(target=self.analyze_smashgg, args=(urls, name,))
-        #        t.daemon = True
-        #        t.start()
-        #        threads.append(t)
+            # Now wiiu
+            urls = constants.PRO_WIIU
+            LOG.info('dallas: about to start pros with these urls {}'.format(urls))
+            t = Thread(target=self.analyze_smashgg, args=(urls, 'pro_wiiu',))
+            t.daemon = True
+            t.start()
+            threads.append(t)
 
-        #else:
-        #    LOG.info('dallas: skipping pros because it has been done')
+        else:
+            LOG.info('dallas: skipping pros because it has been done')
 
         for t in threads:
-            LOG.info('dallas: abouto call join for the analysis thread  {}'.format(scene.get_name()))
+            #LOG.info('dallas: abouto call join for the analysis thread  {}'.format(scene.get_name()))
             t.join()
-            LOG.info('dallas: joining for the analysis thread  {}'.format(scene.get_name()))
+            #LOG.info('dallas: joining for the analysis thread  {}'.format(scene.get_name()))
         
         # If this was the first time we ran, mark pro brackets as complete
-        #if not loaded_smashgg and not self.testing:
-        #    # After all the matches from this scene have been processed, calculate ranks
-        #    #self.data_processor.process_ranks('pro')
-        #    loaded_smashgg = True
-        #    self.data_processor.process_ranks(name)
+        if not loaded_smashgg and not self.testing:
+            # After all the matches from this scene have been processed, calculate ranks
+            #self.data_processor.process_ranks('pro')
+            loaded_smashgg = True
+            self.data_processor.process_ranks(name)
 
     def analyze_smashgg(self, urls, name):
         for url in urls:

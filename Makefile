@@ -29,3 +29,6 @@ compare:
 test: compare
 	python3 sql_utils.py clear smash_test
 	python3 tests.py
+
+grep:
+	tail -f -n 50 smash.log | grep dallas
