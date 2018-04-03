@@ -28,13 +28,14 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
         smash = pysmash.SmashGG()
 
     winner_loser_pairs = []
+    tag_gid_pairs = []
     # Exctract the tournament and event names
     # eg url:
     # https://smash.gg/tournament/pulsar-premier-league/events/rocket-league-3v3/brackets/68179
     # tournament name = pulsar-premier-leauge
     # event name = rocket-league-3v3
     url_parts = url.split('/')
-    LOG.info("about to analyze smashgg bracket: {}".format(url))
+    LOG.info("dallas: about to analyze smashgg bracket: {}".format(url))
 
     if 'tournament' in url_parts and 'events' in url_parts:
         t = url_parts[url_parts.index('tournament')+1]
@@ -60,7 +61,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
                     sql = "INSERT INTO players (tag, matches_per_scene, scene) VALUES ('{}', '{}', '{}');".format(p, matches_per_scene_str, scene)
                 # Set this players scene in the web since they do not have one yet
                 group_id = scenes.index(scene)
-                update_group(p, group_id)
+                tag_gid_pairs.append((p, group_id))
                 db.exec(sql)
             else:
                 # This player has already played in other scenes. Update the counts
@@ -82,7 +83,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
 
                 # If this player just changed scenes, update the player web
                 if not group_id_before == group_id_after:
-                    update_group(p, group_id_after)
+                    tag_gid_pairs.append((p, group_id))
 
                     # Update this players scene in the DB
                     sql = "UPDATE players SET matches_per_scene='{}', scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), scene, p)
@@ -134,6 +135,8 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
     # we need to pass a list of scenes to the player web
     scenes = bracket_utils.get_list_of_scene_names()
     update_web(winner_loser_pairs)
+    for tag, gid in tag_gid_pairs:
+        update_group(tag, gid)
 
 def analyze_tournament(db, url, scene, dated, urls_per_player=False):
     #Scrape the challonge website for the raw bracket

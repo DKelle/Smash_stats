@@ -23,6 +23,9 @@ clear:
 watch:
 	watch python3 sql_utils.py watch valids
 
-test:
+compare:
+	python3 compare_dbs.py
+
+test: compare
 	python3 sql_utils.py clear smash_test
 	python3 tests.py

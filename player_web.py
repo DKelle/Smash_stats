@@ -9,6 +9,8 @@ from json import dumps, loads
 from random import randint
 LOG = logger.logger(__name__)
 
+lock = threading.Lock()
+
 player_web = None
 q = None
 db = None
@@ -98,10 +100,11 @@ class PlayerWeb(object):
                 LOG.info('The player web has hit an unexpected exception! Dying')
 
     def update(self, winner, loser):
-        wid = self.get_id(winner)
-        lid = self.get_id(loser)
+        with lock:
+            wid = self.get_id(winner)
+            lid = self.get_id(loser)
 
-        eid = self.get_edge_id(wid, lid)
+            eid = self.get_edge_id(wid, lid)
 
     def get_edge_id(self, wid, lid):
         # Do we already have an edge between these two players?
@@ -137,21 +140,22 @@ class PlayerWeb(object):
 
 
     def update_group_id(self, tag, group_id):
-        # update this nodes group ID
-        if tag in self.tag_nid_map:
-            nid = self.tag_nid_map[tag]
-            LOG.info('dallas: tyring to update group in player web for player {}. nid is {}, len of nodes is {}'.format(tag,nid,len(self.nodes)))
-            if len(self.nodes) >  nid:
-                node = self.nodes[nid]
-                node['group'] = group_id
+        with lock:
+            # update this nodes group ID
+            if tag in self.tag_nid_map:
+                nid = self.tag_nid_map[tag]
+                LOG.info('tyring to update group in player web for player {}. nid is {}, len of nodes is {}'.format(tag,nid,len(self.nodes)))
+                if len(self.nodes) >  nid:
+                    node = self.nodes[nid]
+                    node['group'] = group_id
 
-                # Save this node back to our maps
-                self.nodes[nid] = node
-                self.nid_to_node_map[nid] = node
+                    # Save this node back to our maps
+                    self.nodes[nid] = node
+                    self.nid_to_node_map[nid] = node
+                else:
+                    LOG.info("ERROR: tyring to update group for non existant node: {}".format(tag))
             else:
-                LOG.info("dallas: ERROR: tyring to update group for non existant node: {}".format(tag))
-        else:
-            LOG.info("dallas: ERROR: tyring to update group for non existant tag: {}".format(tag))
+                LOG.info("ERROR: tyring to update group for non existant tag: {}".format(tag))
 
     def update_ranks(self, tag_rank_map):
         self.tag_rank_map.update(tag_rank_map)
@@ -161,13 +165,13 @@ class PlayerWeb(object):
         self.edges.append(edge) 
 
         self.eid_to_edge_map[id] = edge
-        LOG.info("Created an edge from node id {} to node id {}".format(wid, lid))
         self.update_node_to_edges(wid, lid, id)
 
     def get_json(self):
         LOG.info("About to return the json for the player web")
         LOG.info("There are {} nodes and {} edges".format(len(self.nodes), len(self.edges)))
         ranked_nodes = []
+        
         for node in self.nodes:
             ranked_node = node
             total_ranked = worst_rank
@@ -177,7 +181,6 @@ class PlayerWeb(object):
             rank, total_ranked = worst_rank, worst_rank
             if self.tag_rank_map and tag in self.tag_rank_map:
                 rank, total_ranked = self.tag_rank_map[tag]['rank'], self.tag_rank_map[tag]['total_ranked']
-                LOG.info('Found rank for player {}. He is {} out of {}'.format(tag, rank, total_ranked))
 
             # calulate the size off of the rank
             power = 6.0
@@ -195,6 +198,11 @@ class PlayerWeb(object):
 
             ranked_node['radius'] = size
             ranked_nodes.append(ranked_node)
+
+        scenes = ['sms', 'austin', 'smashbrews', 'colorado', 'colorado_doubles', 'pro', 'pro_wiiu']
+        for i, s in enumerate(scenes):
+            ranked_nodes.append({"id":self.current_node_id+i, 'radius':0, "name":'', "count":1, "linkCount":1, "label":'', "shortName":'', "userCount":True, "group":i, "url":"player/{}".format(id)})
+
         data = {'nodes': ranked_nodes, "links": self.edges}
 
         json = {"d3":{"options":{"radius":2.5,"fontSize":9,"labelFontSize":9,"gravity":.5,"nodeFocusColor":"black","nodeFocusRadius":25,"nodeFocus":True,"linkDistance":150,"charge":-1000,"nodeResize":"count","nodeLabel":"label","linkName":"tag"}, 'data':data}}

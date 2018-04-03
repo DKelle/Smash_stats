@@ -1,24 +1,57 @@
 google.load("jquery", "1");
 google.setOnLoadCallback(function() {
 	initialize().then(
+
 		function(control) {
+
+            // Add all the images for the legend
+            // TODO fix this hardcoded bs
+            for (var i = 0; i < 7; i++) {
+                var img = document.createElement("img");
+                img.src = "/templates/legends/legend" + JSON.stringify(i) + ".png";
+                img.style = "width:14%";
+
+                var src = document.getElementById("legend");
+                src.appendChild(img);
+
+            }
+
 			var initial_node = get_node_from_tag(control.data.nodes, tag);
+            var legends = get_legends(control.data.nodes);
+            console.log('dallas: found these nodes in the legend ' + JSON.stringify(legends))
+            
+
 			initial_node.isCurrentlyFocused = initial_node.isCurrentlyFocused;
 
              initial_node.fixed = true;
-             console.log('just set fixed to '+initial_node.fixed)
              initial_node.x = control.width/2;
              initial_node.y = control.height/2;
 
 			ls = get_all_links_with_node(control, initial_node);
 			ns = get_all_nodes_with_links(control, links, initial_node);
+            for (var i = 0; i < ns.length; i++) {
+                legends.push(ns[i])
+            }
 			control.links = ls;
 			control.nodes = ns;
+
+
+
 			doTheTreeViz(control);
 		}
 	);
 });
 
+function get_legends(nodes) {
+    legends = [];
+    // TODO will new scenes, change this number
+	for (var i = nodes.length-7; i < nodes.length; i++) {
+		n = nodes[i];
+		n.isCurrentlyFocused = true;
+        legends.push(n);
+	}
+	return legends;
+}
 
 
 function get_node_from_tag(nodes, tag) {
@@ -102,6 +135,8 @@ function doTheTreeViz(control) {
 		.data(control.nodes, function(d) {
 			return d.unique;
 		});
+        //.attr("d", function(d) { return line(d.values); })
+        //.style("stroke", function(d) { return color(d.name); });
 
 	node.select("circle")
 		.style("fill", function(d) {
@@ -140,13 +175,10 @@ function doTheTreeViz(control) {
 							d.isCurrentlyFocused = !d.isCurrentlyFocused;
                             if  (d.fixed == 6 || !d.fixed) {
                                 d.fixed = true;
-                                console.log('dallas is fixed? ' + d.fixed)
                             }
                             else {
                                 d.fixed = false;
-                                console.log('dallas is fixed? ' + d.fixed)
                             }
-                            console.log('dallas is fixed? ' + d.fixed)
 							doTheTreeViz(makeFilteredData(control));
 						}
 					}
@@ -227,11 +259,15 @@ function doTheTreeViz(control) {
 	function getRadius(d) {
 		var r = control.options.radius * (control.options.nodeResize ? Math.sqrt(d[control.options.nodeResize]) / Math.PI : 1);
         var r = d.radius;
+		return r;
 		return control.options.nodeFocus && d.isCurrentlyFocused ? 25 : r;
 	}
 
 	function getColor(d) {
-		return control.options.nodeFocus && d.isCurrentlyFocused ? control.options.nodeFocusColor : control.color(d.group);
+        console.log('dallas: trying to get color for tag ' + d.name + ' and group ' + JSON.stringify(d.group))
+        console.log('dallas: color is ' + control.color_map[d.group]);
+        // TODO update this as we get more scenes
+		return control.options.nodeFocus && d.isCurrentlyFocused ? control.options.nodeFocusColor : control.color_map[d.group];
 	}
 
 }
@@ -346,6 +382,12 @@ function initialize() {
 
 		control.links = control.data.links;
 		control.color = d3.scale.category10();
+        control.color_map = [];
+        for (var i = 0; i < 10; i++) {
+            control.color_map.push(control.color(i));
+
+        }
+        console.log('dallas: this is color groups ' + JSON.stringify(control.color_map));
 		control.clickHack = 200;
 		organizeData(control);
 
@@ -371,8 +413,6 @@ function initialize() {
 
 			control.last_mouse = control.cur;
 			control.cur = [pageX, pageY];
-			console.log('last mouse: ' +control.last_mouse);
-			console.log('cur: '+control.cur);
 		}
 		// attach handler to the click event of the document
 		if (document.attachEvent) document.attachEvent('onclick', handler);
@@ -413,7 +453,28 @@ function initialize() {
 		  dragX = 0;
 		  dragY = 0;
 		}); 
-        
+
+        //console.log('truying to make legend')
+        //var color = d3.scale.linear().domain([1,length])
+        //                .interpolate(d3.interpolateHcl)
+        //                .range([d3.rgb("#007AFF"), d3.rgb('#FFF500')]);
+        //console.log('this is color ' + JSON.stringify(color))
+        //console.log(control.color)
+		//var legend = control.svg.selectAll('.legend')
+		//	.data(color.domain())
+		//	.enter()
+		//	.append('g')
+		//	.attr('class', 'legend')
+		//	.attr('transform', function(d, i) {
+		//		var height = legendRectSize + legendSpacing;
+		//		var offset =  height * color.domain().length / 2;
+		//		var horz = -2 * legendRectSize;
+		//		var vert = i * height - offset;
+		//		//return 'translate(' + horz + ',' + vert + ')';
+		//		return 'translate(0,0)';
+		//}); 
+        //console.log('this is legned ' + JSON.stringify(legend))
+
 		function zoomHandler() {
 			var pos = control.cur;
 			var scale = d3.event.scale;
@@ -438,7 +499,6 @@ function initialize() {
             oldView = control.svg.viewBox;
             dmouse = [control.last_mouse[0] - pos[0], control.last_mouse[1] - pos[1]];
             control.last_mouse = pos;
-            console.log('this is last mouse and pos and dmous ' + JSON.stringify(control.last_mouse) + ' ' + JSON.stringify(pos) + ' ' + JSON.stringify(dmouse));
             //console.log('dallas: here is the old w h ' +JSON.stringify(oldView))
             //console.log('dallas: this is scale and translate:' + JSON.stringify(scale) + " " + JSON.stringify(trans)); 
             //console.log('dallas: this is dx dy:' + JSON.stringify(dx) + " " + JSON.stringify(dy)); 
