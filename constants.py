@@ -81,8 +81,8 @@ PRO_WIIU = ['https://smash.gg/tournament/super-smash-con-2017/events/wii-u-singl
         'https://smash.gg/tournament/shine-2016-1/events/wii-u-singles',
         'https://smash.gg/tournament/super-smash-con-2016/events/wii-u-singles']
 
-SLEEP_TIME = 5 
-TOURNAMENTS_PER_RANK = 75
+SLEEP_TIME = 10 * 60 #10 minutes
+TOURNAMENTS_PER_RANK = 20
 
 
 TEST_URLS = [('test1', ['https://challonge.com/smash_web_test_###']),
