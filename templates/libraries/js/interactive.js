@@ -3,12 +3,6 @@ google.setOnLoadCallback(function() {
 	initialize().then(
 
 		function(control) {
-            // Add callbacks to the navbar buttons
-            var search = document.getElementById('search-input-container');
-            search.onclick = openSearch;
-            var hidesearch = document.getElementById('hide-search-input-container');
-            hidesearch.onclick = hideSearch;
-
 
 			var initial_node = get_node_from_tag(control.data.nodes, tag);
 
@@ -27,14 +21,6 @@ google.setOnLoadCallback(function() {
 		}
 	);
 });
-
-function openSearch() {
-    document.getElementById('search-input-container').classList.remove('hdn');
-}
-
-function hideSearch() {
-    document.getElementById('hide-search-input-container').classList.add('hdn');
-}
 
 function get_node_from_tag(nodes, tag) {
 	for (var i = 0; i < nodes.length; i++) {
