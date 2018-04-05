@@ -25,8 +25,7 @@ def main():
 
 @endpoints.route("/temp")
 def temp():
-    return render_template('libraries/html/legend.html')
-    #return render_template('libraries/html/temp.html', data=data, tag=tag)
+    return render_template('libraries/bootstrap/index.html')
 
 @endpoints.route("/wins")
 def wins():

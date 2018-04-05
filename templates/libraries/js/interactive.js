@@ -3,23 +3,14 @@ google.setOnLoadCallback(function() {
 	initialize().then(
 
 		function(control) {
+            // Add callbacks to the navbar buttons
+            var search = document.getElementById('search-input-container');
+            search.onclick = openSearch;
+            var hidesearch = document.getElementById('hide-search-input-container');
+            hidesearch.onclick = hideSearch;
 
-            // Add all the images for the legend
-            // TODO fix this hardcoded bs
-            for (var i = 0; i < 7; i++) {
-                var img = document.createElement("img");
-                img.src = "/templates/legends/legend" + JSON.stringify(i) + ".png";
-                img.style = "width:14%";
-
-                var src = document.getElementById("legend");
-                src.appendChild(img);
-
-            }
 
 			var initial_node = get_node_from_tag(control.data.nodes, tag);
-            var legends = get_legends(control.data.nodes);
-            console.log('dallas: found these nodes in the legend ' + JSON.stringify(legends))
-            
 
 			initial_node.isCurrentlyFocused = initial_node.isCurrentlyFocused;
 
@@ -29,30 +20,21 @@ google.setOnLoadCallback(function() {
 
 			ls = get_all_links_with_node(control, initial_node);
 			ns = get_all_nodes_with_links(control, links, initial_node);
-            for (var i = 0; i < ns.length; i++) {
-                legends.push(ns[i])
-            }
 			control.links = ls;
 			control.nodes = ns;
-
-
 
 			doTheTreeViz(control);
 		}
 	);
 });
 
-function get_legends(nodes) {
-    legends = [];
-    // TODO will new scenes, change this number
-	for (var i = nodes.length-7; i < nodes.length; i++) {
-		n = nodes[i];
-		n.isCurrentlyFocused = true;
-        legends.push(n);
-	}
-	return legends;
+function openSearch() {
+    document.getElementById('search-input-container').classList.remove('hdn');
 }
 
+function hideSearch() {
+    document.getElementById('hide-search-input-container').classList.add('hdn');
+}
 
 function get_node_from_tag(nodes, tag) {
 	for (var i = 0; i < nodes.length; i++) {
@@ -142,10 +124,8 @@ function doTheTreeViz(control) {
 		.style("fill", function(d) {
 			return getColor(d);
 		})
-		// TODO this controls the radis
 		.attr("r", function(d) {
 			return getRadius(d);
-			//return 10;
 		});
 
 	node.append('circle')
@@ -272,6 +252,16 @@ function doTheTreeViz(control) {
 
 }
 
+function get_top_10_nodes(control, selectedNode) {
+	ns = []
+    for (var i = 0; i < control.data.nodes.length; i++) {
+        if (control.data.nodes[i].rank && control.data.nodes[i].rank < 11) {
+            ns.push(control.data.nodes[i]);
+        }
+    }
+    return ns;
+}
+
 function makeFilteredData(control, selectedNode) {
 	// we'll keep only the data where filterned nodes are the source or target
 
@@ -294,8 +284,10 @@ function makeFilteredData(control, selectedNode) {
 		control.links = newLinks;
 		control.nodes = newNodes;
 	} else {
-		control.nodes = control.data.nodes;
-		control.links = control.data.links;
+        control.links = [];
+        control.nodes = get_top_10_nodes(control, selectedNode);
+		//control.nodes = control.data.nodes;
+		//control.links = control.data.links;
 	}
 	return control;
 
@@ -453,27 +445,6 @@ function initialize() {
 		  dragX = 0;
 		  dragY = 0;
 		}); 
-
-        //console.log('truying to make legend')
-        //var color = d3.scale.linear().domain([1,length])
-        //                .interpolate(d3.interpolateHcl)
-        //                .range([d3.rgb("#007AFF"), d3.rgb('#FFF500')]);
-        //console.log('this is color ' + JSON.stringify(color))
-        //console.log(control.color)
-		//var legend = control.svg.selectAll('.legend')
-		//	.data(color.domain())
-		//	.enter()
-		//	.append('g')
-		//	.attr('class', 'legend')
-		//	.attr('transform', function(d, i) {
-		//		var height = legendRectSize + legendSpacing;
-		//		var offset =  height * color.domain().length / 2;
-		//		var horz = -2 * legendRectSize;
-		//		var vert = i * height - offset;
-		//		//return 'translate(' + horz + ',' + vert + ')';
-		//		return 'translate(0,0)';
-		//}); 
-        //console.log('this is legned ' + JSON.stringify(legend))
 
 		function zoomHandler() {
 			var pos = control.cur;

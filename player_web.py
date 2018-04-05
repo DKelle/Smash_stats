@@ -85,7 +85,7 @@ class PlayerWeb(object):
     def __init__(self, *args):
         self.q = args[0]
         self.group_ids_q = args[1]
-        self.retry_group_q = queue.Queue()
+        self.groups_waiting_for_tag = {}
         self.tag_nid_map = {}
         self.edge_id_map = {}
         self.eid_to_edge_map = {}
@@ -116,23 +116,8 @@ class PlayerWeb(object):
                 pass
             except Exception:
                 LOG.info('dallas: failed to assign group for tag, gid {} {}'.format(tag_gid_pair[0], tag_gid_pair[1]))
-                # If we failed, put this on the retry queue for later
-                self.retry_group_q.put_nowait([tag_gid_pair[0], tag_gid_pair[1], 1])
-
-            # See if we have any groups to retry
-            try:
-                tag_gid_pair = self.retry_group_q.get(timeout=2)
-                LOG.info('dallas: about to retry this tag {}'.format(tag_gid_pair[0]))
-                self.update_group_id(tag_gid_pair[0], tag_gid_pair[1])
-            except queue.Empty:
-                pass
-            except Exception:
-                # If we failed, put this on the retry queue for later
-                # But only retry a max of 10 times
-                if tag_gid_pair[2] < 10:
-                    self.retry_group_q.put_nowait([tag_gid_pair[0], tag_gid_pair[1], tag_gid_pair[2]+1])
-                else:
-                    LOG.info('dallas: tag {} has hit mas retrys'.format(tag_gid_pair[0]))
+                # If we failed, this players node hasn't been created yet. This will make sure its picked up later
+                self.groups_waiting_for_tag[tag_gid_pair[0]] = tag_gid_pair[1]
 
     def update(self, winner, loser):
         with lock:
@@ -168,7 +153,13 @@ class PlayerWeb(object):
         return self.tag_nid_map[tag]
 
     def create_node(self, tag, id):
-        node = {"id":id, "name":tag, "count":1, "linkCount":1, "label":tag, "shortName":tag, "userCount":True, "group":0, "url":"player/{}".format(id)}
+        # Default to this
+        group = 9
+        # Do we know what group this player should be?
+        if tag in self.groups_waiting_for_tag:
+            group = self.groups_waiting_for_tag[tag]
+            LOG.info('dallas: found group while creating node: {} {}'.format(tag, group))
+        node = {"id":id, "name":tag, "count":1, "linkCount":1, "label":tag, "shortName":tag, "userCount":True, "group":group, "url":"player/{}".format(id)}
         self.nodes.append(node)
         self.nid_to_node_map[id] = node
         LOG.info("Created a node for player {} with id {}".format(tag, id))
@@ -225,8 +216,8 @@ class PlayerWeb(object):
             max_size = pow(65, (1.0/power))
             size = min_size 
             if total_ranked > 1:
-                rank = total_ranked - rank
-                normalized_rank = (rank+0.0)*(max_size+0.0)/(total_ranked+0.0)
+                inverted_rank = total_ranked - rank
+                normalized_rank = (inverted_rank+0.0)*(max_size+0.0)/(total_ranked+0.0)
                 # Filter out anything lower than min_size
                 size = max(min_size, normalized_rank)
                 # Filter out anything lager than max_size
@@ -234,12 +225,13 @@ class PlayerWeb(object):
             size = pow(size, power)
 
             ranked_node['radius'] = size
+            ranked_node['rank'] = rank
             ranked_nodes.append(ranked_node)
 
 
         data = {'nodes': ranked_nodes, "links": self.edges}
 
-        json = {"d3":{"options":{"radius":2.5,"fontSize":9,"labelFontSize":9,"gravity":.5,"nodeFocusColor":"black","nodeFocusRadius":25,"nodeFocus":True,"linkDistance":150,"charge":-1000,"nodeResize":"count","nodeLabel":"label","linkName":"tag"}, 'data':data}}
+        json = {"d3":{"options":{"radius":2.5,"fontSize":9,"labelFontSize":9,"gravity":.5,"nodeFocusColor":"black","nodeFocusRadius":25,"nodeFocus":True,"linkDistance":190,"charge":-1500,"nodeResize":"count","nodeLabel":"label","linkName":"tag"}, 'data':data}}
         
         return dumps(json)
 
