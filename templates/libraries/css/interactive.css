@@ -248,8 +248,25 @@ rect {
   display: inline-block;
 }
 
-#scene li::after {
-    content: "";
-    display: block;
-    clear: both;
+#scene_id li {
+	white-space: nowrap;
+	float: left;
+	padding: 5px;
+	color: #fff;
+	font-family: trebuchet ms;
+	font-size: 19px;
+	font-weight: lighter;
+	text-align: justify;
+	word-wrap:break-word;
+}
+
+.scene_div {
+	position: relative;
+    padding: 10px 15px;
+	padding-top: 10px;
+    padding-bottom: 10px;
+    line-height: 20px;
+	padding-top: 15px;
+    padding-bottom: 15px;
+    color: #777;
 }
