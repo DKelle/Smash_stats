@@ -6,16 +6,11 @@
     <meta charset="utf-8" />
     <title>Welcome to the Smash Web</title>
 
-
-    <link rel='stylesheet prefetch' href='templates/libraries/css/bootstrap.min.css'>
-    <link rel='stylesheet prefetch' href='templates/libraries/css/animate.min.css'>
-
     <!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame
   Remove this if you use the .htaccess -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <script type="text/javascript" src="templates/libraries/js/d3.v3.min.js"></script>
     <script type="text/javascript" src="templates/libraries/js/jsapi"></script>
-    <script type="text/javascript" src="templates/libraries/js/interactive.js"></script>
     <script>
         window['mcpherTreeData'] = JSON.parse('{{data|safe}}')
         window['tag'] = '{{tag}}'
@@ -27,7 +22,7 @@
 		  <div class='title'>
 			SMASH WEB
 		  </div>
-		  <input class="temp" id="searchbar" placeholder='Search for tag'>
+		  <input class="temp" id="searchbar" placeholder='Search for tag...'>
 		  <ul>
 			<li class='sms'>
 			  SMS
