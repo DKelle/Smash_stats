@@ -4,13 +4,29 @@ google.setOnLoadCallback(function() {
 
 		function(control) {
 
+            // Set onclicks for the legends
+            // sms
+            legend = document.getElementById('dot_sms');
+            legend.addEventListener("click", function(){
+                //ns = get_top_10_nodes_from_scene(control, 'sms');
+                //control.data.nodes = ns;
+                //control.data.links = [];
+                doTheTreeViz(control);
+            });
+
+            // austin
+            legend = document.getElementById('dot_austin');
+            legend.addEventListener("click", function(){
+                temp('austin');
+            });
+
 			var initial_node = get_node_from_tag(control.data.nodes, tag);
 
 			initial_node.isCurrentlyFocused = initial_node.isCurrentlyFocused;
 
-             initial_node.fixed = true;
-             initial_node.x = control.width/2;
-             initial_node.y = control.height/2;
+            initial_node.fixed = true;
+            initial_node.x = control.width/2;
+            initial_node.y = control.height/2;
 
 			ls = get_all_links_with_node(control, initial_node);
 			ns = get_all_nodes_with_links(control, links, initial_node);
@@ -22,6 +38,27 @@ google.setOnLoadCallback(function() {
 	);
 });
 
+function get_top_10_nodes_from_scene(control, scene) {
+    console.log('inside get top 120');
+    scenes = ['temp', 'sms', 'austin', 'smashbrews', 'colorado', 'colorado_doubles', 'pro_melee', 'pro_smash4'];
+    group = scenes.indexOf(scene);
+	ns = []
+    for (var i = 0; i < control.nodes.length; i++) {
+        if (control.nodes[i].rank && control.nodes[i].rank < 11) {
+            ns.push(control.nodes[i]);
+        }
+    }
+    console.log('about to return this');
+    console.log(JSON.stringify(ns));
+    control.data.nodes = ns;
+    console.log(JSON.stringify(control.data.nodes));
+    return ns;
+}
+
+function temp (scene) {
+    console.log('this worked');
+    console.log(scene);
+}
 function get_node_from_tag(nodes, tag) {
 	for (var i = 0; i < nodes.length; i++) {
 		n = nodes[i];

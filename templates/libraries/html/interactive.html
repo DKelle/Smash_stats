@@ -16,7 +16,6 @@
     <script type="text/javascript" src="templates/libraries/js/d3.v3.min.js"></script>
     <script type="text/javascript" src="templates/libraries/js/jsapi"></script>
     <script type="text/javascript" src="templates/libraries/js/interactive.js"></script>
-    <script type="text/javascript" src="templates/libraries/js/d3.legend.js"></script>
     <script>
         window['mcpherTreeData'] = JSON.parse('{{data|safe}}')
         window['tag'] = '{{tag}}'
@@ -54,13 +53,13 @@
 
       </form>
       <ul id="scene_id" class="nav navbar-nav navbar-right navbar-nav-primary">
-          <li><a href="#">SMS</a><a class="dot"></a></li>
-          <li><a href="#">Austin</a><a class="dot"></a></li>
-          <li><a href="#">SmashBrews</a><a class="dot"></a></li>
-        <li><a href="#">Colorado</a><a class="dot"></a></li>
-        <li><a href="#">Colorado Doubles</a><a class="dot"></a></li>
-        <li><a href="#">Pro Melee</a><a class="dot"></a></li>
-        <li><a href="#">Pro Smash 4</a><a class="dot"></a></li>
+          <li><a id="a_sms" href="#">SMS</a><a id="dot_sms" class="dot sms"></a></li>
+          <li><a id="a_austin" href="#">Austin</a><a id="dot_austin" class="dot austin"></a></li>
+          <li><a id="a_smashbrews" href="#">SmashBrews</a><a id="dot_smashbrews" class="dot smashbrews"></a></li>
+          <li><a id="a_colorado" href="#">Colorado</a><a id="dot_colorado" class="dot colorado"></a></li>
+          <li><a id="a_colorado_doubles" href="#">Colorado Doubles</a><a id="dot_colorado_doubles" class="dot colorado_doubles"></a></li>
+          <li><a id="a_pro_melee" href="#">Pro Melee</a><a id="dot_pro_melee" class="dot pro_melee"></a></li>
+          <li><a id="pro_smash4" href="#">Pro Smash 4</a><a id="dot_pro_smash4" class="dot pro_smash4"></a></li>
       </ul>
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->
