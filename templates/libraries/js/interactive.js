@@ -6,19 +6,19 @@ google.setOnLoadCallback(function() {
 
             // Set onclicks for the legends
             // sms
-            legend = document.getElementById('dot_sms');
-            legend.addEventListener("click", function(){
-                //ns = get_top_10_nodes_from_scene(control, 'sms');
-                //control.data.nodes = ns;
-                //control.data.links = [];
-                doTheTreeViz(control);
-            });
+            //legend = document.getElementById('dot_sms');
+            //legend.addEventListener("click", function(){
+            //    //ns = get_top_10_nodes_from_scene(control, 'sms');
+            //    //control.data.nodes = ns;
+            //    //control.data.links = [];
+            //    doTheTreeViz(control);
+            //});
 
-            // austin
-            legend = document.getElementById('dot_austin');
-            legend.addEventListener("click", function(){
-                temp('austin');
-            });
+            //// austin
+            //legend = document.getElementById('dot_austin');
+            //legend.addEventListener("click", function(){
+            //    temp('austin');
+            //});
 
 			var initial_node = get_node_from_tag(control.data.nodes, tag);
 
