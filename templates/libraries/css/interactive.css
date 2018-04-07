@@ -182,16 +182,6 @@ text.shadow {
  stroke-opacity: .8;
 }
 
-.legend rect {
-  fill:white;
-  stroke:black;
-  opacity:0.8;
-}
-
-.legend {
-  font-size: 12px;
-}
-
 rect {
  stroke-width: 2;
 }
@@ -200,7 +190,6 @@ rect {
   background: #fff;
   font-family: Lato, sans-serif;
 }
-
 
 
 * {
@@ -212,6 +201,7 @@ rect {
 }
 .nav-bar {
   display: flex;
+  border-color: #e7e7e7;
   background-color: rgb(248,248,248);
   height: 50px;
   align-items: center;
@@ -280,7 +270,6 @@ li.smashbrews:before {
 li.smashbrews:hover::before {
   background-color: rgb(51, 158, 51);
 }
-
 
 li.colorado:before {
   background-color: rgb(243, 158, 151);
