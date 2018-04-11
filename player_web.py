@@ -115,7 +115,7 @@ class PlayerWeb(object):
             except queue.Empty:
                 pass
             except Exception:
-                LOG.info('dallas: failed to assign group for tag, gid {} {}'.format(tag_gid_pair[0], tag_gid_pair[1]))
+                LOG.info('failed to assign group for tag, gid {} {}'.format(tag_gid_pair[0], tag_gid_pair[1]))
                 # If we failed, this players node hasn't been created yet. This will make sure its picked up later
                 self.groups_waiting_for_tag[tag_gid_pair[0]] = tag_gid_pair[1]
 
@@ -158,7 +158,7 @@ class PlayerWeb(object):
         # Do we know what group this player should be?
         if tag in self.groups_waiting_for_tag:
             group = self.groups_waiting_for_tag[tag]
-            LOG.info('dallas: found group while creating node: {} {}'.format(tag, group))
+            LOG.info('found group while creating node: {} {}'.format(tag, group))
         node = {"id":id, "name":tag, "count":1, "linkCount":1, "label":tag, "shortName":tag, "userCount":True, "group":group, "url":"player/{}".format(id)}
         self.nodes.append(node)
         self.nid_to_node_map[id] = node
@@ -170,7 +170,7 @@ class PlayerWeb(object):
             # update this nodes group ID
             if tag in self.tag_nid_map:
                 nid = self.tag_nid_map[tag]
-                LOG.info('dallas: trying to update tag {} to group {}'.format(tag, group_id))
+                LOG.info('trying to update tag {} to group {}'.format(tag, group_id))
                 if len(self.nodes) >  nid:
                     node = self.nodes[nid]
                     node['group'] = group_id

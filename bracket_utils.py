@@ -1,7 +1,9 @@
 from time import sleep
+import traceback
 from bs4 import BeautifulSoup
 from requests import get
 import constants
+import logger
 import re
 import os
 import pickle
@@ -12,6 +14,7 @@ DEFAULT_BASE_URLS = ['https://challonge.com/NP9ATX###', 'http://challonge.com/he
         'http://challonge.com/RAA_###']
 
 debug = False
+LOG = logger.logger(__name__)
 
 def _get_first_valid_url(base_url):
 
@@ -91,13 +94,19 @@ def load_pickle_data(base_fname):
     # Go from https://ausin_melee_bracket -> austin_melee_bracket
     bracket_name = base_fname.replace('/', '_')
     fname = cwd+'/pickle/'+str(bracket_name)+'.p'
+    LOG.info('attempting to load pickle data for {}'.format(fname))
 
     try:
         with open(fname, 'rb') as p:
             data = pickle.load(p)
+            if 'RAA_19' in base_fname:
+                LOG.info('Successfully loaded pickle data form bracket {}'.format(fname))
+                for l in traceback.format_stack():
+                    LOG.info('dallas {}'.format(l))
             return data
 
     except FileNotFoundError:
+        LOG.info('could not load pickle data for {}'.format(fname))
         if debug: print('failed to get pickle data for ', base_fname)
         return None
 

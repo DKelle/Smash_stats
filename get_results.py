@@ -35,7 +35,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
     # tournament name = pulsar-premier-leauge
     # event name = rocket-league-3v3
     url_parts = url.split('/')
-    LOG.info("dallas: about to analyze smashgg bracket: {}".format(url))
+    LOG.info("about to analyze smashgg bracket: {}".format(url))
 
     if 'tournament' in url_parts and 'events' in url_parts:
         t = url_parts[url_parts.index('tournament')+1]

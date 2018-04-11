@@ -21,7 +21,6 @@ class processData(object):
 
     def process(self, bracket, scene):
         # Send this bracket to get_results
-        LOG.info('dallas: about to hit url for {}'.format(bracket))
         # We know the bracket is valid if it is from smashgg
         if 'smash.gg' in bracket:
             get_results.process(bracket, scene, self.db)
@@ -62,7 +61,7 @@ class processData(object):
         DATE = 3
         SCENE = 4
 
-        LOG.info('dallas: About to start processing ranks for scene {}'.format(scene))
+        LOG.info('About to start processing ranks for scene {}'.format(scene))
         # Get only the last n tournaments, so it doesn't take too long to process
         n = 5 if (scene == 'pro' or scene == 'pro_wiiu') else constants.TOURNAMENTS_PER_RANK
         recent_tournaments = bracket_utils.get_last_n_tournaments(self.db, n, scene)

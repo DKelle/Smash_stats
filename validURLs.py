@@ -27,11 +27,11 @@ class validURLs(object):
     def init(self):
         if not self.testing:
             while True:
-                LOG.info('dallas: about to create analyziz threads')
+                LOG.info('About to create analyziz threads')
                 self.create_analysis_threads()
-                LOG.info('dallas: just finished with analysis threads')
+                LOG.info('just finished with analysis threads')
                 time.sleep(constants.SLEEP_TIME)
-                LOG.info('dallas: Just finished sleeping')
+                LOG.info('Just finished sleeping')
 
         # If we are testing, we only want to run once, and then check our state
         else:
@@ -50,14 +50,14 @@ class validURLs(object):
             chunk = self.scenes[i1:i2]
             name = [scene.get_name() for scene in chunk]
             t = Thread(target=self.analyze_scenes, name=str(name), args=(chunk,))
-            LOG.info('dallas: Trying to start the analysis thread for scenes {}'.format(t.name))
+            LOG.info('Trying to start the analysis thread for scenes {}'.format(t.name))
             t.start()
             threads.append(t)
 
         # Start the pros
         if not loaded_smashgg and not self.testing:
             # Start 1 thread for melee and 1 thread for wiiu
-            LOG.info('dallas: about to start pros')
+            LOG.info('about to start pros')
             urls = constants.PRO_MELEE
             t = Thread(target=self.analyze_smashgg, name='pro', args=(urls, 'pro',))
             t.daemon = True
@@ -75,9 +75,13 @@ class validURLs(object):
             LOG.info('Skipping pros because it has been done')
 
         for t in threads:
-            LOG.info('dallas: abouto call join for the analysis thread  {}'.format(t.name))
+            LOG.info('abouto call join for the analysis thread  {}'.format(t.name))
             t.join()
-            LOG.info('dallas: joining for the analysis thread  {}'.format(t.name))
+            LOG.info('joining for the analysis thread  {}'.format(t.name))
+
+        # If this is the first time that we have gone through all the scenes, tweet me
+        if not loaded_smashgg:
+            tweet('Done loading scene data')
         
         # If this was the first time we ran, mark pro brackets as complete
         if not loaded_smashgg and not self.testing:
