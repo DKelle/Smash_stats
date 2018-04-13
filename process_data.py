@@ -118,4 +118,6 @@ class processData(object):
                 # Also create a list to update the player web
                 map = {'rank':rank, 'total_ranked':len(ranks)}
                 tag_rank_map[player] = map
-        player_web.update_ranks(tag_rank_map)
+
+        # TODO we need to update ranks for the web somehow
+        #player_web.update_ranks(tag_rank_map)

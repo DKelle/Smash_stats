@@ -9,43 +9,23 @@ from json import dumps, loads
 from random import randint
 LOG = logger.logger(__name__)
 
-lock = threading.Lock()
-
 player_web = None
-q = None
-group_ids_q = None
-db = None
 ranks = {}
 worst_rank = 1 
-def update_web(winner_loser_pairs):
+
+def update_web(match_pairs, db):
     if player_web == None:
         init_player_web()
 
-    for pair in winner_loser_pairs:
-        q.put_nowait(pair)
+    player_web.update(match_pairs, db)
 
 def init_player_web():
     global player_web
-    global q
-    global group_ids_q
-    q = queue.Queue()
-    group_ids_q = queue.Queue()
-    player_web = PlayerWeb(q, group_ids_q)
+    player_web = PlayerWeb()
 
-    # Start running the player web in a thread
-    w = Worker(target=player_web.run, name="PlayerWeb")
-    t = threading.Thread(target=w.start)
-    t.daemon = True
-    t.start()
+    # vip TODO. Init the web + data structures from sql
 
     LOG.info("Creating the player web")
-
-def update_group(tag_gid_pairs):
-    if player_web == None:
-        init_player_web()
-
-    for pair in tag_gid_pairs:
-        group_ids_q.put_nowait(pair)
 
 def update_ranks(tag_rank_map):
     player_web.update_ranks(tag_rank_map)
@@ -64,7 +44,7 @@ def get_web(tag=None, db=None):
         return web
     else:
         # First, get the node for this player
-        nid = player_web.get_id(tag, False)
+        nid = player_web.get_node(tag)
 
         if nid:
             # Now, get all edges from this node
@@ -83,164 +63,150 @@ def get_web(tag=None, db=None):
 
 class PlayerWeb(object):
     def __init__(self, *args):
-        self.q = args[0]
-        self.group_ids_q = args[1]
-        self.groups_waiting_for_tag = {}
+        # All of our node related data structures
         self.tag_nid_map = {}
-        self.edge_id_map = {}
-        self.eid_to_edge_map = {}
         self.nid_to_node_map = {}
-        self.current_node_id = 0 
-        self.current_edge_id = 0
-        self.node_to_edges_map = {}
         self.nodes = []
+        self.current_node_id = 0 
+
+        # All of our edge related data structures
+        self.id_to_opponents = {}
+        self.node_to_edges_map = {}
         self.edges = []
-        self.tag_rank_map = {}
-
-    def run(self):
-        while True:
-            # Try to update nodes and links
-            try:
-                winner_loser_pair = self.q.get(timeout=2)
-                self.update(winner_loser_pair[0], winner_loser_pair[1])
-            except queue.Empty:
-                pass
-            except Exception:
-                LOG.info('The player web has hit an unexpected exception! Dying')
-
-            # Try to update group ids
-            try:
-                tag_gid_pair = self.group_ids_q.get(timeout=2)
-                self.update_group_id(tag_gid_pair[0], tag_gid_pair[1])
-            except queue.Empty:
-                pass
-            except Exception:
-                LOG.info('failed to assign group for tag, gid {} {}'.format(tag_gid_pair[0], tag_gid_pair[1]))
-                # If we failed, this players node hasn't been created yet. This will make sure its picked up later
-                self.groups_waiting_for_tag[tag_gid_pair[0]] = tag_gid_pair[1]
-
-    def update(self, winner, loser):
-        with lock:
-            wid = self.get_id(winner)
-            lid = self.get_id(loser)
-
-            eid = self.get_edge_id(wid, lid)
-
-    def get_edge_id(self, wid, lid):
-        # Do we already have an edge between these two players?
-        if (wid,lid) in self.edge_id_map:
-            return self.edge_id_map[(wid,lid)]
-        elif (lid,wid) in self.edge_id_map:
-            return self.edge_id_map[(lid,wid)]
-
-        else:
-            # We don't have an edge for these two. Make one
-            self.edge_id_map[(wid,lid)] = self.current_edge_id
-            self.create_edge(wid, lid, self.current_edge_id)
-            self.current_edge_id = self.current_edge_id + 1
-            return self.edge_id_map[(wid,lid)]
 
 
-    def get_id(self, tag, create=True):
-        # Do we already have an ID mapped to this player?
-        if not tag in self.tag_nid_map and create:
-            self.tag_nid_map[tag] = self.current_node_id
-            # If we don't, we need to create an edge to this player also
-            self.create_node(tag, self.current_node_id)
-            self.current_node_id = self.current_node_id + 1
-        elif not tag in self.tag_nid_map:
-            return None
-        return self.tag_nid_map[tag]
+    def update(self, match_pairs, db):
+        for match in match_pairs:
+            winner, w_gid = match[:2]
+            loser, l_gid = match[2:]
 
-    def create_node(self, tag, id):
-        # Default to this
-        group = 9
-        # Do we know what group this player should be?
-        if tag in self.groups_waiting_for_tag:
-            group = self.groups_waiting_for_tag[tag]
-            LOG.info('found group while creating node: {} {}'.format(tag, group))
-        node = {"id":id, "name":tag, "count":1, "linkCount":1, "label":tag, "shortName":tag, "userCount":True, "group":group, "url":"player/{}".format(id)}
-        self.nodes.append(node)
-        self.nid_to_node_map[id] = node
-        LOG.info("Created a node for player {} with id {}".format(tag, id))
+            # Do we already have nodes for these players?
+            winner_node = self.get_node(winner)
+            loser_node = self.get_node(loser)
 
-
-    def update_group_id(self, tag, group_id):
-        with lock:
-            # update this nodes group ID
-            if tag in self.tag_nid_map:
-                nid = self.tag_nid_map[tag]
-                LOG.info('trying to update tag {} to group {}'.format(tag, group_id))
-                if len(self.nodes) >  nid:
-                    node = self.nodes[nid]
-                    node['group'] = group_id
-
-                    # Save this node back to our maps
-                    self.nodes[nid] = node
-                    self.nid_to_node_map[nid] = node
-                else:
-                    LOG.info("ERROR: tyring to update group for non existant node: {}".format(tag))
-                    raise Exception
+            if winner_node == None:
+                # Create a node for the winner of this match
+                winner_node = self.create_node(winner, w_gid)
             else:
-                LOG.info("ERROR: tyring to update group for non existant tag: {}".format(tag))
-                raise Exception
+                # A node for this player already exists. Has the group changed?
+                old_group = winner_node['group']
+                if not old_group == w_gid:
+                    winner_node['group'] = w_gid
 
-    def update_ranks(self, tag_rank_map):
-        self.tag_rank_map.update(tag_rank_map)
+                    # Save this node back
+                    self.nodes[winner_node['id']] = winner_node
 
-    def create_edge(self, wid, lid, id):
+            if loser_node == None:
+                # Create a node for the loser of this match
+                loser_node = self.create_node(loser, l_gid)
+            else:
+                # A node for this player already exists. Has the group changed?
+                old_group = loser_node['group']
+                if not old_group == l_gid:
+                    loser_node['group'] = l_gid
+
+                    # Save this node back
+                    self.nodes[loser_node['id']] = loser_node
+
+
+            # Now that we have nodes for these two players, create an edge
+            w_id = winner_node['id']
+            l_id = loser_node['id']
+
+            self.create_edge(w_id, l_id)
+            
+        # Update sql to have these changes
+        sql_nodes = dumps(self.nodes)
+        sql_links = dumps(self.edges)
+
+        LOG.info('dallas: the size of nodes is {}'.format(len(sql_nodes)))
+        sql = "UPDATE web SET nodes='{}', links='{}';".format(sql_nodes, sql_links)
+        # This is a huge list... don't print it to the log
+        LOG.info('Updating player web in sql')
+        db.exec(sql)
+
+    def get_node(self, tag):
+        if tag not in self.tag_nid_map:
+            return None
+        return self.nodes[self.tag_nid_map[tag]]
+
+
+    def create_node(self, tag, group):
+        node_id = self.current_node_id
+        node = {"id":node_id, "name":tag, "radius":15, "count":1, "linkCount":1, "label":tag, "shortName":tag, "userCount":True, "group":group, "url":"player/{}".format(node_id)}
+        self.tag_nid_map[tag] = node_id
+        self.nodes.append(node)
+        self.nid_to_node_map[node_id] = node
+        LOG.info("Created a node for player {} with id {}".format(tag, node_id))
+        self.current_node_id = self.current_node_id + 1
+        return node
+
+
+    def create_edge(self, wid, lid):
+        # Do we already have an edge between these players?
+        for id in [wid, lid]:
+            if not id in self.id_to_opponents:
+                self.id_to_opponents[id] = []
+
+        if lid in self.id_to_opponents[wid]:
+            return
+        if wid in self.id_to_opponents[lid]:
+            LOG.info('ERROR: lid has played wid, but wid has not played lid. wid: {}, lid: {}'.format(wid, lid))
+            return
+
+        # These two have not played each other. Create an edge
         edge = {"source":wid, "target":lid, "depth":9, "linkName":"www.google.com", "count":1}
         self.edges.append(edge) 
 
-        self.eid_to_edge_map[id] = edge
-        self.update_node_to_edges(wid, lid, id)
-
-    def get_json(self):
-        LOG.info("About to return the json for the player web")
-        LOG.info("There are {} nodes and {} edges".format(len(self.nodes), len(self.edges)))
-        ranked_nodes = []
-        
-        for node in self.nodes:
-            ranked_node = node
-            total_ranked = worst_rank
-            tag = ranked_node['name']
-            
-            # default to a low rank
-            rank, total_ranked = worst_rank, worst_rank
-            if self.tag_rank_map and tag in self.tag_rank_map:
-                rank, total_ranked = self.tag_rank_map[tag]['rank'], self.tag_rank_map[tag]['total_ranked']
-
-            # calulate the size off of the rank
-            power = 6.0
-            min_size = pow(10, (1.0/power))
-            max_size = pow(65, (1.0/power))
-            size = min_size 
-            if total_ranked > 1:
-                inverted_rank = total_ranked - rank
-                normalized_rank = (inverted_rank+0.0)*(max_size+0.0)/(total_ranked+0.0)
-                # Filter out anything lower than min_size
-                size = max(min_size, normalized_rank)
-                # Filter out anything lager than max_size
-                size = min(size, max_size)
-            size = pow(size, power)
-
-            ranked_node['radius'] = size
-            ranked_node['rank'] = rank
-            ranked_nodes.append(ranked_node)
+        self.update_node_to_edges(wid, lid, edge)
+        return edge
 
 
-        data = {'nodes': ranked_nodes, "links": self.edges}
-
-        json = {"d3":{"options":{"radius":2.5,"fontSize":9,"labelFontSize":9,"gravity":1.05,"nodeFocusColor":"black","nodeFocusRadius":25,"nodeFocus":True,"linkDistance":190,"charge":-1500,"nodeResize":"count","nodeLabel":"label","linkName":"tag"}, 'data':data}}
-        
-        return dumps(json)
-
-    def update_node_to_edges(self, wid, lid, eid):
+    def update_node_to_edges(self, wid, lid, edge):
         if wid not in self.node_to_edges_map:
             self.node_to_edges_map[wid] = []
         if lid not in self.node_to_edges_map:
             self.node_to_edges_map[lid] = []
         
-        edge = self.eid_to_edge_map[eid]
         self.node_to_edges_map[wid].append(edge)
         self.node_to_edges_map[lid].append(edge)
+
+
+    def get_json(self):
+        LOG.info("About to return the json for the player web")
+        LOG.info("There are {} nodes and {} edges".format(len(self.nodes), len(self.edges)))
+        
+        #for node in self.nodes:
+        #    ranked_node = node
+        #    total_ranked = worst_rank
+        #    tag = ranked_node['name']
+        #    
+        #    # default to a low rank
+        #    rank, total_ranked = worst_rank, worst_rank
+        #    if self.tag_rank_map and tag in self.tag_rank_map:
+        #        rank, total_ranked = self.tag_rank_map[tag]['rank'], self.tag_rank_map[tag]['total_ranked']
+
+        #    # calulate the size off of the rank
+        #    power = 6.0
+        #    min_size = pow(10, (1.0/power))
+        #    max_size = pow(65, (1.0/power))
+        #    size = min_size 
+        #    if total_ranked > 1:
+        #        inverted_rank = total_ranked - rank
+        #        normalized_rank = (inverted_rank+0.0)*(max_size+0.0)/(total_ranked+0.0)
+        #        # Filter out anything lower than min_size
+        #        size = max(min_size, normalized_rank)
+        #        # Filter out anything lager than max_size
+        #        size = min(size, max_size)
+        #    size = pow(size, power)
+
+        #    ranked_node['radius'] = size
+        #    ranked_node['rank'] = rank
+        #    ranked_nodes.append(ranked_node)
+
+
+        data = {'nodes': self.nodes, "links": self.edges}
+
+        json = {"d3":{"options":{"radius":2.5,"fontSize":9,"labelFontSize":9,"gravity":1.05,"nodeFocusColor":"black","nodeFocusRadius":25,"nodeFocus":True,"linkDistance":190,"charge":-1500,"nodeResize":"count","nodeLabel":"label","linkName":"tag"}, 'data':data}}
+        
+        return dumps(json)

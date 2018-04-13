@@ -1,5 +1,4 @@
 from time import sleep
-import traceback
 from bs4 import BeautifulSoup
 from requests import get
 import constants
@@ -99,10 +98,6 @@ def load_pickle_data(base_fname):
     try:
         with open(fname, 'rb') as p:
             data = pickle.load(p)
-            if 'RAA_19' in base_fname:
-                LOG.info('Successfully loaded pickle data form bracket {}'.format(fname))
-                for l in traceback.format_stack():
-                    LOG.info('dallas {}'.format(l))
             return data
 
     except FileNotFoundError:

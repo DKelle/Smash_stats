@@ -1,7 +1,7 @@
 from flask import Blueprint, request, render_template, send_from_directory
 from player_web import get_web
 import json
-from database_writer import DatabaseWriter
+from database_writer import get_db
 import constants
 import bracket_utils
 import requests
@@ -147,7 +147,7 @@ def web(tag=None):
 
 def init():
     global db
-    db = DatabaseWriter()
+    db = get_db()
     
 @endpoints.route('/templates/<path:path>')
 def serve(path):

@@ -1,4 +1,4 @@
-from database_writer import DatabaseWriter
+from database_writer import get_db
 from process_data import processData
 from threading import Thread
 import logger
@@ -17,7 +17,7 @@ class validURLs(object):
         self.testing = testing
         self.scenes = scenes
         db_name = 'smash_test' if testing else 'smash'
-        self.db = DatabaseWriter(db=db_name)
+        self.db = get_db(db=db_name)
 
         # Create a processor to analyze new matches
         self.data_processor = processData(self.db) 
@@ -135,6 +135,7 @@ class validURLs(object):
                             f.write("[validURLs.py:55]: found a SHIT TON of new tournaments for bracket: {}".format(base_url))
 
                     else:
+                        LOG.info('Found new bracket: {}'.format(bracket))
                         bracket = base_url.replace('###', str(new_last))
                         msg = "Found new bracket: {}".format(bracket)
                         tweet(msg)

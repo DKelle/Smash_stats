@@ -8,7 +8,7 @@ import pysmash
 from logger import logger
 from pprint import pprint
 from constants import TAGS_TO_COALESCE
-from player_web import update_web, update_group
+from player_web import update_web
 import os
 
 smash = None
@@ -27,8 +27,8 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
     if smash == None:
         smash = pysmash.SmashGG()
 
-    winner_loser_pairs = []
-    tag_gid_pairs = []
+    match_pairs = []
+    tag_to_gid = {}
     # Exctract the tournament and event names
     # eg url:
     # https://smash.gg/tournament/pulsar-premier-league/events/rocket-league-3v3/brackets/68179
@@ -48,51 +48,10 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
         # Check if these players are already in the players table
         scenes = bracket_utils.get_list_of_scene_names()
         for player in players:
+        # Calculate the group for these two players
             p = sanitize_tag(player['tag'])
-
-            sql = "SELECT * FROM players WHERE tag='{}';".format(p)
-            res = db.exec(sql)
-            if len(res) == 0:
-                # This player has never player before. Assume they have no matches in any other scene
-                matches_per_scene = {s:0 for s in scenes}
-                if scene in scenes:
-                    matches_per_scene[scene] = 1
-                    matches_per_scene_str = json.dumps(matches_per_scene)
-                    sql = "INSERT INTO players (tag, matches_per_scene, scene) VALUES ('{}', '{}', '{}');".format(p, matches_per_scene_str, scene)
-                    db.exec(sql)
-                # Set this players scene in the web since they do not have one yet
-                group_id = scenes.index(scene)
-                tag_gid_pairs.append((p, group_id))
-            else:
-                # This player has already played in other scenes. Update the counts
-                matches_per_scene = json.loads(res[0][2])
-
-                # Which scene was this player a part of before?
-                sort = [(k, matches_per_scene[k]) for k in sorted(matches_per_scene, key=matches_per_scene.get, reverse=True)]
-                max_scene = sort[0][0]
-                group_id_before = scenes.index(max_scene)
-
-                if not scene in matches_per_scene:
-                    matches_per_scene[scene] = 0
-                matches_per_scene[scene] = matches_per_scene[scene] + 1
-
-                # Which scene is this player a part of now?
-                sort = [(k, matches_per_scene[k]) for k in sorted(matches_per_scene, key=matches_per_scene.get, reverse=True)]
-                max_scene = sort[0][0]
-                group_id_after = scenes.index(max_scene)
-
-                # If this player just changed scenes, update the player web
-                if not group_id_before == group_id_after:
-                    tag_gid_pairs.append((p, group_id_after))
-
-                    # Update this players scene in the DB
-                    sql = "UPDATE players SET matches_per_scene='{}', scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), scene, p)
-                    db.exec(sql)
-                else:
-                    # This players scene didn't change, keep it the same
-                    sql = "UPDATE players SET matches_per_scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), p)
-                    db.exec(sql)
-
+            gid = calculate_and_update_group(p, scene, db) if not p in tag_to_gid else tag_to_gid[p]
+            tag_to_gid[p] = gid
 
         # Create a map of ID to tag
         tag_id_dict = {}
@@ -123,18 +82,22 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
                     winner, loser, winner, date, e, url)
 
             db.exec(sql)
+            
+            # Get the group that these 2 players belong to
+            g1 = tag_to_gid[winner]
+            g2 = tag_to_gid[loser]
 
             # Also update the player web with this match
-            winner_loser_pairs.append((winner, loser))
+            match_pairs.append((winner, g1, loser, g2))
 
     else:
         LOG.info("ERROR PARSING SMASHGG: {}".format(url))
         return
 
     # we need to pass a list of scenes to the player web
-    scenes = bracket_utils.get_list_of_scene_names()
-    update_web(winner_loser_pairs)
-    update_group(tag_gid_pairs)
+    LOG.info('dallas: about to update match pairs for bracket {}'.format(url))
+    update_web(match_pairs, db)
+    LOG.info('dallas: finished updating match pairs for bracket {}'.format(url))
 
 def analyze_tournament(db, url, scene, dated, urls_per_player=False):
     #Scrape the challonge website for the raw bracket
@@ -149,7 +112,8 @@ def analyze_tournament(db, url, scene, dated, urls_per_player=False):
     analyze_bracket(db, sanitized, url, scene, dated, urls_per_player)
 
 def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player=False):
-    winner_loser_pairs = []
+    match_pairs = []
+    tag_to_gid = {}
     players = set()
     #continuously find the next instances of 'player1' and 'player2'
     if debug: print('analyz a bracket. Dated? ' + str(dated))
@@ -193,64 +157,68 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
 
         db.exec(sql, debug=False)
 
+        # Calculate the group for these two players
+        group_id1 = calculate_and_update_group(winner, scene, db) if not winner in tag_to_gid else tag_to_gid[winner]
+        tag_to_gid[winner] = group_id1
+        group_id2 = calculate_and_update_group(loser, scene, db) if not loser in tag_to_gid else tag_to_gid[loser]
+        tag_to_gid[loser] = group_id2
+
         # Also insert this match into the player web
-        winner_loser_pairs.append((winner, loser))
-    # we need to pass a list of scenes to the player web
-    scenes = bracket_utils.get_list_of_scene_names()
-    update_web(winner_loser_pairs)
+        match_pairs.append((winner, group_id1, loser, group_id2))
 
-    tag_gid_pairs = []
-    # Check if these players are already in the players table
-    scenes = bracket_utils.get_list_of_scene_names()
-    for p in players:
-        sql = "SELECT * FROM players WHERE tag='{}';".format(p)
-        res = db.exec(sql)
-        if len(res) == 0:
-            # This player has never player before. Assume they have no matches in any other scene
-            matches_per_scene = {s:0 for s in scenes}
-            if scene in scenes:
-                matches_per_scene[scene] = 1
-                matches_per_scene_str = json.dumps(matches_per_scene)
-                sql = "INSERT INTO players (tag, matches_per_scene, scene) VALUES ('{}', '{}', '{}');".format(p, matches_per_scene_str, scene)
+    update_web(match_pairs, db)
 
-            # Set this players scene in the web since they do not have one yet
-            group_id = scenes.index(scene)
-            tag_gid_pairs.append((p, group_id))
+def calculate_and_update_group(p, scene, db):
+    sql = "SELECT * FROM players WHERE tag='{}';".format(p)
+    res = db.exec(sql)
+    gid = 0
+    scenes = bracket_utils.get_list_of_scene_names()
+    if len(res) == 0:
+        # This player has never player before. Assume they have no matches in any other scene
+        matches_per_scene = {s:0 for s in scenes}
+        if scene in scenes:
+            matches_per_scene[scene] = 1
+            matches_per_scene_str = json.dumps(matches_per_scene)
+            sql = "INSERT INTO players (tag, matches_per_scene, scene) VALUES ('{}', '{}', '{}');".format(p, matches_per_scene_str, scene)
+
+        # Set this players scene in the web since they do not have one yet
+        group_id = scenes.index(scene)
+        gid = group_id
+        db.exec(sql)
+    else:
+        # This player has already played in other scenes. Update the counts
+        matches_per_scene = json.loads(res[0][2])
+
+        # Which scene was this player a part of before?
+        sort = [(k, matches_per_scene[k]) for k in sorted(matches_per_scene, key=matches_per_scene.get, reverse=True)]
+        max_scene = sort[0][0]
+        group_id_before = scenes.index(max_scene)
+
+        if not scene in matches_per_scene:
+            LOG.info('the scene {} is not in their list'.format(scene))
+            matches_per_scene[scene] = 0
+        matches_per_scene[scene] = matches_per_scene[scene] + 1
+
+        # Which scene is this player a part of now?
+        sort = [(k, matches_per_scene[k]) for k in sorted(matches_per_scene, key=matches_per_scene.get, reverse=True)]
+        max_scene = sort[0][0]
+        group_id_after = scenes.index(max_scene)
+        gid = group_id_after
+
+        # If this player just changed scenes, update the player web
+        if not group_id_before == group_id_after:
+            LOG.info('Chaning the scene of player {} to {}'.format(p, scene))
+            LOG.info('this is their matches per scene and group id after{}, {}'.format(matches_per_scene, group_id_after))
+            # Update this players scene in the DB
+            sql = "UPDATE players SET matches_per_scene='{}', scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), scene, p)
             db.exec(sql)
+
         else:
-            # This player has already played in other scenes. Update the counts
-            matches_per_scene = json.loads(res[0][2])
+            # This players scene didn't change, keep it the same
+            sql = "UPDATE players SET matches_per_scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), p)
+            db.exec(sql)
 
-            # Which scene was this player a part of before?
-            sort = [(k, matches_per_scene[k]) for k in sorted(matches_per_scene, key=matches_per_scene.get, reverse=True)]
-            max_scene = sort[0][0]
-            group_id_before = scenes.index(max_scene)
-
-            if not scene in matches_per_scene:
-                LOG.info('the scene {} is not in their list'.format(scene))
-                matches_per_scene[scene] = 0
-            matches_per_scene[scene] = matches_per_scene[scene] + 1
-
-            # Which scene is this player a part of now?
-            sort = [(k, matches_per_scene[k]) for k in sorted(matches_per_scene, key=matches_per_scene.get, reverse=True)]
-            max_scene = sort[0][0]
-            group_id_after = scenes.index(max_scene)
-
-            # If this player just changed scenes, update the player web
-            if not group_id_before == group_id_after:
-                tag_gid_pairs.append((p, group_id_after))
-                LOG.info('Chaning the scene of player {} to {}'.format(p, scene))
-                LOG.info('this is their matches per scene and group id after{}, {}'.format(matches_per_scene, group_id_after))
-                # Update this players scene in the DB
-                sql = "UPDATE players SET matches_per_scene='{}', scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), scene, p)
-                db.exec(sql)
-
-            else:
-                # This players scene didn't change, keep it the same
-                sql = "UPDATE players SET matches_per_scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), p)
-                db.exec(sql)
-
-    update_group(tag_gid_pairs)
+    return gid
 
 
 def get_player_info(bracket):
