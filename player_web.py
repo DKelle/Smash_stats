@@ -1,9 +1,11 @@
 import logger
+import os
 import threading
 import time
 import requests
 import constants
 import queue
+import pickle
 from worker import Worker
 from json import dumps, loads
 from random import randint
@@ -12,6 +14,32 @@ LOG = logger.logger(__name__)
 player_web = None
 ranks = {}
 worst_rank = 1 
+
+
+def dump_pickle_data(base_fname, data):
+    cwd = os.getcwd()
+
+    # Go from https://ausin_melee_bracket -> austin_melee_bracket
+    fname = cwd+'/pickle/'+str(base_fname)+'.p'
+
+    with open(fname, "wb") as p:
+        pickle.dump(data, p)
+
+def load_pickle_data(base_fname):                                             
+    # Attempt to get data from pickle                                         
+    cwd = os.getcwd()                                                         
+                                                                              
+    fname = cwd+'/pickle/'+str(base_fname)+'.p'                             
+    LOG.info('attempting to load pickle data for {}'.format(fname))           
+                                                                              
+    try:                                                                      
+        with open(fname, 'rb') as p:                                          
+            data = pickle.load(p)                                             
+            return data                                                       
+                                                                              
+    except FileNotFoundError:                                                 
+        LOG.info('could not load pickle data for {}'.format(fname))           
+        return None                                                           
 
 def update_web(match_pairs, db):
     if player_web == None:
@@ -67,12 +95,28 @@ class PlayerWeb(object):
         self.tag_nid_map = {}
         self.nid_to_node_map = {}
         self.nodes = []
-        self.current_node_id = 0 
 
         # All of our edge related data structures
         self.id_to_opponents = {}
         self.node_to_edges_map = {}
         self.edges = []
+
+        self.pickled_data = ['tag_nid_map',
+                'nid_to_node_map',
+                'nodes',
+                'id_to_opponents',
+                'edges',
+                'node_to_edges_map']
+
+        for field in self.pickled_data:
+            data = load_pickle_data(field)
+            if data:
+                LOG.info('dallas: successfully loaded data for field {}'.format(field))
+                setattr(self, field, load_pickle_data(field))
+        self.current_node_id = len(self.nodes) 
+
+        for field in self.pickled_data:
+            LOG.info('dallas: after loading pickles, here is {}: {}'.format(field, getattr(self, field)))
 
         # There's a bug where the first node sometimes doesn't have any links... So make a fake node anyway
         self.create_node('No results', 9)
@@ -116,16 +160,10 @@ class PlayerWeb(object):
             l_id = loser_node['id']
 
             self.create_edge(w_id, l_id)
-            
-        # Update sql to have these changes
-        sql_nodes = dumps(self.nodes)
-        sql_links = dumps(self.edges)
 
-        LOG.info('dallas: the size of nodes is {}'.format(len(sql_nodes)))
-        sql = "UPDATE web SET nodes='{}', links='{}';".format(sql_nodes, sql_links)
-        # This is a huge list... don't print it to the log
-        LOG.info('Updating player web in sql')
-        db.exec(sql)
+        # Instead of writing the web to sql, just pickle the data
+        for field in self.pickled_data:
+            dump_pickle_data(field, getattr(self, field))
 
     def get_node(self, tag):
         if tag not in self.tag_nid_map:
