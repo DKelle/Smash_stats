@@ -120,4 +120,4 @@ class processData(object):
                 tag_rank_map[player] = map
 
         # TODO we need to update ranks for the web somehow
-        #player_web.update_ranks(tag_rank_map)
+        player_web.update_ranks(tag_rank_map)

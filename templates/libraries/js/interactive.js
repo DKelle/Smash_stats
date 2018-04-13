@@ -214,6 +214,7 @@ function doTheTreeViz(control) {
 			.attr("dy", ".31em")
 			.attr("class", "shadow")
 			.style("font-size", control.options.labelFontSize + "px")
+			.style("font-weight", "bold")
 			.text(function(d) {
 				return d.shortName ? d.shortName : d.name;
 			});
@@ -222,6 +223,7 @@ function doTheTreeViz(control) {
 			.attr("dy", ".35em")
 			.attr("class", "text")
 			.style("font-size", control.options.labelFontSize + "px")
+			.style("font-weight", "bold")
 			.text(function(d) {
 				return d.shortName ? d.shortName : d.name;
 			});

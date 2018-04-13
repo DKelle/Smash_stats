@@ -74,6 +74,8 @@ class PlayerWeb(object):
         self.node_to_edges_map = {}
         self.edges = []
 
+        # There's a bug where the first node sometimes doesn't have any links... So make a fake node anyway
+        self.create_node('No results', 9)
 
     def update(self, match_pairs, db):
         for match in match_pairs:
@@ -171,6 +173,36 @@ class PlayerWeb(object):
         self.node_to_edges_map[wid].append(edge)
         self.node_to_edges_map[lid].append(edge)
 
+    
+    def update_ranks(self, tag_rank_map):
+        for tag in tag_rank_map:
+            total_ranked = tag_rank_map[tag]['total_ranked']
+            rank = tag_rank_map[tag]['rank']
+            
+            # calulate the size off of the rank
+            power = 6.0
+            min_size = pow(10, (1.0/power))
+            max_size = pow(65, (1.0/power))
+            size = min_size 
+            if total_ranked > 1:
+                inverted_rank = total_ranked - rank
+                normalized_rank = (inverted_rank+0.0)*(max_size+0.0)/(total_ranked+0.0)
+                # Filter out anything lower than min_size
+                size = max(min_size, normalized_rank)
+                # Filter out anything lager than max_size
+                size = min(size, max_size)
+            size = pow(size, power)
+
+            # Get our node, and set its radius
+            nid = self.tag_nid_map[tag]
+            node = self.nodes[nid]
+
+            node['radius'] = size
+            node['rank'] = rank
+
+            # Save our node back
+            self.nodes[nid] = node
+
 
     def get_json(self):
         LOG.info("About to return the json for the player web")
@@ -207,6 +239,6 @@ class PlayerWeb(object):
 
         data = {'nodes': self.nodes, "links": self.edges}
 
-        json = {"d3":{"options":{"radius":2.5,"fontSize":9,"labelFontSize":9,"gravity":1.05,"nodeFocusColor":"black","nodeFocusRadius":25,"nodeFocus":True,"linkDistance":190,"charge":-1500,"nodeResize":"count","nodeLabel":"label","linkName":"tag"}, 'data':data}}
+        json = {"d3":{"options":{"radius":2.5,"fontSize":9,"labelFontSize":20,"gravity":.05,"nodeFocusColor":"black","nodeFocusRadius":25,"nodeFocus":True,"linkDistance":190,"charge":-3000,"nodeResize":"count","nodeLabel":"label","linkName":"tag"}, 'data':data}}
         
         return dumps(json)
