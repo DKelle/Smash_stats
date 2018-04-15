@@ -1,4 +1,5 @@
 all: clear
+	sh rm_web_pickles.sh
 	rm -f smash.log
 	touch smash.log
 	python3 app.py
