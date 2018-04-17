@@ -29,7 +29,7 @@ def load_pickle_data(base_fname):
     # Attempt to get data from pickle                                         
     cwd = os.getcwd()                                                         
                                                                               
-    fname = cwd+'/pickle/WB_'+str(base_fname)+'.p'                             
+    fname = cwd+'/pickle/WEB_'+str(base_fname)+'.p'                             
     LOG.info('attempting to load pickle data for {}'.format(fname))           
                                                                               
     try:                                                                      

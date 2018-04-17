@@ -8,13 +8,17 @@ import constants
 import get_ranks
 import bracket_utils
 from worker import Worker
+from player_web import init_player_web
+
 
 LOG = logger.logger(__name__)
 
 def run():
 
-    # Construct all of our 'scenes'
+    # We may have saved data about the player web. Load it
+    init_player_web()
 
+    # Construct all of our 'scenes'
     base_urls = bracket_utils.get_list_of_scenes()
     scenes = [Scene(x[0], x[1]) for x in base_urls]
     valids = validURLs(scenes)

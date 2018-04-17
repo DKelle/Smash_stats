@@ -1,10 +1,4 @@
-all: clear
-	sh rm_web_pickles.sh
-	rm -f smash.log
-	touch smash.log
-	python3 app.py
-
-noclear:
+all: 
 	rm -f smash.log
 	touch smash.log
 	python3 app.py
@@ -20,6 +14,10 @@ tail:
 
 clear:
 	python3 sql_utils.py clear
+	sh rm_web_pickles.sh
+	rm -f smash.log
+	touch smash.log
+	python3 app.py
 
 watch:
 	watch python3 sql_utils.py watch valids

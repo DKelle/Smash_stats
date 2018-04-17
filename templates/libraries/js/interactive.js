@@ -22,6 +22,9 @@ google.setOnLoadCallback(function() {
 
 			var initial_node = get_node_from_tag(control.data.nodes, tag);
 
+            // Append this node to our stats nav player queue
+            stats_nav_player_queue.push(initial_node.name);
+
 			initial_node.isCurrentlyFocused = initial_node.isCurrentlyFocused;
 
             initial_node.fixed = true;
@@ -55,10 +58,6 @@ function get_top_10_nodes_from_scene(control, scene) {
     return ns;
 }
 
-function temp (scene) {
-    console.log('this worked');
-    console.log(scene);
-}
 function get_node_from_tag(nodes, tag) {
 	for (var i = 0; i < nodes.length; i++) {
 		n = nodes[i];
@@ -93,6 +92,20 @@ function get_all_nodes_with_links(control, links, initial_node) {
     ns = Array.from(nodes);
     ns[0].isCurrentlyFocused = true;
 	return ns;
+}
+
+var stats_nav_player_queue = [];
+function update_stats_nav(node) {
+    tag = node.name;
+    // Is this player already in the queue? If so, remove them
+    i = stats_nav_player_queue.indexOf(tag);
+    if (i > -1) {
+        stats_nav_player_queue.splice(i,1);
+    }
+    else {
+        stats_nav_player_queue.push(node.name);
+    }
+    console.log('stats qwueue is ' + JSON.stringify(stats_nav_player_queue));
 }
 
 function doTheTreeViz(control) {
@@ -176,6 +189,7 @@ function doTheTreeViz(control) {
 						control.nodeClickInProgress = false;
 						if (control.options.nodeFocus) {
 							d.isCurrentlyFocused = !d.isCurrentlyFocused;
+                            update_stats_nav(d);
                             if  (d.fixed == 6 || !d.fixed) {
                                 d.fixed = true;
                             }
@@ -269,8 +283,6 @@ function doTheTreeViz(control) {
 	}
 
 	function getColor(d) {
-        console.log('dallas: trying to get color for tag ' + d.name + ' and group ' + JSON.stringify(d.group))
-        console.log('dallas: color is ' + control.color_map[d.group]);
         // TODO update this as we get more scenes
 		return control.options.nodeFocus && d.isCurrentlyFocused ? control.options.nodeFocusColor : control.color_map[d.group];
 	}
@@ -404,7 +416,6 @@ function initialize() {
             control.color_map.push(control.color(i));
 
         }
-        console.log('dallas: this is color groups ' + JSON.stringify(control.color_map));
 		control.clickHack = 200;
 		organizeData(control);
 
@@ -495,12 +506,8 @@ function initialize() {
             oldView = control.svg.viewBox;
             dmouse = [control.last_mouse[0] - pos[0], control.last_mouse[1] - pos[1]];
             control.last_mouse = pos;
-            //console.log('dallas: here is the old w h ' +JSON.stringify(oldView))
-            //console.log('dallas: this is scale and translate:' + JSON.stringify(scale) + " " + JSON.stringify(trans)); 
-            //console.log('dallas: this is dx dy:' + JSON.stringify(dx) + " " + JSON.stringify(dy)); 
             // Only change the viewbox if it is not a huge jump
             //var dist  = oldView.x - dx;
-            //console.log('dallas: this si the distance '+JSON.stringify(dist))
 			var newViewBox = [
                 control.last_vb[0] + dmouse[0],
                 control.last_vb[1] + dmouse[1],
