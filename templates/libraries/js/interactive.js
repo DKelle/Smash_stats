@@ -23,7 +23,7 @@ google.setOnLoadCallback(function() {
 			var initial_node = get_node_from_tag(control.data.nodes, tag);
 
             // Append this node to our stats nav player queue
-            stats_nav_player_queue.push(initial_node.name);
+            p_queue.push(initial_node.name);
 
 			initial_node.isCurrentlyFocused = initial_node.isCurrentlyFocused;
 
@@ -94,18 +94,73 @@ function get_all_nodes_with_links(control, links, initial_node) {
 	return ns;
 }
 
-var stats_nav_player_queue = [];
+
+function httpGet(theUrl)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
+    xmlHttp.send( null );
+    return xmlHttp.responseText;
+}
+
+var p_queue = [];
 function update_stats_nav(node) {
     tag = node.name;
     // Is this player already in the queue? If so, remove them
-    i = stats_nav_player_queue.indexOf(tag);
+    i = p_queue.indexOf(tag);
     if (i > -1) {
-        stats_nav_player_queue.splice(i,1);
+        p_queue.splice(i,1);
     }
     else {
-        stats_nav_player_queue.push(node.name);
+        p_queue.push(node.name);
     }
-    console.log('stats qwueue is ' + JSON.stringify(stats_nav_player_queue));
+
+    // Find out which players to show stats for
+    p1 = p_queue[p_queue.length-1];
+    matches = 0;
+    results = 0;
+	console.log('running the loop?');
+    for(var i = p_queue.length-1; i--; i > -1) {
+		p2 = p_queue[i];
+		url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/h2h?tag1="+p1+"&tag2="+p2;
+
+		result = JSON.parse(httpGet(url));
+		matches = result.length;
+		console.log('result was ' + result);
+
+		if (matches > 0) {
+			console.log('breaking because matches is ' + matches)
+			break;
+		}
+    }
+
+	if (matches > 0) {
+		// We have found some results between two players. Set their tags in the stats nav.
+		t1 = document.getElementById('tag1');
+		t2 = document.getElementById('tag2');
+		t1.innerHTML = p1;
+		t2.innerHTML = p2;
+
+		// Actually add their matches to the nav stats
+		matches_div = document.getElementById('matches');
+		inner = '';
+		for(var i = 0; i < result.length; i ++) {
+			r = result[i];
+			winner = r[2];
+			bracket = r[5]
+			console.log('winner was ' + winner + 'bracket was ' + bracket);
+			console.log('the ith result it ' + i + ' ' + JSON.stringify(r));
+			inner = inner + bracket + ':' + winner;
+		}
+
+		matches_div.innerHTML = inner;
+	}
+	else {
+		console.log('matches was 0');
+	}
+
+    // Change the tags displayed on the stats nav
+    console.log('stats qwueue is ' + JSON.stringify(p_queue));
 }
 
 function doTheTreeViz(control) {

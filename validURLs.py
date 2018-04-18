@@ -135,8 +135,8 @@ class validURLs(object):
                             f.write("[validURLs.py:55]: found a SHIT TON of new tournaments for bracket: {}".format(base_url))
 
                     else:
-                        LOG.info('Found new bracket: {}'.format(bracket))
                         bracket = base_url.replace('###', str(new_last))
+                        LOG.info('Found new bracket: {}'.format(bracket))
                         msg = "Found new bracket: {}".format(bracket)
                         tweet(msg)
 

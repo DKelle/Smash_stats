@@ -65,9 +65,8 @@ def h2h():
             +"player2 = '"+str(player1)+"') AND (player1 = '"+str(player2)+"' OR "\
             +"player2 = '"+str(player2)+"') ORDER BY date DESC;"
     result = db.exec(sql)
+    return json.dumps(result)
 
-    result = [str(x) for x in result]
-    return json.dumps('\n'.join(result))
 
 @endpoints.route("/entrants")
 def entrants(players=None):

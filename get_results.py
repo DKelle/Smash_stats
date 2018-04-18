@@ -4,6 +4,7 @@ import json
 import datetime
 import re
 import pysmash
+import time
 
 from logger import logger
 from pprint import pprint
@@ -44,6 +45,8 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
         # The event will be either 'melee' or 'wiiu'
 
         players = smash.tournament_show_players(t, e)
+        # Sleep between requests to prevent rate limiting
+        time.sleep(5)
 
         # Check if these players are already in the players table
         scenes = bracket_utils.get_list_of_scene_names()
@@ -65,6 +68,9 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
             tag_id_dict[id] = tag
 
         sets = smash.tournament_show_sets(t, e)
+        # Sleep between requests to prevent rate limiting
+        time.sleep(5)
+
         e = "pro" if "melee" in e else "pro_wiiu"
         for s in sets:
             # Temporary
@@ -291,7 +297,10 @@ def process(url, scene, db):
     if "challonge" in url:
         analyze_tournament(db, url, scene, True, False)
     else:
-        analyze_smashgg_tournament(db, url, scene, True, False)
+        try:
+            analyze_smashgg_tournament(db, url, scene, True, False)
+        except Exception:
+            LOG.exc('Hit exception while trying to analyze url {}'.format(url))
 
     sql = "INSERT INTO analyzed (base_url) VALUES ('" + str(url)+"');" 
 

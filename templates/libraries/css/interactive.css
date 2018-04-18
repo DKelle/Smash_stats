@@ -338,3 +338,9 @@ div.tag {
 	text-align: center;
 
 }
+
+div.matches {
+	flex: 0 0 100%;
+	display:block;
+	text-align: center;
+}
