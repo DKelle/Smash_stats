@@ -300,7 +300,7 @@ li.pro_smash4:hover::before {
 }
 
 .sidenav {
-    display: flex;
+    display: block;
     border: 1px solid #eee; /* Here */
     background-color: rgb(248,248,248);
     height: 100%;
@@ -323,7 +323,7 @@ li.pro_smash4:hover::before {
     transition: 0.3s;
 }
 
-.sidenav div {
+#mySidenav div {
     padding: 20px 20px 20px 20px;
     font-size: 25px;
 	width: 100%;
@@ -333,14 +333,13 @@ li.pro_smash4:hover::before {
 	text-align: center;
 }
 
-div.tag {
-	display:block;
+div.tags {
+	display:flex;
 	text-align: center;
 
 }
 
 div.matches {
-	flex: 0 0 100%;
 	display:block;
 	text-align: center;
 }
