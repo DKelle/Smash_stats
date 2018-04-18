@@ -8,7 +8,7 @@ import time
 from tweet import tweet
 
 # TODO this is temporary test code
-loaded_smashgg = False
+loaded_smashgg = True
 
 LOG = logger.logger(__name__)
 

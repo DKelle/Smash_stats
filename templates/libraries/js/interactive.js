@@ -103,6 +103,21 @@ function httpGet(theUrl)
     return xmlHttp.responseText;
 }
 
+function get_bracket_display_name(bracket) {
+	map = {'RAA': 'SMS', 'heat':'Heatwave', 'hw':'Heatwave', 'atx': 'Smashpack', 'smashbrews': 'smashbrews', 'smashco': 'CSU'};
+	for (var key in map) {
+		if (bracket.toLowerCase().includes(key.toLowerCase())) {
+			// display name will be just 'SMS' or 'Heatwave', etc
+			display_name = map[key];
+			console.log(bracket);
+			var thenum = bracket.replace( /^\D+/g, '');
+			console.log('the number is '+ thenum);
+
+			display_name = display_name + ' ' + thenum;
+			return display_name
+		}
+	}
+}
 var p_queue = [];
 function update_stats_nav(node) {
     tag = node.name;
@@ -119,17 +134,14 @@ function update_stats_nav(node) {
     p1 = p_queue[p_queue.length-1];
     matches = 0;
     results = 0;
-	console.log('running the loop?');
     for(var i = p_queue.length-1; i--; i > -1) {
 		p2 = p_queue[i];
 		url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/h2h?tag1="+p1+"&tag2="+p2;
 
 		result = JSON.parse(httpGet(url));
 		matches = result.length;
-		console.log('result was ' + result);
 
 		if (matches > 0) {
-			console.log('breaking because matches is ' + matches)
 			break;
 		}
     }
@@ -143,24 +155,34 @@ function update_stats_nav(node) {
 
 		// Actually add their matches to the nav stats
 		matches_div = document.getElementById('matches');
-		inner = '';
+
+		// remove all old match results
+		var ul = document.getElementById("matches_list");
+		while (ul.hasChildNodes()) {
+			ul.removeChild(ul.childNodes[0]);
+		}
+
 		for(var i = 0; i < result.length; i ++) {
 			r = result[i];
 			winner = r[2];
-			bracket = r[5]
-			console.log('winner was ' + winner + 'bracket was ' + bracket);
-			console.log('the ith result it ' + i + ' ' + JSON.stringify(r));
-			inner = inner + bracket + ':' + winner;
+			bracket = r[5];
+			match_text = winner + ':' + bracket;
+			display_name = get_bracket_display_name(bracket);
+
+
+			// Ad this match to the ul
+
+			var li = document.createElement("li");
+			li.appendChild(document.createTextNode(display_name));
+			ul.appendChild(li);
 		}
 
-		matches_div.innerHTML = inner;
 	}
 	else {
 		console.log('matches was 0');
 	}
 
     // Change the tags displayed on the stats nav
-    console.log('stats qwueue is ' + JSON.stringify(p_queue));
 }
 
 function doTheTreeViz(control) {
