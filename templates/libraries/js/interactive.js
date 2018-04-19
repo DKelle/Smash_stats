@@ -149,7 +149,7 @@ function update_stats_nav(node) {
 	if (matches > 0) {
 
 		// Make sure the sidenav is actually visible
-		document.getElementById('mySidenav').style.width = '15%';
+		document.getElementById('mySidenav').style.width = '25%';
 
 		// We have found some results between two players. Set their tags in the stats nav.
 		t1 = document.getElementById('tag1');
