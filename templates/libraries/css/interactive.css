@@ -212,7 +212,7 @@ rect {
   padding: 20px;
 }
 
-ul {
+.nav-bar ul {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -234,7 +234,7 @@ input {
   transition-property: border-color, box-shadow;
 }
 
-li {
+.nav-bar li {
   display: flex;
   list-style: none;
   padding: 15px;
@@ -304,7 +304,7 @@ li.pro_smash4:hover::before {
     border: 1px solid #eee; /* Here */
     background-color: rgb(248,248,248);
     height: 100%;
-    width: 15%;
+    width: 0px;
     position: fixed;
     z-index: -1;
     top: 0;
@@ -342,4 +342,51 @@ div.tags {
 div.matches {
 	display:block;
 	text-align: center;
+}
+
+#mySidenav ul {
+    display: table-row;
+    width: 100%;
+}
+
+#mySidenav li {
+
+    align-items:center;
+    background-color:rgb(255, 255, 255);
+    border-bottom-color:rgba(0, 0, 0, 0.125);
+    border-bottom-style:solid;
+    border-bottom-width:1px;
+    border-image-outset:0px;
+    border-image-repeat:stretch;
+    border-image-slice:100%;
+    border-image-source:none;
+    border-image-width:1;
+    border-left-color:rgba(0, 0, 0, 0.125);
+    border-left-style:solid;
+    border-left-width:1px;
+    border-right-color:rgba(0, 0, 0, 0.125);
+    border-right-style:solid;
+    border-right-width:1px;
+    border-top-color:rgba(0, 0, 0, 0.125);
+    border-top-left-radius:4px;
+    border-top-right-radius:4px;
+    border-top-style:solid;
+    border-top-width:1px;
+    box-sizing:border-box;
+    color:rgb(41, 43, 44);
+    height:50px;
+    line-height:24px;
+    list-style-type:disc;
+    margin-bottom:-1px;
+    padding-bottom:12px;
+    padding-left:20px;
+    padding-right:20px;
+    padding-top:12px;
+    position:relative;
+    text-align:left;
+    text-size-adjust:100%;
+    width:60%;
+    list-style-type: none;
+    rgba(0, 0, 0, 0);
+    float: left;
 }

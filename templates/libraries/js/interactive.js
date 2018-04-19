@@ -147,6 +147,10 @@ function update_stats_nav(node) {
     }
 
 	if (matches > 0) {
+
+		// Make sure the sidenav is actually visible
+		document.getElementById('mySidenav').style.width = '15%';
+
 		// We have found some results between two players. Set their tags in the stats nav.
 		t1 = document.getElementById('tag1');
 		t2 = document.getElementById('tag2');
@@ -174,11 +178,16 @@ function update_stats_nav(node) {
 
 			var li = document.createElement("li");
 			li.appendChild(document.createTextNode(display_name));
+			li.setAttribute("id", "matches_li");
+			li.setAttribute("href", bracket);
 			ul.appendChild(li);
 		}
 
 	}
 	else {
+		// Close the sidenav
+		document.getElementById('mySidenav').style.width = '0%';
+		
 		console.log('matches was 0');
 	}
 
