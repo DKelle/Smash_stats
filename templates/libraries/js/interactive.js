@@ -42,7 +42,6 @@ google.setOnLoadCallback(function() {
 });
 
 function get_top_10_nodes_from_scene(control, scene) {
-    console.log('inside get top 120');
     scenes = ['temp', 'sms', 'austin', 'smashbrews', 'colorado', 'colorado_doubles', 'pro_melee', 'pro_smash4'];
     group = scenes.indexOf(scene);
 	ns = []
@@ -51,10 +50,7 @@ function get_top_10_nodes_from_scene(control, scene) {
             ns.push(control.nodes[i]);
         }
     }
-    console.log('about to return this');
-    console.log(JSON.stringify(ns));
     control.data.nodes = ns;
-    console.log(JSON.stringify(control.data.nodes));
     return ns;
 }
 
@@ -173,13 +169,19 @@ function update_stats_nav(node) {
 			match_text = winner + ':' + bracket;
 			display_name = get_bracket_display_name(bracket);
 
+            // Was the winner p1 or p2?
+            var li_class = "loser";
+            if (p1 == winner) {
+                li_class = "winner";
+                console.log('winner was p1')
+            }
 
-			// Ad this match to the ul
-
+			// Add this match to the ul
 			var li = document.createElement("li");
 			li.appendChild(document.createTextNode(display_name));
 			li.setAttribute("id", "matches_li");
 			li.setAttribute("href", bracket);
+			li.setAttribute("class", li_class);
 			ul.appendChild(li);
 		}
 
@@ -188,7 +190,6 @@ function update_stats_nav(node) {
 		// Close the sidenav
 		document.getElementById('mySidenav').style.width = '0%';
 		
-		console.log('matches was 0');
 	}
 
     // Change the tags displayed on the stats nav
