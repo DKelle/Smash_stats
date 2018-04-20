@@ -123,6 +123,7 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
     players = set()
     #continuously find the next instances of 'player1' and 'player2'
     if debug: print('analyz a bracket. Dated? ' + str(dated))
+    date = get_date(base_url)
     while 'player1' in bracket and 'player2' in bracket:
         index = bracket.index("player1")
         bracket = bracket[index:]
@@ -157,7 +158,6 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
         winner = player1_tag if int(winner_id) == int(player1_id) else player2_tag
         loser = player1_tag if winner == player2_tag else player2_tag
 
-        date = get_date(base_url)
         sql = "INSERT INTO matches(player1, player2, winner, date, scene, url) VALUES ('"
         sql += str(player1_tag) + "', '" + str(player2_tag) + "', '" + str(winner) + "', '"+ str(date) + "', '"+str(scene) + "', '"+str(base_url)+"'); "
 
