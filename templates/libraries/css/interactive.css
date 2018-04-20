@@ -334,13 +334,10 @@ li.pro_smash4:hover::before {
     display: flex;
     transition: 0.3s;
 	text-align: center;
+    margin: 0 auto;
 }
 
-div.tags {
-	display:flex;
-	text-align: center;
 
-}
 
 div.matches {
 	display:block;
@@ -350,6 +347,55 @@ div.matches {
 #mySidenav ul {
     display: table-row;
     width: 100%;
+}
+
+#mySidenav li.sms {
+  box-shadow: 0px 0px 5px 2px rgb(143,186,216);
+}
+#mySidenav li.sms:hover {
+  box-shadow: 0px 0px 5px 2px rgb(32,117,178);
+}
+
+#mySidenav li.austin {
+  box-shadow: 0px 0px 5px 2px rgb(255,192,148);
+}
+#mySidenav li.austin:hover {
+  box-shadow: 0px 0px 5px 2px rgb(255,129,42);
+}
+
+#mySidenav li.smashbrews {
+  box-shadow: 0px 0px 5px 2px rgb(153, 206, 153);
+}
+#mySidenav li.smashbrews:hover {
+  box-shadow: 0px 0px 5px 2px rgb(51, 158, 51);
+}
+
+#mySidenav li.colorado {
+  box-shadow: 0px 0px 5px 2px rgb(243, 158, 151);
+}
+#mySidenav li.colorado:hover {
+  box-shadow: 0px 0px 5px 2px rgb(212, 42, 47);
+}
+
+#mySidenav li.colorado_doubles {
+  box-shadow: 0px 0px 5px 2px rgb(201, 180, 221);
+}
+#mySidenav li.colorado_doubles:hover {
+  box-shadow: 0px 0px 5px 2px rgb(147, 101, 187);
+}
+
+#mySidenav li.pro_melee {
+  box-shadow: 0px 0px 5px 2px rgb(197,171,165);
+}
+#mySidenav li.pro_melee:hover {
+  box-shadow: 0px 0px 5px 2px rgb(140,86,76);
+}
+
+#mySidenav li.pro_smash4 {
+  box-shadow: 0px 0px 5px 2px rgb(281,147,224);
+}
+#mySidenav li.pro_smash4:hover {
+  box-shadow: 0px 0px 5px 2px rgb(228,120,193);
 }
 
 #mySidenav li {
@@ -386,18 +432,19 @@ div.matches {
     padding-right:20px;
     padding-top:12px;
     position:relative;
-    text-align:left;
     text-size-adjust:100%;
     width:60%;
     list-style-type: none;
-    rgba(0, 0, 0, 0);
-    float: left;
+    text-align: center;
 }
 
 #mySidenav li.winner {
     float: left;
+	margin: 10px 0;
 }
 
 #mySidenav li.loser {
     float: right;
+	margin: 10px 0;
 }
+

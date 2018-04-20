@@ -100,13 +100,13 @@ function httpGet(theUrl)
 }
 
 function get_bracket_display_name(bracket) {
-	map = {'RAA': 'SMS', 'heat':'Heatwave', 'hw':'Heatwave', 'atx': 'Smashpack', 'smashbrews': 'smashbrews', 'smashco': 'CSU'};
+	map = {'RAA': 'SMS', 'heat':'Heatwave', 'hw':'Heatwave', 'austinsmash': 'Smashpack', 'np9': 'NP', 'smashbrews': 'smashbrews', 'smashco': 'CSU', 'alibaba': 'Alibaba'};
 	for (var key in map) {
 		if (bracket.toLowerCase().includes(key.toLowerCase())) {
 			// display name will be just 'SMS' or 'Heatwave', etc
 			display_name = map[key];
 			console.log(bracket);
-			var thenum = bracket.replace( /^\D+/g, '');
+			var thenum = bracket.split("/").pop().replace( /^\D+/g, '');
 			console.log('the number is '+ thenum);
 
 			display_name = display_name + ' ' + thenum;
@@ -166,6 +166,7 @@ function update_stats_nav(node) {
 			r = result[i];
 			winner = r[2];
 			bracket = r[5];
+            scene = r[4];
 			match_text = winner + ':' + bracket;
 			display_name = get_bracket_display_name(bracket);
 
@@ -175,13 +176,18 @@ function update_stats_nav(node) {
                 li_class = "winner";
                 console.log('winner was p1')
             }
+            li_class += ' ' + scene;
 
 			// Add this match to the ul
 			var li = document.createElement("li");
 			li.appendChild(document.createTextNode(display_name));
 			li.setAttribute("id", "matches_li");
-			li.setAttribute("href", bracket);
 			li.setAttribute("class", li_class);
+
+            // Create a link to this bracket
+            var a = document.createElement('a');
+			a.setAttribute("href", bracket);
+            li.appendChild(a);
 			ul.appendChild(li);
 		}
 
