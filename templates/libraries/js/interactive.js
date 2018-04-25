@@ -37,6 +37,7 @@ google.setOnLoadCallback(function() {
 			control.nodes = ns;
 
 			doTheTreeViz(control);
+
 		}
 	);
 });
@@ -240,6 +241,9 @@ function update_stats_nav(node) {
         result = JSON.parse(httpGet(url));
         matches = result.length;
 
+        url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/placings?tag="+p1;
+        placings = JSON.parse(httpGet(url));
+
 		for(var i = 0; i < result.length; i ++) {
 			r = result[i];
             bracket = r[0];
@@ -257,6 +261,15 @@ function update_stats_nav(node) {
 			li.setAttribute("class", li_class);
             li.style.width = '100%';
 
+            // Create a badge that has the score in it
+            place = get_placings(placings, bracket);
+            if (place > 0) {
+                var span = document.createElement('span');
+                span.innerHTML = get_placings(placings, bracket);
+                span.style.float = 'right';
+                li.appendChild(span);
+            }
+
             // Create a link to this bracket
             var a = document.createElement('a');
 			a.setAttribute("href", bracket);
@@ -273,6 +286,22 @@ function update_stats_nav(node) {
 	}
 
     // Change the tags displayed on the stats nav
+}
+
+function get_placings(placings, bracket) {
+    console.log('this is all placings' + placings);
+    console.log('about to get placing for ' + bracket);
+    for(var i = 0; i < placings.length; i ++) {
+        r = placings[i];
+        url = r[0];
+        console.log('comparing to ' + url);
+        if (bracket == url) {
+            place = r[2];
+            console.log('found it! place was '+r);
+            return place
+        }
+    }
+    return 0;
 }
 
 function doTheTreeViz(control) {
