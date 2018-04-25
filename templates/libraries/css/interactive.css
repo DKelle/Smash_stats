@@ -333,8 +333,8 @@ li.pro_smash4:hover::before {
     color: #818181;
     display: flex;
     transition: 0.3s;
-	text-align: center;
     margin: 0 auto;
+    justify-content: center;
 }
 
 
@@ -384,17 +384,17 @@ div.matches {
   box-shadow: 0px 0px 5px 2px rgb(147, 101, 187);
 }
 
-#mySidenav li.pro_melee {
+#mySidenav li.pro {
   box-shadow: 0px 0px 5px 2px rgb(197,171,165);
 }
-#mySidenav li.pro_melee:hover {
+#mySidenav li.pro:hover {
   box-shadow: 0px 0px 5px 2px rgb(140,86,76);
 }
 
-#mySidenav li.pro_smash4 {
+#mySidenav li.pro_wiiu {
   box-shadow: 0px 0px 5px 2px rgb(281,147,224);
 }
-#mySidenav li.pro_smash4:hover {
+#mySidenav li.pro_wiiu:hover {
   box-shadow: 0px 0px 5px 2px rgb(228,120,193);
 }
 
@@ -448,3 +448,30 @@ div.matches {
 	margin: 10px 0;
 }
 
+#mySidenav span {
+	background-color:rgb(100, 108, 114);
+	border-bottom-left-radius:160px;
+	border-bottom-right-radius:160px;
+	border-top-left-radius:160px;
+	border-top-right-radius:160px;
+	box-sizing:border-box;
+	color:rgb(255, 255, 255);
+	display:inline;
+	font-family:-apple-system, system-ui, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	font-size:12px;
+	font-weight:700;
+	height:18px;
+	line-height:12px;
+	list-style-type:disc;
+	padding-bottom:3px;
+	padding-left:4.2px;
+	padding-right:5.2px;
+	padding-top:3px;
+	text-align:center;
+	text-size-adjust:100%;
+	vertical-align:baseline;
+	white-space:nowrap;
+	width:28.7969px;
+	-webkit-box-direction:normal;
+	-webkit-tap-highlight-color:rgba(0, 0, 0, 0);
+}

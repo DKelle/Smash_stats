@@ -327,7 +327,7 @@ def get_list_of_scenes():
     colorado = constants.COLORADO_SINGLES_URLS
     colorado_doubles = constants.COLORADO_DOUBLES_URLS
     sms = constants.SMS_URLS
-    base_urls = [sms, austin, smashbrews, colorado_doubles, colorado]
+    base_urls = [smashbrews, sms, austin, colorado_doubles, colorado]
     return base_urls
 
 def get_list_of_named_scenes():
@@ -336,7 +336,7 @@ def get_list_of_named_scenes():
     colorado_singles = constants.COLORADO_SINGLES_URLS
     colorado_doubles = constants.COLORADO_DOUBLES_URLS
     sms = constants.SMS_URLS
-    base_urls = [['sms', sms], ['austin', austin], ['smashbrews', smashbrews], ['colorado', colorado_singles], ['colorado_doubles', colorado_doubles]]
+    base_urls = [['smashbrews', smashbrews], ['sms', sms], ['austin', austin], ['colorado', colorado_singles], ['colorado_doubles', colorado_doubles]]
     return base_urls
 
 def get_list_of_scene_names():
@@ -356,3 +356,18 @@ def get_matches_from_urls(db, urls):
         matches |= set(res)
 
     return matches
+
+def get_display_base(url):
+    d_map = constants.DISPLAY_MAP
+    for k in d_map:
+        if  k.lower() in url.lower():
+            return d_map[k]
+    
+    # If this is a pro bracket, just pull the name out of the URL
+    if 'smash.gg' in url:
+        
+        parts = url.split('event')[0].split('/')[-2].split('-')
+        display_list = [s.title() for s in parts]
+        return ' '.join(display_list)
+
+    return url

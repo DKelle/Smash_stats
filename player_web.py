@@ -232,14 +232,35 @@ class PlayerWeb(object):
             size = pow(size, power)
 
             # Get our node, and set its radius
-            nid = self.tag_nid_map[tag]
-            node = self.nodes[nid]
+	    #Exception in thread ['colorado_doubles', 'colorado']:
+	    #Traceback (most recent call last):
+	    #  File "/usr/lib/python3.5/threading.py", line 914, in _bootstrap_inner
+	    #    self.run()
+	    #  File "/usr/lib/python3.5/threading.py", line 862, in run
+	    #    self._target(*self._args, **self._kwargs)
+	    #  File "/home/ubuntu/Smash_stats/validURLs.py", line 118, in analyze_scenes
+	    #    self.analyze_scene(scene)
+	    #  File "/home/ubuntu/Smash_stats/validURLs.py", line 187, in analyze_scene
+	    #    self.data_processor.process_ranks(name)
+	    #  File "/home/ubuntu/Smash_stats/process_data.py", line 123, in process_ranks
+	    #    player_web.update_ranks(tag_rank_map)
+	    #  File "/home/ubuntu/Smash_stats/player_web.py", line 59, in update_ranks
+	    #    player_web.update_ranks(tag_rank_map)
+	    #  File "/home/ubuntu/Smash_stats/player_web.py", line 235, in update_ranks
+	    #    nid = self.tag_nid_map[tag]
+	    #KeyError: 'o and 2'
+            # TODO theoretically this should always be true, but this ^^^ happened once...
+            if tag in self.tag_nid_map:
+                nid = self.tag_nid_map[tag]
+                node = self.nodes[nid]
 
-            node['radius'] = size
-            node['rank'] = rank
+                node['radius'] = size
+                node['rank'] = rank
 
-            # Save our node back
-            self.nodes[nid] = node
+                # Save our node back
+                self.nodes[nid] = node
+            else:
+                LOG.exc('We are trying to set the rank of tag {}, but it doesnt exist in the web'.format(tag))
 
 
     def get_json(self):

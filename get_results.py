@@ -23,7 +23,7 @@ def sanitize_tag(tag):
     tag = ''.join([i if ord(i) < 128 else ' ' for i in tag])
     return re.sub("[^a-z A-Z 0-9]",'',tag.lower())
 
-def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
+def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, display_name=None):
     global smash
     if smash == None:
         smash = pysmash.SmashGG()
@@ -78,14 +78,21 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
 
             l_id = int(s['loser_id'])
             w_id = int(s['winner_id'])
+            s1 = s['entrant_1_score']
+            s2 = s['entrant_2_score']
+
+            # If we don't have score info, default to 3-0
+            entrant_1_score = 3 if s1 == None else int(s1)
+            entrant_2_score = 0 if s2 == None else int(s2)
+            score = json.dumps([max(entrant_1_score, entrant_2_score), min(entrant_1_score, entrant_2_score)])
             if l_id in tag_id_dict and w_id in tag_id_dict:
                 loser = tag_id_dict[l_id]
                 winner = tag_id_dict[w_id]
             else:
                 continue
 
-            sql = "INSERT INTO matches(player1, player2, winner, date, scene, url) VALUES ('{}', '{}', '{}', '{}', '{}', '{}');".format(\
-                    winner, loser, winner, date, e, url)
+            sql = "INSERT INTO matches(player1, player2, winner, date, scene, url, display_name, score) VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(\
+                    winner, loser, winner, date, e, url, display_name, score)
 
             db.exec(sql)
             
@@ -101,11 +108,11 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False):
         return
 
     # we need to pass a list of scenes to the player web
-    LOG.info('dallas: about to update match pairs for bracket {}'.format(url))
+    LOG.info('about to update match pairs for bracket {}'.format(url))
     update_web(match_pairs, db)
-    LOG.info('dallas: finished updating match pairs for bracket {}'.format(url))
+    LOG.info('finished updating match pairs for bracket {}'.format(url))
 
-def analyze_tournament(db, url, scene, dated, urls_per_player=False):
+def analyze_tournament(db, url, scene, dated, urls_per_player=False, display_name=None):
     #Scrape the challonge website for the raw bracket
     bracket = bracket_utils.get_bracket(url)
 
@@ -115,9 +122,9 @@ def analyze_tournament(db, url, scene, dated, urls_per_player=False):
     #Sanitize the braket
     sanitized = bracket_utils.sanitize_bracket(bracket)
 
-    analyze_bracket(db, sanitized, url, scene, dated, urls_per_player)
+    analyze_bracket(db, sanitized, url, scene, dated, urls_per_player, display_name)
 
-def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player=False):
+def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player=False, display_name=None):
     match_pairs = []
     tag_to_gid = {}
     players = set()
@@ -139,6 +146,19 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
         comma = bracket.index(",")
         winner_id = bracket[colon+1:comma]
 
+        index = bracket.index('scores')
+        bracket = bracket[index:]
+        colon = bracket.index(":")
+        brace = bracket.index("]")
+        scores = json.loads(bracket[colon+1:brace+1])
+        if len(scores) == 0:
+            # If no score was reported, assume 2-0
+            scores = [2, 0]
+
+        winner_score = max(scores)
+        loser_score = min(scores)
+        scores = json.dumps([winner_score, loser_score])
+        
         #on the off chance that the bracket was not filled out all way, and a player is left blank, skip
         if winner_id == 'null' or player1_id == None or player2_id == None:
             break
@@ -158,8 +178,8 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
         winner = player1_tag if int(winner_id) == int(player1_id) else player2_tag
         loser = player1_tag if winner == player2_tag else player2_tag
 
-        sql = "INSERT INTO matches(player1, player2, winner, date, scene, url) VALUES ('"
-        sql += str(player1_tag) + "', '" + str(player2_tag) + "', '" + str(winner) + "', '"+ str(date) + "', '"+str(scene) + "', '"+str(base_url)+"'); "
+        sql = "INSERT INTO matches(player1, player2, winner, date, scene, url, display_name, score) VALUES ('"
+        sql += str(player1_tag) + "', '" + str(player2_tag) + "', '" + str(winner) + "', '"+ str(date) + "', '"+str(scene) + "', '"+str(base_url)+"', '"+str(display_name)+"', '"+str(scores)+"'); "
 
         db.exec(sql, debug=False)
 
@@ -279,7 +299,7 @@ def get_date(url):
 
     return date
 
-def process(url, scene, db):
+def process(url, scene, db, display_name):
     # Just to be sure, make sure this bracket hasn't already been analyzed
     sql = "SELECT * FROM analyzed WHERE base_url = '" + str(url) + "';"
     result = db.exec(sql)
@@ -295,10 +315,10 @@ def process(url, scene, db):
         db.exec(sql)
 
     if "challonge" in url:
-        analyze_tournament(db, url, scene, True, False)
+        analyze_tournament(db, url, scene, True, False, display_name)
     else:
         try:
-            analyze_smashgg_tournament(db, url, scene, True, False)
+            analyze_smashgg_tournament(db, url, scene, True, False, display_name)
         except Exception:
             LOG.exc('Hit exception while trying to analyze url {}'.format(url))
 

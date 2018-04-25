@@ -19,17 +19,17 @@ class processData(object):
         self.list_of_scene = bracket_utils.get_list_of_scenes()
         self.db = db
 
-    def process(self, bracket, scene):
+    def process(self, bracket, scene, display_name):
         # Send this bracket to get_results
         # We know the bracket is valid if it is from smashgg
         if 'smash.gg' in bracket:
-            get_results.process(bracket, scene, self.db)
+            get_results.process(bracket, scene, self.db, display_name)
             self.insert_placing_data(bracket)
 
         else:
             html, status = bracket_utils.hit_url(bracket)
             if status == 200 and bracket_utils.is_valid(html):
-                get_results.process(bracket, scene, self.db)
+                get_results.process(bracket, scene, self.db, display_name)
                 self.insert_placing_data(bracket)
 
     def insert_placing_data(self, bracket):
@@ -119,5 +119,4 @@ class processData(object):
                 map = {'rank':rank, 'total_ranked':len(ranks)}
                 tag_rank_map[player] = map
 
-        # TODO we need to update ranks for the web somehow
         player_web.update_ranks(tag_rank_map)

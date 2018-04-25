@@ -7,8 +7,7 @@ import constants
 import time
 from tweet import tweet
 
-# TODO this is temporary test code
-loaded_smashgg = True
+analyzed_scenes = False
 
 LOG = logger.logger(__name__)
 
@@ -38,7 +37,7 @@ class validURLs(object):
             self.create_analysis_threads()
 
     def create_analysis_threads(self):
-        global loaded_smashgg
+        global analyzed_scenes
         # Create one thread to analyze each scene
         threads = []
 
@@ -55,7 +54,10 @@ class validURLs(object):
             threads.append(t)
 
         # Start the pros
-        if not loaded_smashgg and not self.testing:
+        # Have we analyzed them before?
+        sql = "SELECT * FROM players WHERE scene='pro';"
+        res = self.db.exec(sql)
+        if len(res) == 0 and not self.testing:
             # Start 1 thread for melee and 1 thread for wiiu
             LOG.info('about to start pros')
             urls = constants.PRO_MELEE
@@ -80,13 +82,18 @@ class validURLs(object):
             LOG.info('joining for the analysis thread  {}'.format(t.name))
 
         # If this is the first time that we have gone through all the scenes, tweet me
-        if not loaded_smashgg:
+        if not analyzed_scenes:
+            analyzed_scenes = True
+            LOG.info('Just finished analyzing scenes for the first time. About to tweet')
             tweet('Done loading scene data')
         
         # If this was the first time we ran, mark pro brackets as complete
-        if not loaded_smashgg and not self.testing:
+        # TODO temporarily dont calculate pro ranks... to memory intensive. Fix this
+        sql = "SELECT * FROM ranks WHERE scene='pro';"
+        res = self.db.exec(sql)
+        if len(res) == 0 and not self.testing and False:
+            LOG.info('dallas: make pro ranks')
             # After all the matches from this scene have been processed, calculate ranks
-            loaded_smashgg = True
             self.data_processor.process_ranks('pro')
             self.data_processor.process_ranks('pro_wiiu')
 
@@ -96,8 +103,10 @@ class validURLs(object):
             sql = "SELECT * FROM analyzed where base_url='{}'".format(url)
             res = self.db.exec(sql)
             if len(res) == 0:
+
+                display_name = bracket_utils.get_display_base(url)
                 LOG.info('About to process pro bracket {}'.format(url))
-                self.data_processor.process(url, name)
+                self.data_processor.process(url, name, display_name)
             else:
                 LOG.info("Skpping pro bracket because it has already been analyzed: {}".format(url))
         
@@ -149,7 +158,11 @@ class validURLs(object):
                     for i in range(last+1, new_last+1):
                         # Since this URL is new, we have to process the data
                         bracket = base_url.replace('###', str(i))
-                        self.data_processor.process(bracket, name)
+                        # Create the display name for this bracket
+                        # Eg challonge.com/NP9ATX54 -> NP9 54
+                        display_base = bracket_utils.get_display_base(bracket)
+                        display_name = '{} {}'.format(display_base, i)
+                        self.data_processor.process(bracket, name, display_name)
 
                     self.data_processor.process_ranks(name)
 
@@ -165,6 +178,10 @@ class validURLs(object):
 
                 for i in range(first, last+1):
                     bracket = base_url.replace('###', str(i))
-                    self.data_processor.process(bracket, name)
+                    # Create the display name for this bracket
+                    # Eg challonge.com/NP9ATX54 -> NP9 54
+                    display_base = bracket_utils.get_display_base(bracket)
+                    display_name = '{} {}'.format(display_base, i)
+                    self.data_processor.process(bracket, name, display_name)
 
                 self.data_processor.process_ranks(name)

@@ -99,21 +99,6 @@ function httpGet(theUrl)
     return xmlHttp.responseText;
 }
 
-function get_bracket_display_name(bracket) {
-	map = {'RAA': 'SMS', 'heat':'Heatwave', 'hw':'Heatwave', 'austinsmash': 'Smashpack', 'np9': 'NP', 'smashbrews': 'smashbrews', 'smashco': 'CSU', 'alibaba': 'Alibaba'};
-	for (var key in map) {
-		if (bracket.toLowerCase().includes(key.toLowerCase())) {
-			// display name will be just 'SMS' or 'Heatwave', etc
-			display_name = map[key];
-			console.log(bracket);
-			var thenum = bracket.split("/").pop().replace( /^\D+/g, '');
-			console.log('the number is '+ thenum);
-
-			display_name = display_name + ' ' + thenum;
-			return display_name
-		}
-	}
-}
 var p_queue = [];
 function update_stats_nav(node) {
     tag = node.name;
@@ -126,20 +111,28 @@ function update_stats_nav(node) {
         p_queue.push(node.name);
     }
 
+    if (p_queue.length) 
+
     // Find out which players to show stats for
     p1 = p_queue[p_queue.length-1];
     matches = 0;
     results = 0;
     for(var i = p_queue.length-1; i--; i > -1) {
-		p2 = p_queue[i];
-		url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/h2h?tag1="+p1+"&tag2="+p2;
+        p2 = p_queue[i];
+        console.log(p1);
+        console.log(p2);
+        if(typeof p1 == 'undefined' || typeof p2 == 'undefined') {
+            console.log('breaking')
+            break;
+        }
+        url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/h2h?tag1="+p1+"&tag2="+p2;
 
-		result = JSON.parse(httpGet(url));
-		matches = result.length;
+        result = JSON.parse(httpGet(url));
+        matches = result.length;
 
-		if (matches > 0) {
-			break;
-		}
+        if (matches > 0) {
+            break;
+        }
     }
 
 	if (matches > 0) {
@@ -165,14 +158,19 @@ function update_stats_nav(node) {
 		for(var i = 0; i < result.length; i ++) {
 			r = result[i];
 			winner = r[2];
-			bracket = r[5];
             scene = r[4];
+			bracket = r[5];
+			display_name = r[6];
+			score1 = JSON.parse(r[7])[0];
+			score2 = JSON.parse(r[7])[1];
+            score = "" + score1 +"-"+score2
 			match_text = winner + ':' + bracket;
-			display_name = get_bracket_display_name(bracket);
 
             // Was the winner p1 or p2?
             var li_class = "loser";
+            var fl= 'right';
             if (p1 == winner) {
+                fl = 'left';
                 li_class = "winner";
                 console.log('winner was p1')
             }
@@ -184,10 +182,18 @@ function update_stats_nav(node) {
 			li.setAttribute("id", "matches_li");
 			li.setAttribute("class", li_class);
 
+            // Create a badge that has the score in it
+            var span = document.createElement('span');
+            span.innerHTML = score;
+            span.style.float = fl;
+            li.appendChild(span);
+
             // Create a link to this bracket
             var a = document.createElement('a');
 			a.setAttribute("href", bracket);
             li.appendChild(a);
+
+            // Add this LI to the UL
 			ul.appendChild(li);
 		}
 
