@@ -41,6 +41,7 @@ TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike'],
         ['ehmon', 'tgl ehmon', 'tgl  ehmon', 'ah ehmon'],
         ['pollo loco', 'pollo'],
         ['doombase', 'retiredbase'],
+        ['majinmike', 'majin mike'],
         ['karonite', 'red velvet', 'aos redvelvet', 'redvelvet']]
 
 # TODO DO NOT ADD MORE BRACKETS WITHOUT ADDING A CORRESPONDING DISPLAY NAME!!

@@ -111,7 +111,11 @@ function update_stats_nav(node) {
         p_queue.push(node.name);
     }
 
-    if (p_queue.length) 
+    // Remove the divs that hold tags, and re create them later
+    var tags_div = document.getElementById('tags_div')
+    while (tags_div.hasChildNodes()) {
+        tags_div.removeChild(tags_div.childNodes[0]);
+    }
 
     // Find out which players to show stats for
     p1 = p_queue[p_queue.length-1];
@@ -121,7 +125,7 @@ function update_stats_nav(node) {
         p2 = p_queue[i];
         console.log(p1);
         console.log(p2);
-        if(typeof p1 == 'undefined' || typeof p2 == 'undefined') {
+        if(typeof p2 == 'undefined') {
             console.log('breaking')
             break;
         }
@@ -135,7 +139,18 @@ function update_stats_nav(node) {
         }
     }
 
+    // Are we displaying stats for one person, or two people?
 	if (matches > 0) {
+        // We are displaying info about 2 players. Create a div for each
+        var tag1 = document.createElement("div");
+        tag1.setAttribute("id", "tag1");
+        tag1.setAttribute("class", 'tag');
+        var tag2 = document.createElement("div");
+        tag2.setAttribute("id", "tag2");
+        tag2.setAttribute("class", 'tag');
+        tags_div.appendChild(tag1);
+        tags_div.appendChild(tag2);
+
 
 		// Make sure the sidenav is actually visible
 		document.getElementById('mySidenav').style.width = '25%';
@@ -164,7 +179,6 @@ function update_stats_nav(node) {
 			score1 = JSON.parse(r[7])[0];
 			score2 = JSON.parse(r[7])[1];
             score = "" + score1 +"-"+score2
-			match_text = winner + ':' + bracket;
 
             // Was the winner p1 or p2?
             var li_class = "loser";
@@ -181,6 +195,7 @@ function update_stats_nav(node) {
 			li.appendChild(document.createTextNode(display_name));
 			li.setAttribute("id", "matches_li");
 			li.setAttribute("class", li_class);
+            li.style.width = '60%';
 
             // Create a badge that has the score in it
             var span = document.createElement('span');
@@ -198,10 +213,63 @@ function update_stats_nav(node) {
 		}
 
 	}
+    // We only have one person. Display all  brackets they have played in
+    else if(p_queue.length > 0) {
+        var tag1 = document.createElement("div");
+        tag1.setAttribute("id", "tag1");
+        tag1.setAttribute("class", 'tag');
+        tags_div.appendChild(tag1);
+
+		// Make sure the sidenav is actually visible
+		document.getElementById('mySidenav').style.width = '25%';
+
+		// We have found some results between two players. Set their tags in the stats nav.
+		t1 = document.getElementById('tag1');
+		t1.innerHTML = p1;
+
+		// Actually add their matches to the nav stats
+		matches_div = document.getElementById('matches');
+
+		// remove all old match results
+		var ul = document.getElementById("matches_list");
+		while (ul.hasChildNodes()) {
+			ul.removeChild(ul.childNodes[0]);
+		}
+
+        url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/entrants?tag1="+p1;
+        result = JSON.parse(httpGet(url));
+        matches = result.length;
+
+		for(var i = 0; i < result.length; i ++) {
+			r = result[i];
+            bracket = r[0];
+            scene = r[1];
+            display_name = r[2];
+
+            // Was the winner p1 or p2?
+            var li_class = "winner";
+            li_class += ' ' + scene;
+
+			// Add this match to the ul
+			var li = document.createElement("li");
+			li.appendChild(document.createTextNode(display_name));
+			li.setAttribute("id", "matches_li");
+			li.setAttribute("class", li_class);
+            li.style.width = '100%';
+
+            // Create a link to this bracket
+            var a = document.createElement('a');
+			a.setAttribute("href", bracket);
+            li.appendChild(a);
+
+            // Add this LI to the UL
+			ul.appendChild(li);
+		}
+
+	}
 	else {
 		// Close the sidenav
 		document.getElementById('mySidenav').style.width = '0%';
-		
 	}
 
     // Change the tags displayed on the stats nav

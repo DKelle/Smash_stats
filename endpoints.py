@@ -88,8 +88,8 @@ def entrants(players=None):
         or_clause = "url = '{}' ".format(urls[0][0]) + " ".join(["OR url = '{}'".format(url[0]) for url in urls[1:]])
         
         # Grab all the URLs that this player has played in
-        sql = "SELECT DISTINCT url FROM matches WHERE (player1 = '" + str(p) +\
-                "' or player2 = '"+str(p)+"') AND (" + str(or_clause) +");"
+        sql = "SELECT url, min(scene) scene, min(display_name) display_name, min(date) date FROM matches \
+                WHERE (player1='{}' or player2='{}') AND ({}) GROUP BY url ORDER BY date DESC;".format(p, p, or_clause)
         
         # This should be a list of all the URLs that all of the players have been in together
         urls = db.exec(sql)
