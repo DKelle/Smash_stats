@@ -162,7 +162,7 @@ class validURLs(object):
                         # Eg challonge.com/NP9ATX54 -> NP9 54
                         display_base = bracket_utils.get_display_base(bracket)
                         display_name = '{} {}'.format(display_base, i)
-                        self.data_processor.process(bracket, name, display_name)
+                        self.data_processor.process(bracket, name, display_name, new_bracket=True)
 
                     self.data_processor.process_ranks(name)
 

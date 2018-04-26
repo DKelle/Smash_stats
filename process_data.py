@@ -19,20 +19,21 @@ class processData(object):
         self.list_of_scene = bracket_utils.get_list_of_scenes()
         self.db = db
 
-    def process(self, bracket, scene, display_name):
+    def process(self, bracket, scene, display_name, new_bracket=False):
         # Send this bracket to get_results
         # We know the bracket is valid if it is from smashgg
         if 'smash.gg' in bracket:
             get_results.process(bracket, scene, self.db, display_name)
-            self.insert_placing_data(bracket)
+            self.insert_placing_data(bracket, new_bracket)
 
         else:
             html, status = bracket_utils.hit_url(bracket)
             if status == 200 and bracket_utils.is_valid(html):
                 get_results.process(bracket, scene, self.db, display_name)
-                self.insert_placing_data(bracket)
+                self.insert_placing_data(bracket, new_bracket)
 
-    def insert_placing_data(self, bracket):
+    def insert_placing_data(self, bracket, new_bracket):
+        LOG.info('dallas: we have called insert placing data on bracket {}'.format(bracket))
         # Get the html from the 'standings' of this tournament
         tournament_placings = bracket_utils.get_tournament_placings(bracket)
 
@@ -46,10 +47,10 @@ class processData(object):
 
             self.db.exec(sql)
 
-            if 'christmasmike' == player:
+            if 'christmasmike' == player and new_bracket:
                 if placing < 10:
                     msg = "Congrats on making {} dude! You're the best.".format(placing)
-                    #tweet(msg)
+                    tweet(msg)
 
         LOG.info("tournament placings for {} are {}".format(bracket, tournament_placings))
 

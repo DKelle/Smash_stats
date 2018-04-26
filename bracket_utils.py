@@ -252,6 +252,7 @@ def get_tournament_placings(bracket_url):
     placings_map = {}
 
     if 'challonge' in bracket_url:
+        LOG.info('dallas: just entering "get tournament palcings')
         standings_html, status = hit_url(bracket_url+'/standings')
         soup = BeautifulSoup(standings_html, "html")
         tds = soup.find_all('td')
@@ -269,6 +270,7 @@ def get_tournament_placings(bracket_url):
                 # Coalesce tags
                 player = get_coalesced_tag(player)
                 placings_map[player.lower()] = current_placing
+                LOG.info('dallas: just got placing {} for player {} in bracket {}'.format(current_placing, player, bracket_url))
 
     # This bracket is from smashgg
     else:

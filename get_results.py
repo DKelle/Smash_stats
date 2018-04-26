@@ -21,7 +21,7 @@ LOG = logger(__name__)
 
 def sanitize_tag(tag):
     tag = ''.join([i if ord(i) < 128 else ' ' for i in tag])
-    return re.sub("[^a-z A-Z 0-9]",'',tag.lower())
+    return re.sub("[^a-z A-Z 0-9 |]",'',tag.lower())
 
 def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, display_name=None):
     global smash
@@ -165,11 +165,23 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
 
         #Before we use this tag, we should see if it is one that we should coalesce
         # eg, if this is 'thanksgiving mike', we should change it to 'christmas mike'
-        player1_tag = get_coalesced_tag(player1_tag)
-        player2_tag = get_coalesced_tag(player2_tag)
+        if 'ehmon' in player1_tag or 'ehmon' in player2_tag:
+            LOG.info('dallas: player1_tag is {}'.format(player1_tag))
+            LOG.info('dallas: player2_tag is {}'.format(player2_tag))
 
         player1_tag = sanitize_tag(player1_tag)
         player2_tag = sanitize_tag(player2_tag)
+        if 'ehmon' in player1_tag or 'ehmon' in player2_tag:
+            LOG.info('dallas: after sanitize...')
+            LOG.info('dallas: player1_tag is {}'.format(player1_tag))
+            LOG.info('dallas: player2_tag is {}'.format(player2_tag))
+
+        player1_tag = get_coalesced_tag(player1_tag)
+        player2_tag = get_coalesced_tag(player2_tag)
+        if 'ehmon' in player1_tag or 'ehmon' in player2_tag:
+            LOG.info('dallas: after coalesce...')
+            LOG.info('dallas: player1_tag is {}'.format(player1_tag))
+            LOG.info('dallas: player2_tag is {}'.format(player2_tag))
 
         players.add(player1_tag)
         players.add(player2_tag)

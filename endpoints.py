@@ -109,7 +109,6 @@ def placings():
 
     tag = request.args.get('tag', default='christmas mike')
 
-    print("args are: "+str(tag))
     # Get all the urls that this player has participated in
     sql = "SELECT * FROM placings WHERE player = '{}'".format(tag)
     results = list(db.exec(sql))
