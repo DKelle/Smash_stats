@@ -1,6 +1,7 @@
 *.txt
 *.un*
 *.ranks
+*.pyc
 placings/*
 database_writer.py
 sql_utils.py

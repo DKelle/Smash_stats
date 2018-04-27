@@ -24,7 +24,7 @@ def _get_first_valid_url(base_url):
         url = base_url.replace('###', str(index))
         data, status = hit_url(url)
 
-        if status < 300 and is_valid(data):
+        if status < 300 and is_valid(data, url=base_url):
             if debug: print('url ' + url + ' is valid')
             valid = True
         else:
@@ -48,7 +48,7 @@ def _get_last_valid_url(base_url, start=1):
 
         data, status = hit_url(url)
 
-        if status < 300  and is_valid(data):
+        if status < 300  and is_valid(data, url=base_url):
             if debug: print('url ' + str(url) + ' is valid')
             invalid_count = 0
             end = start
@@ -123,7 +123,7 @@ def hit_url(url):
     r = get(url)
     data = r.text
 
-    if(is_valid(data)):
+    if(is_valid(data, url=url)):
         # Make sure we pickle this data, so we can get it next time
         dump_pickle_data(url, data)
 
@@ -139,13 +139,16 @@ def get_brackets_from_scene(scene_url):
         # The above URL contains a list of brackets. Find those bracket URLs
         scene_brackets_html, status = hit_url(scene_url)
         scene_name = scene_url.split('https://')[-1].split('.')[0]
-        soup = BeautifulSoup(scene_brackets_html, "lxml")
+        soup = BeautifulSoup(scene_brackets_html, "html.parser")
 
         links = soup.find_all('a')
         bracket_links = []
         for link in links:
             if link.has_attr('href') and scene_name in link['href']:
-                bracket_links.append(link['href'])
+                # Make sure this is a real bracket
+                html = get_bracket(link['href'])
+                if html and is_valid(html, url = link['href']):
+                    bracket_links.append(link['href'])
         return bracket_links
 
     # This scene may have multiple pages.
@@ -162,7 +165,7 @@ def get_brackets_from_scene(scene_url):
 
     return brackets
 
-def is_valid(html):
+def is_valid(html, url=None):
 
     #Check to see if this tournament page exists
     errors= ['The page you\'re looking for isn\'t here', 'No tournaments found',\
@@ -181,7 +184,24 @@ def is_valid(html):
             "Network Authentication Required"]
     for error in errors:
         if error.lower() in str(html).lower():
+            if debug:
+                print('page invalid, found error string {}'.format(error))
             return False
+
+    # If we are on a bracket, we need to make sure it is complete.
+    # But, this might be a users page, eg. https://challonge.com/users/kuya_mark96
+    # If that is the case, we shouldn't check for completeness
+    if 'member since' in str(html).lower():
+        return True
+
+    # It may also be a page like this... http://smashco.challonge.com
+    # Which is similar to a users page. Also don't check for completeness
+    if 'organizations' in str(html).lower():
+        return True
+
+    # This might be a 'standings' page, like https://challongw.com/RAA_1/standings
+    if url and 'standings' in url:
+        return True
 
     return bracket_complete(html)
 
@@ -189,15 +209,24 @@ def is_valid(html):
 def bracket_complete(data):
     # Are there any matches that haven't been played yet?
     if "player1" not in data.lower() and "player2" not in data.lower():
+        if debug:
+            print('didnt find any players, must be invalid')
         return False
     if '"player1":null' in data.lower() or '"player2":null' in data.lower():
+        if debug:
+            print('found a null player, must be invalid')
         return False
 
     return True
     
 def get_bracket(url):
+    if debug:
+        print('about to get bracket for url {}'.format(url))
 
     data, status = hit_url(url)
+
+    if debug and '1g06dgsf' in url:
+        print('dallas: here is data and status of important url {} {}'.format(status, data))
 
     # Create the Python Object from HTML
     soup = BeautifulSoup(data, "html.parser")
@@ -207,6 +236,8 @@ def get_bracket(url):
     bracket = None
     for s in script:
         if 'matches_by_round' in str(s):
+            if debug:
+                print('we found matches by round for {} this: {}'.format(url, s))
             #We found the actual bracket. S contains all data about matches
             index = str(s).index('matches_by_round')
             s = str(s)[index:]
@@ -254,7 +285,7 @@ def get_tournament_placings(bracket_url):
     if 'challonge' in bracket_url:
         LOG.info('dallas: just entering "get tournament palcings')
         standings_html, status = hit_url(bracket_url+'/standings')
-        soup = BeautifulSoup(standings_html, "html")
+        soup = BeautifulSoup(standings_html, "html.parser")
         tds = soup.find_all('td')
 
         # Cycle thorugh these tds, and find the ones that represent different placings

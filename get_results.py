@@ -21,6 +21,8 @@ LOG = logger(__name__)
 
 def sanitize_tag(tag):
     tag = ''.join([i if ord(i) < 128 else ' ' for i in tag])
+    # Parse out sponsor
+    tag = tag.split('|')[-1].lstrip()
     return re.sub("[^a-z A-Z 0-9 |]",'',tag.lower())
 
 def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, display_name=None):
