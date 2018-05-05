@@ -5,7 +5,8 @@ from tweet import tweet
 limited = False
 while True:
     msg = ''
-    r = get('https://challonge.com/1g06dgsf')
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    r = get('https://challonge.com/1g06dgsf', headers=headers)
     if r.status_code > 300:
         if 'too many' in r.reason.lower():
             msg = "Yep, you're being rate limited"
@@ -22,6 +23,8 @@ while True:
         # We we go from limited -> !limited? text
         if not limited:
             tweet(msg)
+
+    print(msg)
 
     # Check every 1.5 hours
     TIMEOUT = 60 * 90

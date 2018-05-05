@@ -40,7 +40,7 @@ def _get_last_valid_url(base_url, start=1):
     end = start #Use this to keep track of the last valid URL
 
     #Sometimes a week is skipped -- Make sure we see 100 invalid URLs in a row before calling it quits
-    while(invalid_count <= 50):
+    while(invalid_count <= 30):
         #if base_url == "https://austinsmash4.challonge.com/atx145":
         #    print
         url = base_url.replace('###', str(start))
@@ -117,7 +117,7 @@ def hit_url(url):
     if debug and url == "https://austinsmash4.challonge.com/atx155":
         print("not in ")
     #sleep, to make sure we don't go over our rate-limit
-    sleep(.01)
+    sleep(.02)
 
     #Get the html page
     r = get(url)
@@ -129,9 +129,11 @@ def hit_url(url):
 
     return data, r.status_code
 
-def get_brackets_from_scene(scene_url):
+def get_brackets_from_user(scene_url, total=None, pages=None):
     # Given the url for a given scene (https://austinsmash4.challonge.com)
     # Return all of the brackets hosted by said scene
+
+    # 'total' is number of brackets to get. If None, get all. Usually either None or 1
 
     def get_bracket_urls_from_scene(scene_url):
         # Given a specific page of a scene, parse out the urls for all brackets
@@ -149,6 +151,10 @@ def get_brackets_from_scene(scene_url):
                 html = get_bracket(link['href'])
                 if html and is_valid(html, url = link['href']):
                     bracket_links.append(link['href'])
+
+                    # If we have more than 'total' links, we can return them now
+                    if total and len(bracket_links) >= total:
+                        return bracket_links
         return bracket_links
 
     # This scene may have multiple pages.
@@ -161,9 +167,19 @@ def get_brackets_from_scene(scene_url):
     for i in range(start, end+1):
         scene_url = scene_url_with_pages.replace('###', str(i))
         page_brackets = get_bracket_urls_from_scene(scene_url)
-        brackets.append(page_brackets)
+        brackets.extend(page_brackets)
 
-    return brackets
+        # If we have more than 'total' links, we can return them now
+        if total and len(brackets) >= total:
+            return brackets
+
+        # If we have already gotten urls from 'pages' pages, we can return now
+        iterations = (start - i) + 1
+        if pages and iterations >= pages:
+            return brackets
+
+    # Reverse this list so list[0] is the oldest bracket, and list[-1] is the newest bracket
+    return brackets[::-1]
 
 def is_valid(html, url=None):
 
@@ -225,9 +241,6 @@ def get_bracket(url):
 
     data, status = hit_url(url)
 
-    if debug and '1g06dgsf' in url:
-        print('dallas: here is data and status of important url {} {}'.format(status, data))
-
     # Create the Python Object from HTML
     soup = BeautifulSoup(data, "html.parser")
 
@@ -236,8 +249,6 @@ def get_bracket(url):
     bracket = None
     for s in script:
         if 'matches_by_round' in str(s):
-            if debug:
-                print('we found matches by round for {} this: {}'.format(url, s))
             #We found the actual bracket. S contains all data about matches
             index = str(s).index('matches_by_round')
             s = str(s)[index:]
@@ -283,7 +294,7 @@ def get_tournament_placings(bracket_url):
     placings_map = {}
 
     if 'challonge' in bracket_url:
-        LOG.info('dallas: just entering "get tournament palcings')
+        LOG.info('just entering "get tournament palcings')
         standings_html, status = hit_url(bracket_url+'/standings')
         soup = BeautifulSoup(standings_html, "html.parser")
         tds = soup.find_all('td')
@@ -301,7 +312,7 @@ def get_tournament_placings(bracket_url):
                 # Coalesce tags
                 player = get_coalesced_tag(player)
                 placings_map[player.lower()] = current_placing
-                LOG.info('dallas: just got placing {} for player {} in bracket {}'.format(current_placing, player, bracket_url))
+                LOG.info('just got placing {} for player {} in bracket {}'.format(current_placing, player, bracket_url))
 
     # This bracket is from smashgg
     else:
@@ -360,7 +371,7 @@ def get_list_of_scenes():
     colorado = constants.COLORADO_SINGLES_URLS
     colorado_doubles = constants.COLORADO_DOUBLES_URLS
     sms = constants.SMS_URLS
-    base_urls = [smashbrews, sms, austin, colorado_doubles, colorado]
+    base_urls = [sms, smashbrews, austin, colorado_doubles, colorado]
     return base_urls
 
 def get_list_of_named_scenes():
@@ -369,7 +380,7 @@ def get_list_of_named_scenes():
     colorado_singles = constants.COLORADO_SINGLES_URLS
     colorado_doubles = constants.COLORADO_DOUBLES_URLS
     sms = constants.SMS_URLS
-    base_urls = [['smashbrews', smashbrews], ['sms', sms], ['austin', austin], ['colorado', colorado_singles], ['colorado_doubles', colorado_doubles]]
+    base_urls = [['sms', sms], ['smashbrews', smashbrews], ['austin', austin], ['colorado', colorado_singles], ['colorado_doubles', colorado_doubles]]
     return base_urls
 
 def get_list_of_scene_names():
@@ -379,7 +390,31 @@ def get_last_n_tournaments(db, n, scene):
     sql = "select url, date from matches where scene='{}' group by url, date order by date desc, url desc limit {};".format(scene, n)
     res = db.exec(sql)
     urls = [r[0] for r in res]
-    return urls
+    recent_date = res[0][-1]
+    return urls, recent_date
+
+def get_date(url):
+    url = url + "/log"
+    bracket, status = hit_url(url)
+
+    # TODO figure out what to do if this string is not in
+    s2 = '2015-03-07'
+    if 'created_at' not in bracket:
+        return s2
+
+    first_occurance = str(bracket).index('created_at')
+    bracket = bracket[first_occurance:]
+
+    #TODO if one day this code randomly stop working, it's probably this
+    s = 'created_at":"'
+    i = len(s)
+    i2 = len(s2) + i
+    date = bracket[i:i2]
+    y = date.split('-')[0]
+    m = date.split('-')[1]
+    d = date.split('-')[2]
+
+    return date
 
 def get_matches_from_urls(db, urls):
     matches = set()
@@ -390,17 +425,35 @@ def get_matches_from_urls(db, urls):
 
     return matches
 
-def get_display_base(url):
+def get_display_base(url, counter=None):
+    # Try to get the title of this challonge page, maybe the creator gave it a good display name
+    if 'challonge' in url:
+        html, _ = hit_url(url)
+        soup = BeautifulSoup(html, "html.parser")
+
+        display_name = soup.find('div', {'id' :'title'})
+        if display_name and hasattr(display_name, 'title'):
+            title = display_name.text.rstrip().lstrip()
+            name = re.sub("[^a-z A-Z 0-9 # / \ .]",'', title)
+            return name
+        else:
+            LOG.info('dallas: url {} has no title'.format(url))
+
+    # We couldn't find a title in the HTML. See if we have a hard-coded one
     d_map = constants.DISPLAY_MAP
     for k in d_map:
         if  k.lower() in url.lower():
-            return d_map[k]
+            base = d_map[k]
+            if counter:
+                name = '{} {}'.format(base, counter)
+                return name
+            return base
     
     # If this is a pro bracket, just pull the name out of the URL
     if 'smash.gg' in url:
-        
         parts = url.split('event')[0].split('/')[-2].split('-')
         display_list = [s.title() for s in parts]
         return ' '.join(display_list)
 
+    # None of the above methods worked. Just call this by its URL
     return url

@@ -23,7 +23,7 @@ def sanitize_tag(tag):
     tag = ''.join([i if ord(i) < 128 else ' ' for i in tag])
     # Parse out sponsor
     tag = tag.split('|')[-1].lstrip()
-    return re.sub("[^a-z A-Z 0-9 |]",'',tag.lower())
+    return re.sub("[^a-z A-Z 0-9 ]",'',tag.lower())
 
 def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, display_name=None):
     global smash
@@ -48,7 +48,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, dis
 
         players = smash.tournament_show_players(t, e)
         # Sleep between requests to prevent rate limiting
-        time.sleep(5)
+        time.sleep(.5)
 
         # Check if these players are already in the players table
         scenes = bracket_utils.get_list_of_scene_names()
@@ -71,10 +71,12 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, dis
 
         sets = smash.tournament_show_sets(t, e)
         # Sleep between requests to prevent rate limiting
-        time.sleep(5)
+        time.sleep(.5)
 
+        placings = bracket_utils.get_tournament_placings(url)
         e = "pro" if "melee" in e else "pro_wiiu"
         for s in sets:
+            
             # Temporary
             date = '2017-09-26'
 
@@ -90,6 +92,21 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, dis
             if l_id in tag_id_dict and w_id in tag_id_dict:
                 loser = tag_id_dict[l_id]
                 winner = tag_id_dict[w_id]
+
+                if loser in placings and winner in placings:
+                    winner_place = placings[winner]
+                    loser_place = placings[loser]
+
+                    # Only record this match if at least one of these players got top 64
+                    # Probably no one cares about r1 pools matches between two scrubs
+                    # Having less matches will also reduce time needed to rank players
+                    if winner_place > 64 and loser_place > 64:
+                        LOG.info('dallas: Both these players suck, so not entering this match {} got {} and {} got {}'.format(winner, winner_place, loser, loser_place))
+                        continue
+                else:
+                    # We don't have the placing for this player. Skip
+                    continue
+
             else:
                 continue
 
@@ -132,7 +149,7 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
     players = set()
     #continuously find the next instances of 'player1' and 'player2'
     if debug: print('analyz a bracket. Dated? ' + str(dated))
-    date = get_date(base_url)
+    date = bracket_utils.get_date(base_url)
     while 'player1' in bracket and 'player2' in bracket:
         index = bracket.index("player1")
         bracket = bracket[index:]
@@ -168,22 +185,22 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
         #Before we use this tag, we should see if it is one that we should coalesce
         # eg, if this is 'thanksgiving mike', we should change it to 'christmas mike'
         if 'ehmon' in player1_tag or 'ehmon' in player2_tag:
-            LOG.info('dallas: player1_tag is {}'.format(player1_tag))
-            LOG.info('dallas: player2_tag is {}'.format(player2_tag))
+            LOG.info('player1_tag is {}'.format(player1_tag))
+            LOG.info('player2_tag is {}'.format(player2_tag))
 
         player1_tag = sanitize_tag(player1_tag)
         player2_tag = sanitize_tag(player2_tag)
         if 'ehmon' in player1_tag or 'ehmon' in player2_tag:
-            LOG.info('dallas: after sanitize...')
-            LOG.info('dallas: player1_tag is {}'.format(player1_tag))
-            LOG.info('dallas: player2_tag is {}'.format(player2_tag))
+            LOG.info('after sanitize...')
+            LOG.info('player1_tag is {}'.format(player1_tag))
+            LOG.info('player2_tag is {}'.format(player2_tag))
 
         player1_tag = get_coalesced_tag(player1_tag)
         player2_tag = get_coalesced_tag(player2_tag)
         if 'ehmon' in player1_tag or 'ehmon' in player2_tag:
-            LOG.info('dallas: after coalesce...')
-            LOG.info('dallas: player1_tag is {}'.format(player1_tag))
-            LOG.info('dallas: player2_tag is {}'.format(player2_tag))
+            LOG.info('after coalesce...')
+            LOG.info('player1_tag is {}'.format(player1_tag))
+            LOG.info('player2_tag is {}'.format(player2_tag))
 
         players.add(player1_tag)
         players.add(player2_tag)
@@ -289,29 +306,6 @@ def get_coalesced_tag(tag, debug=debug):
 
     # If this is not a tag that we need to coalesce
     return tag
-
-def get_date(url):
-    url = url + "/log"
-    bracket, status = bracket_utils.hit_url(url)
-
-    # TODO figure out what to do if this string is not in
-    s2 = '2015-03-07'
-    if 'created_at' not in bracket:
-        return s2
-
-    first_occurance = str(bracket).index('created_at')
-    bracket = bracket[first_occurance:]
-
-    #TODO if one day this code randomly stop working, it's probably this
-    s = 'created_at":"'
-    i = len(s)
-    i2 = len(s2) + i
-    date = bracket[i:i2]
-    y = date.split('-')[0]
-    m = date.split('-')[1]
-    d = date.split('-')[2]
-
-    return date
 
 def process(url, scene, db, display_name):
     # Just to be sure, make sure this bracket hasn't already been analyzed

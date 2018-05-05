@@ -15,11 +15,16 @@ LOG = logger.logger(__name__)
 class processData(object):
     def __init__(self, db):
         LOG.info('loading constants for process')
-        self.dated_base_scene = bracket_utils.get_list_of_named_scenes()
-        self.list_of_scene = bracket_utils.get_list_of_scenes()
         self.db = db
 
     def process(self, bracket, scene, display_name, new_bracket=False):
+        # Before we do anything, check if this url has been analyzed already, and bomb out
+        sql = "SELECT * FROM analyzed WHERE base_url = '" + str(bracket) + "';"
+        result = self.db.exec(sql)
+        if len(result) > 0:
+            LOG.info('dallas: tried to analyze {}, but has already been done.'.format(bracket))
+            return
+
         # Send this bracket to get_results
         # We know the bracket is valid if it is from smashgg
         if 'smash.gg' in bracket:
@@ -33,7 +38,7 @@ class processData(object):
                 self.insert_placing_data(bracket, new_bracket)
 
     def insert_placing_data(self, bracket, new_bracket):
-        LOG.info('dallas: we have called insert placing data on bracket {}'.format(bracket))
+        LOG.info('we have called insert placing data on bracket {}'.format(bracket))
         # Get the html from the 'standings' of this tournament
         tournament_placings = bracket_utils.get_tournament_placings(bracket)
 
@@ -62,11 +67,11 @@ class processData(object):
         DATE = 3
         SCENE = 4
 
-        LOG.info('About to start processing ranks for scene {}'.format(scene))
         # Get only the last n tournaments, so it doesn't take too long to process
         n = 5 if (scene == 'pro' or scene == 'pro_wiiu') else constants.TOURNAMENTS_PER_RANK
-        recent_tournaments = bracket_utils.get_last_n_tournaments(self.db, n, scene)
+        recent_tournaments, recent_date = bracket_utils.get_last_n_tournaments(self.db, n, scene)
         matches = bracket_utils.get_matches_from_urls(self.db, recent_tournaments)
+        LOG.info('About to start processing ranks for scene {} on {}'.format(scene, recent_date))
 
         # Iterate through each match, and build up our dict
         win_loss_dict = {}
@@ -95,11 +100,11 @@ class processData(object):
 
             win_loss_dict[p2][p1].append((date, winner == p2))
 
-        # make sure if we already have calculated ranks for these players, we update the DB
-        sql = "SELECT * FROM ranks WHERE scene = '{}'".format(str(scene))
+        # make sure if we already have calculated ranks for these players at this time, we update the DB
+        sql = "SELECT * FROM ranks WHERE scene = '{}' AND date='{}';".format(str(scene), recent_date)
         res = self.db.exec(sql)
         if len(res) > 0:
-            sql = "DELETE FROM ranks WHERE scene = '{}'".format(str(scene))
+            sql = "DELETE FROM ranks WHERE scene = '{}' AND date='{}';".format(str(scene), recent_date)
             self.db.exec(sql)
 
         ranks = get_ranks(win_loss_dict)
@@ -107,8 +112,8 @@ class processData(object):
         for i, x in enumerate(ranks):
             points, player = x
             rank = len(ranks) - i
-            sql = "INSERT INTO ranks (scene, player, rank, points) VALUES ('{}', '{}', '{}', '{}');"\
-                    .format(str(scene), str(player), int(rank), str(points))
+            sql = "INSERT INTO ranks (scene, player, rank, points, date) VALUES ('{}', '{}', '{}', '{}', '{}');"\
+                    .format(str(scene), str(player), int(rank), str(points), str(recent_date))
             self.db.exec(sql)
 
             # Only count this player if this is the scene he/she belongs to

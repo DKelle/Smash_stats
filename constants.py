@@ -1,7 +1,6 @@
 DNS = 'ec2-18-216-108-45.us-east-2.compute.amazonaws.com'
 
-TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike', 'christmas mike xmas', 'christmas mike late', 'halloween mike'],
-        ['im 12', 'im12'],
+TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike', 'christmas mike xmas', 'christmas mike late', 'halloween mike', 'im 12', 'im12'],
         ['circuits', 'circuits', 'jkelle'],
         ['hnic', 'hnic xmas'],
         ['1111', '11 11', 'vuibol'],
@@ -9,7 +8,7 @@ TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike', 'ch
 	['megafox', 'su | megafox'],
 	['hakii', 'su l hakii', 'su | hakii', 'su redriot i hakii', 'hih | hakii', 'su | sleepyhakii', 'su|hakii', 'su | hakii $', 'su  redriot i hakii', 'hoh | hakii', 'su| hakii'],
 	['lucy', 'ttn | lucy'],
-	['sassy', 'atx | sassy'],
+	['sassy', 'atx | sassy', 'f9sassy'],
 	['crump', 'donald crump', 'captain crump', 'abc | crump'],
 	['dragonite', 'su dragonite', 'su | dragonite', 'tpwn | dragonite', 'tpwn | dragonite_pr', 'tpwn| dragonite (gnw)', 'atx hoh | dragonite', 'dragonite_pr', 'hoh | dragonite', 'mega dragonite', 'tpwn|dragonite', 'armada | dragonite', 'aes | dragonite'],
 	['gallium', 's.e.s punk', 'ses punk'],
@@ -23,6 +22,7 @@ TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike', 'ch
 	['cashoo', 'hoh | cashoo', 'hoh l cashoo'],
 	['ul | chandy', 'ul| chandy', 'cnb | chandy', 'chandy'],
 	['spankey', 'spanky'],
+	['jack the reaper', 'jackthereaper'],
 	['xlll', 'xiii'],
 	['cheesedud6', '←/cheesedud6'],
 	['kj', 'go! kj'],
@@ -43,19 +43,19 @@ TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike', 'ch
         ['mufin', 'sfu mufin'],
         ['jowii', 'jo wii'],
         ['gudlucifer', 'good lucifer', 'goodlucifer', 'gudlucifer wolf'],
-        ['ehmon', 'tgl ehmon', 'tgl  ehmon', 'ah ehmon', 'sms ehmon', 'sms | ehmon', 'tgl | ehmon'],
+        ['ehmon', 'tgl ehmon', 'tgl  ehmon', 'ah ehmon', 'sms ehmon', 'sms | ehmon', 'tgl | ehmon', 'ehhhmon'],
         ['pollo loco', 'pollo'],
         ['doombase', 'retiredbase'],
         ['majinmike', 'majin mike'],
         ['karonite', 'red velvet', 'aos redvelvet', 'redvelvet']]
 
 # TODO DO NOT ADD MORE BRACKETS WITHOUT ADDING A CORRESPONDING DISPLAY NAME!!
-AUSTIN_URLS = ('austin', ['http://challonge.com/heatwave###', 'https://challonge.com/NP9ATX###', 'http://challonge.com/hw###', 'https://austinsmash4.challonge.com/atx###', 'https://challonge.com/alibaba###', 'https://austinsmash4.challonge.com/Mothership###', 'https://austinsmash4.challonge.com/atxfiles###', 'https://austinsmash4.challonge.com/ARFI###', 'https://austinsmash4.challonge.com/arcadian###', 'https://austinsmash4.challonge.com/ooples###', 'https://austinsmash4.challonge.com/mbh###', 'https://austinsmash4.challonge.com/sth###'])
-SMASHBREWS_RULS = ('smashbrews', ['https://challonge.com/Smashbrews###', 'https://challonge.com/smashbrewsS3W###', 'https://challonge.com/smashbrewsS4W###', 'https://challonge.com/smashbrewsS5W###'])
-COLORADO_SINGLES_URLS = ('colorado', ['http://smashco.challonge.com/CSUWW###WUS', 'http://smascho.challonge.com/FCWUA###', 'http://smascho.challonge.com/FCWUIB###'])
-COLORADO_DOUBLES_URLS = ('colorado_doubles', ['http://smashco.challonge.com/CSUWW###WUD', 'http://smashco.challonge.com/FCWUDC###'])
-COLORADO_URLS = ('colorado_both', COLORADO_SINGLES_URLS + COLORADO_DOUBLES_URLS)
-SMS_URLS = ('sms', ['http://challonge.com/RAA_###'])
+AUSTIN_URLS = ('austin', {'enumerated': ['http://challonge.com/heatwave###', 'https://challonge.com/NP9ATX###', 'http://challonge.com/hw###', 'https://challonge.com/alibaba###'], 'users': ['https://challonge.com/users/kuya_mark96', 'https://austinsmash4.challonge.com']})
+SMASHBREWS_RULS = ('smashbrews', {'enumerated': ['https://challonge.com/Smashbrews###', 'https://challonge.com/smashbrewsS3W###', 'https://challonge.com/smashbrewsS4W###', 'https://challonge.com/smashbrewsS5W###']})
+COLORADO_SINGLES_URLS = ('colorado', {'enumerated': ['http://smashco.challonge.com/CSUWW###WUS', 'http://smascho.challonge.com/FCWUA###', 'http://smascho.challonge.com/FCWUIB###']})
+COLORADO_DOUBLES_URLS = ('colorado_doubles', {'enumerated': ['http://smashco.challonge.com/CSUWW###WUD', 'http://smashco.challonge.com/FCWUDC###']})
+COLORADO_URLS = ('colorado_both', {'enumerated': COLORADO_SINGLES_URLS + COLORADO_DOUBLES_URLS})
+SMS_URLS = ('sms', {'enumerated': ['http://challonge.com/RAA_###'], 'users': ['https://challonge.com/users/yellocake']})
 
 DISPLAY_MAP = {'heatwave': 'Heatwave',
         'NP9ATX': 'NP9',

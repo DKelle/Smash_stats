@@ -8,11 +8,13 @@ import time
 from tweet import tweet
 
 analyzed_scenes = False
+run_pros = True
 
 LOG = logger.logger(__name__)
 
 class validURLs(object):
     def __init__(self, scenes, testing=False):
+        self.start_time = time.time()
         self.testing = testing
         self.scenes = scenes
         db_name = 'smash_test' if testing else 'smash'
@@ -38,6 +40,7 @@ class validURLs(object):
 
     def create_analysis_threads(self):
         global analyzed_scenes
+        self.start_time = time.time()
         # Create one thread to analyze each scene
         threads = []
 
@@ -49,7 +52,7 @@ class validURLs(object):
             chunk = self.scenes[i1:i2]
             name = [scene.get_name() for scene in chunk]
             t = Thread(target=self.analyze_scenes, name=str(name), args=(chunk,))
-            LOG.info('Trying to start the analysis thread for scenes {}'.format(t.name))
+            LOG.info('dallas: Trying to start the analysis thread for scenes {}'.format(t.name))
             t.start()
             threads.append(t)
 
@@ -57,7 +60,7 @@ class validURLs(object):
         # Have we analyzed them before?
         sql = "SELECT * FROM players WHERE scene='pro';"
         res = self.db.exec(sql)
-        if len(res) == 0 and not self.testing:
+        if run_pros and len(res) == 0 and not self.testing:
             # Start 1 thread for melee and 1 thread for wiiu
             LOG.info('about to start pros')
             urls = constants.PRO_MELEE
@@ -77,22 +80,28 @@ class validURLs(object):
             LOG.info('Skipping pros because it has been done')
 
         for t in threads:
-            LOG.info('abouto call join for the analysis thread  {}'.format(t.name))
+            LOG.info('dallas: abouto call join for the analysis thread  {}'.format(t.name))
             t.join()
-            LOG.info('joining for the analysis thread  {}'.format(t.name))
+            seconds_to_analyze = time.time() - self.start_time
+            minutes = seconds_to_analyze / 60
+            LOG.info('dallas: joining for the analysis thread  {} in {} minutes'.format(t.name, minutes))
+            tweet('joining for the analysis thread  {} in {} minutes'.format(t.name, minutes))
+        LOG.info('dallas: we have joined all threads. Should tweet after this')
 
         # If this is the first time that we have gone through all the scenes, tweet me
         if not analyzed_scenes:
             analyzed_scenes = True
-            LOG.info('Just finished analyzing scenes for the first time. About to tweet')
-            tweet('Done loading scene data')
+            seconds_to_analyze = time.time() - self.start_time
+            minutes = seconds_to_analyze / 60
+            LOG.info('Just finished analyzing scenes for the first time. It took {} minutes. About to tweet'.format(minutes))
+            tweet('Done loading scene data. Took {} minutes'.format(minutes))
         
         # If this was the first time we ran, mark pro brackets as complete
         # TODO temporarily dont calculate pro ranks... to memory intensive. Fix this
         sql = "SELECT * FROM ranks WHERE scene='pro';"
         res = self.db.exec(sql)
-        if len(res) == 0 and not self.testing and False:
-            LOG.info('dallas: make pro ranks')
+        if len(res) == 0 and not self.testing and False and run_pros:
+            LOG.info('make pro ranks')
             # After all the matches from this scene have been processed, calculate ranks
             self.data_processor.process_ranks('pro')
             self.data_processor.process_ranks('pro_wiiu')
@@ -118,11 +127,60 @@ class validURLs(object):
             self.analyze_scene(scene)
 
     def analyze_scene(self, scene):
-        # This scene will have several base URLs
         base_urls = scene.get_base_urls()
+        users = scene.get_users()
         name = scene.get_name()
+        LOG.info('dallas: found the following users for scene {}: {}'.format(name, users))
+
+        # This scene might have one user who always posts the brackets on their challonge account
+        for user in users:
+            # Have we analyzed this user before?
+            sql = "SELECT * FROM user_analyzed WHERE user='{}';".format(user)
+            results = self.db.exec(sql)
+
+            # Did we have any matches in the database?
+            if len(results) > 0:
+                # We have analyzed this user before. Just grab one page of brackets to see if there have been any new tournaments
+                # eg, just look at /users/christmasmike?page=1 instead of all the pages that exist
+                most_recent_page = bracket_utils.get_brackets_from_user(user, pages=1)
+                for bracket in most_recent_page:
+                    LOG.info('dallas; here are the brackets from the most recent page of user {}: {}'.format(user, most_recent_page))
+                    # This user has already been analyzed, there's a good chance this bracket has been analyzed also
+                    sql = "SELECT * FROM user_analyzed WHERE url='{}' AND user='{}';".format(bracket, user)
+                    results = self.db.exec(sql)
+
+                    if len(results) == 0:
+                        # This is a new bracket that must have been published in the last hour or so
+                        LOG.info('dallas: found this url from a user: {} {}'.format(bracket, user))
+                        display_name = bracket_utils.get_display_base(bracket)
+                        self.data_processor.process(bracket, name, display_name)
+
+                        # mark this bracket as analyzed
+                        sql = "INSERT INTO user_analyzed (url, user, scene) VALUES ('{}', '{}', '{}');".format(bracket, user, name)
+                        self.db.exec(sql)
+
+                        # Tweet that we found a new bracket
+                        msg = "Found new {} bracket: {}".format(name, bracket)
+                        tweet(msg)
+                    else:
+                        LOG.info('dallas: url {} is not new for user {}'.format(bracket, user))
+            else:
+                # This is a new user, analyze all brackets
+                user_urls = bracket_utils.get_brackets_from_user(user)
+                for url in user_urls:
+                    LOG.info('dallas: found this url from a user: {} {}'.format(url, user))
+                    display_name = bracket_utils.get_display_base(url)
+                    self.data_processor.process(url, name, display_name)
+
+                    # mark this bracket as analyzed
+                    sql = "INSERT INTO user_analyzed (url, user, scene) VALUES ('{}', '{}', '{}');".format(url, user, name)
+                    self.db.exec(sql)
+
+                LOG.info('dallas: done with user {}'.format(user))
+
+
+        # This scene might always call their brackets the same thing, eg weekly1, weekly2, weekly3 etc
         for base_url in base_urls:
-            
             # attempt to load this data from the database
             LOG.info('About to start this analysis thread for scene {}'.format(scene.get_name()))
             sql = "SELECT first,last FROM valids WHERE base_url = '" + str(base_url) + "';"
@@ -160,8 +218,7 @@ class validURLs(object):
                         bracket = base_url.replace('###', str(i))
                         # Create the display name for this bracket
                         # Eg challonge.com/NP9ATX54 -> NP9 54
-                        display_base = bracket_utils.get_display_base(bracket)
-                        display_name = '{} {}'.format(display_base, i)
+                        display_name = bracket_utils.get_display_base(bracket, counter=i)
                         self.data_processor.process(bracket, name, display_name, new_bracket=True)
 
                     self.data_processor.process_ranks(name)
@@ -180,8 +237,8 @@ class validURLs(object):
                     bracket = base_url.replace('###', str(i))
                     # Create the display name for this bracket
                     # Eg challonge.com/NP9ATX54 -> NP9 54
-                    display_base = bracket_utils.get_display_base(bracket)
-                    display_name = '{} {}'.format(display_base, i)
+                    display_name = bracket_utils.get_display_base(bracket, counter=i)
                     self.data_processor.process(bracket, name, display_name)
 
+                    # Calculate ranks after each tournament so we can see how players are progressing
                 self.data_processor.process_ranks(name)

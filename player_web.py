@@ -111,12 +111,12 @@ class PlayerWeb(object):
         for field in self.pickled_data:
             data = load_pickle_data(field)
             if data:
-                LOG.info('dallas: successfully loaded data for field {}'.format(field))
+                LOG.info('successfully loaded data for field {}'.format(field))
                 setattr(self, field, load_pickle_data(field))
         self.current_node_id = len(self.nodes) 
 
         for field in self.pickled_data:
-            LOG.info('dallas: after loading pickles, here is {}: {}'.format(field, getattr(self, field)))
+            LOG.info('after loading pickles, here is {}: {}'.format(field, getattr(self, field)))
 
         # There's a bug where the first node sometimes doesn't have any links... So make a fake node anyway
         self.create_node('No results', 9)
