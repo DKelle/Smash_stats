@@ -85,7 +85,8 @@ class validURLs(object):
             seconds_to_analyze = time.time() - self.start_time
             minutes = seconds_to_analyze / 60
             LOG.info('dallas: joining for the analysis thread  {} in {} minutes'.format(t.name, minutes))
-            tweet('joining for the analysis thread  {} in {} minutes'.format(t.name, minutes))
+            if not analyzed_scenes:
+                tweet('joining for the analysis thread  {} in {} minutes'.format(t.name, minutes))
         LOG.info('dallas: we have joined all threads. Should tweet after this')
 
         # If this is the first time that we have gone through all the scenes, tweet me
@@ -100,7 +101,7 @@ class validURLs(object):
         # TODO temporarily dont calculate pro ranks... to memory intensive. Fix this
         sql = "SELECT * FROM ranks WHERE scene='pro';"
         res = self.db.exec(sql)
-        if len(res) == 0 and not self.testing and False and run_pros:
+        if len(res) == 0 and not self.testing and run_pros:
             LOG.info('make pro ranks')
             # After all the matches from this scene have been processed, calculate ranks
             self.data_processor.process_ranks('pro')

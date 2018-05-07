@@ -159,8 +159,8 @@ function update_stats_nav(node) {
 		// We have found some results between two players. Set their tags in the stats nav.
 		t1 = document.getElementById('tag1');
 		t2 = document.getElementById('tag2');
-		t1.innerHTML = p1;
-		t2.innerHTML = p2;
+		t1.innerHTML = p1.charAt(0).toUpperCase() + p1.slice(1);
+		t2.innerHTML = p2.charAt(0).toUpperCase() + p2.slice(1);
 
 		// Actually add their matches to the nav stats
 		matches_div = document.getElementById('matches');
@@ -226,7 +226,7 @@ function update_stats_nav(node) {
 
 		// We have found some results between two players. Set their tags in the stats nav.
 		t1 = document.getElementById('tag1');
-		t1.innerHTML = p1;
+		t1.innerHTML = p1.charAt(0).toUpperCase() + p1.slice(1);
 
 		// Actually add their matches to the nav stats
 		matches_div = document.getElementById('matches');

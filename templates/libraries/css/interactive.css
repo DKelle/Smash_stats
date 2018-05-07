@@ -311,7 +311,7 @@ li.pro_smash4:hover::before {
     position: fixed;
     z-index: 2;
     top: 0;
-    left: 0;
+    right: 0;
     overflow-x: hidden;
     transition: 0.5s;
     padding-top: 60px;

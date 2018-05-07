@@ -18,6 +18,7 @@ sanitized_tag_dict = {}
 debug = False 
 
 LOG = logger(__name__)
+skip_count = 0
 
 def sanitize_tag(tag):
     tag = ''.join([i if ord(i) < 128 else ' ' for i in tag])
@@ -27,6 +28,7 @@ def sanitize_tag(tag):
 
 def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, display_name=None):
     global smash
+    global skip_count
     if smash == None:
         smash = pysmash.SmashGG()
 
@@ -101,7 +103,10 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, dis
                     # Probably no one cares about r1 pools matches between two scrubs
                     # Having less matches will also reduce time needed to rank players
                     if winner_place > 64 and loser_place > 64:
-                        LOG.info('dallas: Both these players suck, so not entering this match {} got {} and {} got {}'.format(winner, winner_place, loser, loser_place))
+                        skip_count = skip_count + 1
+                        if skip_count % 100 == 0:
+                            LOG.info('dallas: Both these players suck, so not entering this match {} got {} and {} got {}. Have now skipped {} total'.format(winner, winner_place, loser, loser_place, skip_count))
+
                         continue
                 else:
                     # We don't have the placing for this player. Skip
