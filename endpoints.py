@@ -25,7 +25,7 @@ def main():
 
 @endpoints.route("/temp")
 def temp():
-    return render_template('libraries/bootstrap/index.html')
+    return render_template('libraries/temp/index4.html')
 
 @endpoints.route("/wins")
 def wins():
