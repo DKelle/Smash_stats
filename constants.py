@@ -1,7 +1,7 @@
 DNS = 'ec2-18-216-108-45.us-east-2.compute.amazonaws.com'
 
 TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike', 'christmas mike xmas', 'christmas mike late', 'halloween mike', 'im 12', 'im12'],
-        ['circuits', 'circuits', 'jkelle'],
+        ['circuits', 'circuits', 'jkelle', 'circuits xmas'],
         ['remo', 'su remo'],
         ['hnic', 'hnic xmas'],
         ['1111', '11 11', 'vuibol'],

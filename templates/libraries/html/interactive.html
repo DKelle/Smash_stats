@@ -29,8 +29,8 @@
 			<!-- Sidebar Holder -->
 			<nav id="sidebar" class='active'>
 				<div class="sidebar-header">
-					<h3>Bootstrap Sidebar</h3>
-					<strong>BS</strong>
+					<h3>Smash Web</h3>
+					<strong>SW</strong>
 				</div>
 
 				<ul class="list-unstyled components">
@@ -51,13 +51,16 @@
 							About
 						</a>
 						<a href="#pageSubmenu" data-toggle="collapse" aria-expanded="false">
-							<i class="glyphicon glyphicon-duplicate"></i>
-							Pages
+							<i class="glyphicon glyphicon-sort-by-attributes-alt"></i>
+							Ranks
 						</a>
 						<ul class="collapse list-unstyled" id="pageSubmenu">
-							<li><a href="#">Page 1</a></li>
-							<li><a href="#">Page 2</a></li>
-							<li><a href="#">Page 3</a></li>
+							<li><a href="#">Austin</a></li>
+							<li><a href="#">San Marcos</a></li>
+							<li><a href="#">Smash brews</a></li>
+							<li><a href="#">Colorado</a></li>
+							<li><a href="#">Pro Melee</a></li>
+							<li><a href="#">Pro Smash 4</a></li>
 						</ul>
 					</li>
 					<li>
@@ -84,7 +87,7 @@
 					<li id='sidebarCollapse'>
 						<a href="#">
 							<i class="glyphicon glyphicon-chevron-left"></i>
-							Collapse
+							Expand
 						</a>
 					</li>
 				</ul>
@@ -114,20 +117,19 @@
 
             <div id='chart'></div>
 
-			<!-- jQuery CDN -->
-			<script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
-			<!-- Bootstrap Js CDN -->
-			<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-			<script type="text/javascript">
-			    $(document).ready(function () {
-			   	 $('#sidebarCollapse').on('click', function () {
-			   		 $('#sidebar').toggleClass('active');
-			   	 });
-			    });
-			</script>
+            <!-- jQuery CDN -->
+            <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+            <!-- Bootstrap Js CDN -->
+            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    $('#sidebarCollapse').on('click', function () {
+                        $('#sidebar').toggleClass('active');
+                    });
+                });
+            </script>
 
-
-
+            
 
         </div>
     </body>

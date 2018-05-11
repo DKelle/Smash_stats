@@ -20,6 +20,24 @@ google.setOnLoadCallback(function() {
             //    temp('austin');
             //});
 
+
+            // Set the on clicks for the side bar 'collapse' buttong
+            //sidebar_collapse = document.getElementById('sidebarCollapse');
+            //sidebar = document.getElementById('sidebar');
+            //sidebar_collapse.addEventListener("click", function(){
+            //    // Actually expand the sidebar
+            //    curclass = sidebar.getAttribute('class');
+            //    newclass = curclass == 'active' ? '' : 'active';
+            //    sidebar.setAttribute("class", newclass);
+
+            //    // Change the glyphicon of the collapse/expand buttong
+            //    cur_expand_string = sidebar_collapse.innerHTML;
+            //    new_expand_string = cur_expand_string == 'Collapse' ? 'Expand' : 'Collapse';
+            //    f = sidebar_collapse.firstChild;
+            //    console.log('dallas: f is ' + JSON.stringify(f));
+            //    sidebar_collapse.innerHTML = new_expand_string;
+            //});
+
 			var initial_node = get_node_from_tag(control.data.nodes, tag);
 
             // Append this node to our stats nav player queue
@@ -124,10 +142,7 @@ function update_stats_nav(node) {
     results = 0;
     for(var i = p_queue.length-1; i--; i > -1) {
         p2 = p_queue[i];
-        console.log(p1);
-        console.log(p2);
         if(typeof p2 == 'undefined') {
-            console.log('breaking')
             break;
         }
         url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/h2h?tag1="+p1+"&tag2="+p2;
@@ -187,7 +202,6 @@ function update_stats_nav(node) {
             if (p1 == winner) {
                 fl = 'left';
                 li_class = "winner";
-                console.log('winner was p1')
             }
             li_class += ' ' + scene;
 
@@ -289,15 +303,11 @@ function update_stats_nav(node) {
 }
 
 function get_placings(placings, bracket) {
-    console.log('this is all placings' + placings);
-    console.log('about to get placing for ' + bracket);
     for(var i = 0; i < placings.length; i ++) {
         r = placings[i];
         url = r[0];
-        console.log('comparing to ' + url);
         if (bracket == url) {
             place = r[2];
-            console.log('found it! place was '+r);
             return place
         }
     }
