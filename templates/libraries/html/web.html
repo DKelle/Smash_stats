@@ -1,32 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-    <link href="templates/libraries/css/web.css" rel="stylesheet" type="text/css" />
-    <meta charset="utf-8" />
-    <title>Welcome to the Smash Web</title>
+    <head>
+        <link href="templates/libraries/css/web.css" rel="stylesheet" type="text/css" />
+        <meta charset="utf-8" />
+        <title>Welcome to the Smash Web</title>
 
-    <link rel='stylesheet prefetch' href='templates/libraries/css/animate.min.css'>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <link rel="stylesheet" href="templates/libraries/css/nav.css">
+        <link rel='stylesheet prefetch' href='templates/libraries/css/animate.min.css'>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="stylesheet" href="templates/libraries/css/nav.css">
 
 
-    <!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame
-  Remove this if you use the .htaccess -->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <script type="text/javascript" src="templates/libraries/js/d3.v3.min.js"></script>
-    <script type="text/javascript" src="templates/libraries/js/jsapi"></script>
-    <script type="text/javascript" src="templates/libraries/js/web.js"></script>
-    <script>
-        window['mcpherTreeData'] = JSON.parse('{{data|safe}}')
-        window['tag'] = '{{tag}}'
-    </script>
+        <!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame
+      Remove this if you use the .htaccess -->
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+        <script type="text/javascript" src="templates/libraries/js/d3.v3.min.js"></script>
+        <script type="text/javascript" src="templates/libraries/js/jsapi"></script>
+        <script type="text/javascript" src="templates/libraries/js/web.js"></script>
+        <script>
+            window['mcpherTreeData'] = JSON.parse('{{data|safe}}')
+            window['tag'] = '{{tag}}'
+        </script>
 
-</head>
+    </head>
     <body>
 
         <div class="wrapper">
-
 
             <div id="bg"></div>
             <script>

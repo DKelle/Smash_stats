@@ -23,9 +23,17 @@ def main():
     return render_template('libraries/html/web.html', data=data, tag=tag)
     #return render_template('libraries/html/temp.html', data=data, tag=tag)
 
+@endpoints.route("/player")
+def player():
+    if db == None:
+        init()
+
+    tag = request.args.get('tag', default="christmasmike")
+    return render_template('libraries/html/player.html')
+
 @endpoints.route("/temp")
 def temp():
-    return render_template('libraries/temp/index4.html')
+    return render_template('libraries/templates/html/player.html')
 
 @endpoints.route("/wins")
 def wins():
