@@ -1,0 +1,88 @@
+<!-- Sidebar Holder -->
+<div id='bg'>
+	<nav id="sidebar" class='active'>
+		<div class="sidebar-header">
+			<h3>Smash Web</h3>
+			<strong>SW</strong>
+		</div>
+
+		<ul class="list-unstyled components">
+			<li>
+				<a href="#homeSubmenu" data-toggle="collapse" aria-expanded="false">
+					<i class="glyphicon glyphicon-home"></i>
+					Home
+				</a>
+				<ul class="collapse list-unstyled" id="homeSubmenu">
+					<li><a href="#">Home 1</a></li>
+					<li><a href="#">Home 2</a></li>
+					<li><a href="#">Home 3</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="#">
+					<i class="glyphicon glyphicon-user"></i>
+					Players
+				</a>
+			</li>
+			<li>
+				<a href="#pageSubmenu" data-toggle="collapse" aria-expanded="false">
+					<i class="glyphicon glyphicon-signal"></i>
+					Ranks
+				</a>
+				<ul class="collapse list-unstyled" id="pageSubmenu">
+					<li><a href="#">Austin</a></li>
+					<li><a href="#">San Marcos</a></li>
+					<li><a href="#">Smash brews</a></li>
+					<li><a href="#">Colorado</a></li>
+					<li><a href="#">Pro Melee</a></li>
+					<li><a href="#">Pro Smash 4</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="#">
+					<i class="glyphicon glyphicon-link"></i>
+					Portfolio
+				</a>
+			</li>
+			<li>
+				<a href="#">
+					<i class="glyphicon glyphicon-paperclip"></i>
+					FAQ
+				</a>
+			</li>
+			<li>
+				<a href="#">
+					<i class="glyphicon glyphicon-send"></i>
+					Contact
+				</a>
+			</li>
+		</ul>
+
+		<ul class="list-unstyled components">
+			<li id='sidebarCollapse'>
+				<a href="#">
+					<i class="glyphicon glyphicon-chevron-left"></i>
+					Expand
+				</a>
+			</li>
+		</ul>
+		<ul class="list-unstyled CTAs">
+			<li><a href="https://bootstrapious.com/tutorial/files/sidebar.zip" class="download">Download source</a></li>
+			<li><a href="https://bootstrapious.com/p/bootstrap-sidebar" class="article">Back to article</a></li>
+		</ul>
+
+	</nav>
+
+	<!-- jQuery CDN -->
+	<script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+	<!-- Bootstrap Js CDN -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function () {
+			$('#sidebarCollapse').on('click', function () {
+				$('#sidebar').toggleClass('active');
+			});
+		});
+	</script>
+</div>
+

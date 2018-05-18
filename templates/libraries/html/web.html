@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link href="templates/libraries/css/web.css" rel="stylesheet" type="text/css" />
+    <meta charset="utf-8" />
+    <title>Welcome to the Smash Web</title>
+
+    <link rel='stylesheet prefetch' href='templates/libraries/css/animate.min.css'>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="templates/libraries/css/nav.css">
+
+
+    <!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame
+  Remove this if you use the .htaccess -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <script type="text/javascript" src="templates/libraries/js/d3.v3.min.js"></script>
+    <script type="text/javascript" src="templates/libraries/js/jsapi"></script>
+    <script type="text/javascript" src="templates/libraries/js/web.js"></script>
+    <script>
+        window['mcpherTreeData'] = JSON.parse('{{data|safe}}')
+        window['tag'] = '{{tag}}'
+    </script>
+
+</head>
+    <body>
+
+        <div class="wrapper">
+
+
+            <div id="bg"></div>
+            <script>
+                $(function(){
+                    $("#bg").load("templates/libraries/html/nav.html");
+                });
+            </script>
+
+
+            <div id="mySidenav" class="sidenav">
+                
+                <div class='tags' id='tags_div'>
+                    <div class='tag' id='tag1'></div>
+                    <div class='tag' id='tag2'></div>
+                </div>
+                <div class='matches' id='matches'>
+                    <ul id='matches_list'>
+
+                    </ul>
+                </div>
+
+                <div class='bracket' id='bracket_iframe'></div>
+
+            </div> 
+
+            <div id='chart'></div>
+        </div>
+    </body>
+</html>
