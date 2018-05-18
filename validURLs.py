@@ -8,17 +8,25 @@ import time
 from tweet import tweet
 
 analyzed_scenes = False
-run_pros = True
+run_pros = False
+should_tweet = False
 
 LOG = logger.logger(__name__)
 
 class validURLs(object):
     def __init__(self, scenes, testing=False):
+        global should_tweet
         self.start_time = time.time()
         self.testing = testing
         self.scenes = scenes
         db_name = 'smash_test' if testing else 'smash'
         self.db = get_db(db=db_name)
+
+        # Should we tweet when we are done analyzing? Only if we are totally repopulating
+        sql = 'SELECT count(*) FROM matches'
+        res = self.db.exec(sql)
+        if len(res) == 0:
+            should_tweet = True
 
         # Create a processor to analyze new matches
         self.data_processor = processData(self.db) 
@@ -85,12 +93,12 @@ class validURLs(object):
             seconds_to_analyze = time.time() - self.start_time
             minutes = seconds_to_analyze / 60
             LOG.info('dallas: joining for the analysis thread  {} in {} minutes'.format(t.name, minutes))
-            if not analyzed_scenes:
+            if not analyzed_scenes and should_tweet:
                 tweet('joining for the analysis thread  {} in {} minutes'.format(t.name, minutes))
         LOG.info('dallas: we have joined all threads. Should tweet after this')
 
         # If this is the first time that we have gone through all the scenes, tweet me
-        if not analyzed_scenes:
+        if not analyzed_scenes and should_tweet:
             analyzed_scenes = True
             seconds_to_analyze = time.time() - self.start_time
             minutes = seconds_to_analyze / 60
@@ -222,8 +230,6 @@ class validURLs(object):
                         display_name = bracket_utils.get_display_base(bracket, counter=i)
                         self.data_processor.process(bracket, name, display_name, new_bracket=True)
 
-                    self.data_processor.process_ranks(name)
-
             else:
                 # We need to create first and last from scratch
                 first = bracket_utils._get_first_valid_url(base_url)
@@ -242,4 +248,6 @@ class validURLs(object):
                     self.data_processor.process(bracket, name, display_name)
 
                     # Calculate ranks after each tournament so we can see how players are progressing
-                self.data_processor.process_ranks(name)
+        if not analyzed_scenes and should_tweet:
+            tweet('About to start ranking for scene {}'.format(name))
+        self.data_processor.check_and_update_ranks(name)

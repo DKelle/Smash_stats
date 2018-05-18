@@ -59,18 +59,78 @@ class processData(object):
 
         LOG.info("tournament placings for {} are {}".format(bracket, tournament_placings))
 
+    def bulk_update_ranks(self, scene):
+        # This scene has never been ranked.
+        # Collect the earliest 1 month of data, and use it to calculate ranks
+        # Add in one more month of data, recalculate ranks.
+        # Repeat until we have rankings form every month of this scenes history
+        pass
 
-    def process_ranks(self, scene):
+    def check_and_update_ranks(self, scene):
+        # There are 2 cases here:
+        #   1) Ranks have never been calculated for this scene before
+        #       - This means we need to calculate what the ranks were every month of this scenes history
+        #       - We should only do this if ranks don't already exist for this scene
+        #   2) Ranks have been calculated for this scene before
+        #       - We already have bulk ranks. We should check if it has been more than 1 month since we last
+        #           calculated ranks. If so, calculate again with the brackets that have come out this month
+
+        LOG.info('About to check if ranks need updating for {}'.format(scene))
+        # First, do we have any ranks for this scene already?
+        sql = 'select count(*) from ranks where scene="{}";'.format(scene)
+        res = self.db.exec(sql)
+        count = res[0][0]
+
+        n = 5 if (scene == 'pro' or scene == 'pro_wiiu') else constants.TOURNAMENTS_PER_RANK
+        if count == 0:
+            LOG.info('Detected that we need to bulk update ranks for {}'.format(scene))
+            # Alright, we have nothing. Bulk update ranks
+            first_month = bracket_utils.get_first_month(self.db, scene)
+            last_month = bracket_utils.get_last_month(self.db, scene)
+            
+            # Iterate through all tournaments going month by month, and calculate ranks
+            months = bracket_utils.iter_months(first_month, last_month)
+            for month in months:
+                urls, _ = bracket_utils.get_n_tournaments_before_date(self.db, scene, month, n)
+                self.process_ranks(scene, urls, month)
+        else:
+
+            # Get the date of the last time we calculated ranks
+            sql = "select date from ranks where scene='{}' order by date desc limit 1;".format(scene)
+            res = self.db.exec(sql)
+            last_rankings_date = res[0][0]
+
+            # Check to see if it's been more than 1 month since we last calculated ranks
+            more_than_one_month = bracket_utils.has_month_passed(last_rankings_date)
+            if more_than_one_month:
+                # Get only the last n tournaments, so it doesn't take too long to process
+                today = datetime.datetime.today().strftime('%Y-%m-%d')
+                LOG.info('Detected that we need up update monthly ranks for {}, on {}'.format(scene, today))
+                recent_tournaments, _ = bracket_utils.get_n_tournaments_before_date(self.db, scene, today, n)
+
+                # We should only ever calculate ranks on the 1st. If today is not the first, log error
+                if not today.split('-')[-1] == '1':
+                    LOG.exc('We are calculating ranks today, {}, but it isnt the first'.format(today))
+                self.process_ranks(scene, recent_tournaments, today)
+            else:
+                LOG.info('It has not yet been 1 month since we calculated ranks for {}. Skipping'.format(scene))
+
+
+    def process_ranks(self, scene, urls, recent_date):
         PLAYER1 = 0
         PLAYER2 = 1
         WINNER = 2
         DATE = 3
         SCENE = 4
 
-        # Get only the last n tournaments, so it doesn't take too long to process
-        n = 5 if (scene == 'pro' or scene == 'pro_wiiu') else constants.TOURNAMENTS_PER_RANK
-        recent_tournaments, recent_date = bracket_utils.get_last_n_tournaments(self.db, n, scene)
-        matches = bracket_utils.get_matches_from_urls(self.db, recent_tournaments)
+        # make sure if we already have calculated ranks for these players at this time, we do not do it again
+        sql = "SELECT * FROM ranks WHERE scene = '{}' AND date='{}';".format(str(scene), recent_date)
+        res = self.db.exec(sql)
+        if len(res) > 0:
+            LOG.info('We have already calculated ranks for {} on date {}. SKipping'.format(scene, recent_date))
+            return
+
+        matches = bracket_utils.get_matches_from_urls(self.db, urls)
         LOG.info('About to start processing ranks for scene {} on {}'.format(scene, recent_date))
 
         # Iterate through each match, and build up our dict
@@ -99,13 +159,6 @@ class processData(object):
                 win_loss_dict[p2][p1] = []
 
             win_loss_dict[p2][p1].append((date, winner == p2))
-
-        # make sure if we already have calculated ranks for these players at this time, we update the DB
-        sql = "SELECT * FROM ranks WHERE scene = '{}' AND date='{}';".format(str(scene), recent_date)
-        res = self.db.exec(sql)
-        if len(res) > 0:
-            sql = "DELETE FROM ranks WHERE scene = '{}' AND date='{}';".format(str(scene), recent_date)
-            self.db.exec(sql)
 
         ranks = get_ranks(win_loss_dict)
         tag_rank_map = {}

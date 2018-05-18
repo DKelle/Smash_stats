@@ -193,7 +193,7 @@ PRO_WIIU = ['https://smash.gg/tournament/super-smash-con-2017/events/wii-u-singl
         'https://smash.gg/tournament/genesis-5/event/smash-for-wii-u-singles']
 
 SLEEP_TIME = 10 * 60 * 6 #1 hour
-TOURNAMENTS_PER_RANK = 20
+TOURNAMENTS_PER_RANK = 35
 
 
 TEST_URLS = [('test1', ['https://challonge.com/smash_web_test_###']),

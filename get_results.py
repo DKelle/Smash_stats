@@ -23,8 +23,8 @@ skip_count = 0
 def sanitize_tag(tag):
     tag = ''.join([i if ord(i) < 128 else ' ' for i in tag])
     # Parse out sponsor
-    tag = tag.split('|')[-1].lstrip()
-    return re.sub("[^a-z A-Z 0-9 ]",'',tag.lower())
+    tag = tag.split('|')[-1].lstrip().rstrip()
+    return re.sub("[^a-z A-Z 0-9 ]",'',tag.lower()).rstrip().lstrip()
 
 def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, display_name=None):
     global smash
@@ -189,20 +189,20 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
 
         #Before we use this tag, we should see if it is one that we should coalesce
         # eg, if this is 'thanksgiving mike', we should change it to 'christmas mike'
-        if 'ehmon' in player1_tag or 'ehmon' in player2_tag:
+        if 'hakii' in player1_tag or 'hakii' in player2_tag:
             LOG.info('player1_tag is {}'.format(player1_tag))
             LOG.info('player2_tag is {}'.format(player2_tag))
 
         player1_tag = sanitize_tag(player1_tag)
         player2_tag = sanitize_tag(player2_tag)
-        if 'ehmon' in player1_tag or 'ehmon' in player2_tag:
+        if 'hakii' in player1_tag or 'hakii' in player2_tag:
             LOG.info('after sanitize...')
             LOG.info('player1_tag is {}'.format(player1_tag))
             LOG.info('player2_tag is {}'.format(player2_tag))
 
         player1_tag = get_coalesced_tag(player1_tag)
         player2_tag = get_coalesced_tag(player2_tag)
-        if 'ehmon' in player1_tag or 'ehmon' in player2_tag:
+        if 'hakii' in player1_tag or 'hakii' in player2_tag:
             LOG.info('after coalesce...')
             LOG.info('player1_tag is {}'.format(player1_tag))
             LOG.info('player2_tag is {}'.format(player2_tag))

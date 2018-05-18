@@ -8,6 +8,7 @@ import os
 import pickle
 import pysmash
 from get_results import get_coalesced_tag
+import datetime
 
 DEFAULT_BASE_URLS = ['https://challonge.com/NP9ATX###', 'http://challonge.com/heatwave###', 'https://austinsmash4.challonge.com/atx###',\
         'http://challonge.com/RAA_###']
@@ -105,17 +106,14 @@ def load_pickle_data(base_fname):
         if debug: print('failed to get pickle data for ', base_fname)
         return None
 
-def hit_url(url):
+def hit_url(url, load_from_cache=True):
     # Before we try to hit this URL, see if we have pickle data for it
 
-    if debug and url == "https://austinsmash4.challonge.com/atx155":
-        print("is valid?")
-    data =  load_pickle_data(url)
-    if data:
-        return data, 200
+    if load_from_cache:
+        data =  load_pickle_data(url)
+        if data:
+            return data, 200
 
-    if debug and url == "https://austinsmash4.challonge.com/atx155":
-        print("not in ")
     #sleep, to make sure we don't go over our rate-limit
     sleep(.02)
 
@@ -123,7 +121,7 @@ def hit_url(url):
     r = get(url)
     data = r.text
 
-    if(is_valid(data, url=url)):
+    if(is_valid(data, url=url) and load_from_cache):
         # Make sure we pickle this data, so we can get it next time
         dump_pickle_data(url, data)
 
@@ -135,11 +133,11 @@ def get_brackets_from_user(scene_url, total=None, pages=None):
 
     # 'total' is number of brackets to get. If None, get all. Usually either None or 1
 
-    def get_bracket_urls_from_scene(scene_url):
+    def get_bracket_urls_from_scene(scene_url, load_from_cache=True):
         # Given a specific page of a scene, parse out the urls for all brackets
         # eg inputhttps://austinsmash4.challonge.com?page=4
         # The above URL contains a list of brackets. Find those bracket URLs
-        scene_brackets_html, status = hit_url(scene_url)
+        scene_brackets_html, status = hit_url(scene_url, load_from_cache=load_from_cache)
         scene_name = scene_url.split('https://')[-1].split('.')[0]
         soup = BeautifulSoup(scene_brackets_html, "html.parser")
 
@@ -165,8 +163,10 @@ def get_brackets_from_user(scene_url, total=None, pages=None):
     start, end = get_valid_url_range(scene_url_with_pages)
     brackets = []
     for i in range(start, end+1):
+        # It is possible that page 1 has changed since last time we checked. Don't load this page from cache
+        cache = i > 1
         scene_url = scene_url_with_pages.replace('###', str(i))
-        page_brackets = get_bracket_urls_from_scene(scene_url)
+        page_brackets = get_bracket_urls_from_scene(scene_url, cache)
         brackets.extend(page_brackets)
 
         # If we have more than 'total' links, we can return them now
@@ -387,11 +387,66 @@ def get_list_of_scene_names():
     return ['sms', 'austin', 'smashbrews', 'colorado', 'colorado_doubles', 'pro', 'pro_wiiu', 'test1', 'test2']
 
 def get_last_n_tournaments(db, n, scene):
-    sql = "select url, date from matches where scene='{}' group by url, date order by date desc, url desc limit {};".format(scene, n)
+    today = datetime.datetime.today().strftime('%Y-%m-%d')
+    return get_n_tournaments_before_date(db, scene, today, n)
+
+def get_first_month(db, scene):
+    sql = "select date from matches where scene='{}' order by date limit 1;".format(scene)
+    res = db.exec(sql)
+    date = res[0][0]
+    return date
+
+def get_last_month(db, scene):
+    sql = "select date from matches where scene='{}' order by date desc limit 1;".format(scene)
+    res = db.exec(sql)
+    date = res[0][0]
+    return date
+
+def iter_months(first, last):
+    # Both first and last are date strings in the format yyyy-mm-dd
+
+    y, m, d = first.split('-')
+    last_y, last_m, last_d = last.split('-')
+    cur = '{}-{}'.format(y, m)
+    last = '{}-{}'.format(last_y, last_m)
+    # Calculate ranks on the first of every month between first and last
+    months = []
+    while cur < last:
+        m = str(int(m) + 1)
+
+        if m == '13':
+            m = '01'
+            y = str(int(y) + 1)
+
+        # Make sure to pad the month with 0s
+        m = m.zfill(2)
+        cur = '{}-{}'.format(y, m)
+        months.append('{}-01'.format(cur))
+
+    return months
+
+def has_month_passed(date):
+    y, m, d = date.split('-')
+    today = datetime.datetime.today().strftime('%Y-%m-%d')
+    today_y, today_m, today_d = today.split('-')
+
+    # Are these two in the same month?
+    if m == today_m:
+        return False
+
+    # Otherwise, we know that 'date' is in the past, and 'today' is current.
+    # We must be in a new month now. Always rank on the 1st
+    if today_d == '1':
+        return True
+
+    return False
+
+
+def get_n_tournaments_before_date(db, scene, date, limit):
+    sql = "select url, date from matches where scene='{}' and date<='{}' group by url, date order by date desc limit {};".format(scene, date, limit)
     res = db.exec(sql)
     urls = [r[0] for r in res]
-    recent_date = res[0][-1]
-    return urls, recent_date
+    return urls, date
 
 def get_date(url):
     url = url + "/log"
