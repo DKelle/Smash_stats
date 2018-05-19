@@ -37,7 +37,13 @@ def player():
 
     percentage = (0.0+int(1000*((0.0+wins)/(0.0+losses+wins))))/10
 
-    return render_template('libraries/html/player.html', tag=tag, wins=wins, losses=losses, percentage=percentage)
+    sql = "select rank from players join ranks where players.scene=ranks.scene and players.tag=ranks.player and players.tag='{}' order by date desc limit 1;".format(tag)
+    rank = db.exec(sql)[0][0]
+
+    sql = "SELECT scene FROM players WHERE tag='{}'".format(tag)
+    scene = db.exec(sql)[0][0]
+
+    return render_template('libraries/html/player.html', tag=tag, wins=wins, losses=losses, percentage=percentage, rank=rank, scene=scene)
 
 @endpoints.route("/temp")
 def temp():

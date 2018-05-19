@@ -14,6 +14,8 @@
             window['wins'] = '{{wins}}'
             window['losses'] = '{{losses}}'
             window['percentage'] = '{{percentage}}'
+            window['rank'] = '{{rank}}'
+            window['scene'] = '{{scene}}'
         </script>
 
     </head>
@@ -34,17 +36,67 @@
 
                 <div id='top_div'right_div>
                     <div id='q1_div'>
-                        <div id='left_div'>
+                        <div id='q_left'>
+                            <div id='win_circle'>
+                                <i id='win_glyph' class="glyphicon glyphicon-ok"></i>
+                            </div>
+                        </div>
+
+                        <div id='q_right'>
+                            <div id='win_count' style='padding-top:10%;'>
+                            </div>
+                            <div id='label_div'>
+                                Total Wins
+                            </div>
                         </div>
                     </div>
 
                     <div id='q2_div'>
+                        <div id='q_left'>
+                            <div id='loss_circle'>
+                                <i id='loss_glyph' class="glyphicon glyphicon-remove"></i>
+                            </div>
+                        </div>
+
+                        <div id='q_right'>
+                            <div id='loss_count' style='padding-top:10%;'>
+                            </div>
+                            <div id='label_div'>
+                                Total Losses
+                            </div>
+                        </div>
                     </div>
 
                     <div id='q3_div'>
+                        <div id='q_left'>
+                            <div id='percent_circle'>
+                                <i id='percent_glyph' class="glyphicon glyphicon-flag"></i>
+                            </div>
+                        </div>
+
+                        <div id='q_right'>
+                            <div id='percent_count' style='padding-top:10%;'>
+                            </div>
+                            <div id='label_div'>
+                                Win Rate
+                            </div>
+                        </div>
                     </div>
 
                     <div id='q4_div'>
+                        <div id='q_left'>
+                            <div id='rank_circle'>
+                                <i id='rank_glyph' class="glyphicon glyphicon-signal"></i>
+                            </div>
+                        </div>
+
+                        <div id='q_right'>
+                            <div id='rank_count' style='padding-top:10%;'>
+                            </div>
+                            <div id='scene_label_div'>
+                                Current Rank
+                            </div>
+                        </div>
                     </div>
 
                 </div>

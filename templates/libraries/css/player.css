@@ -9,15 +9,34 @@ body, html, #container {
 
 div {
 }
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ *  Start CSS for the tag and search bar 
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#tag_div {
+    background: #fff;
+    margin: 1%;
+    height: 10%;
+    box-shadow: 0 0 0px 1px #7386D5;
+    border-radius: 5px;
+}
+
 #screen {
     background: #d9dff7;
     width: 100%;
 }
 
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ *  Start CSS for the indivdual stats. Wins/losses etc
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #top_div {
     display: flex;
     margin: 1%;
-    height: 20%;
+    height: 15%;
 }
 
 #q1_div {
@@ -56,14 +75,157 @@ div {
     background: #fff;
 }
 
-#tag_div {
-    background: #fff;
-    margin: 1%;
-    height: 10%;
-    box-shadow: 0 0 0px 1px #7386D5;
-    border-radius: 5px;
+#q_left {
+    float: left;
+    width: 50%;
+    height: 100%;
+    text-align: center;
+    font-size: 1vw;
 }
 
+#q_right {
+    float: right;
+    width: 50%;
+    height: 100%;
+    padding: 3%;
+    text-align: center;
+    font-size: 1.5vw;
+}
+
+#win_glyph {
+    top: 50%;
+    float:left;
+    width:100%;
+    padding-top:50%;
+    line-height:1em;
+    margin-top:-0.5em;
+    text-align:center;
+    color: #30ad14;
+}
+
+/*#win_circle {
+    box-shadow: 0 0 0px 2px #30ad14;
+    padding: 13%;
+    margin: 4%;
+    width: 33%;
+    height: 81%;
+    border-radius: 100px;
+    text-align: center;
+    background: #c9e8c2;
+}*/
+
+#win_circle {
+	margin: 10%;
+    width: 50%;
+    height:0;
+    padding-bottom: 50%;
+    -moz-border-radius: 50%; 
+    -webkit-border-radius: 50%; 
+    border-radius: 50%;
+    text-align: center;
+    background: #c9e8c2;
+    box-shadow: 0 0 0px 2px #30ad14;
+}
+
+#loss_glyph {
+    top: 50%;
+    float:left;
+    width:100%;
+    padding-top:50%;
+    line-height:1em;
+    margin-top:-0.5em;
+    text-align:center;
+    color: #f22e4e;
+}
+
+#loss_circle {
+	margin: 10%;
+    width: 50%;
+    height:0;
+    padding-bottom: 50%;
+    -moz-border-radius: 50%; 
+    -webkit-border-radius: 50%; 
+    border-radius: 50%;
+    text-align: center;
+    background: #fce1eb;
+    box-shadow: 0 0 0px 2px #f22e4e;
+}
+
+#rank_glyph {
+    top: 50%;
+    float:left;
+    width:100%;
+    padding-top:50%;
+    line-height:1em;
+    margin-top:-0.5em;
+    text-align:center;
+    color: #41b7f3;
+}
+
+#rank_circle {
+	margin: 10%;
+    width: 50%;
+    height:0;
+    padding-bottom: 50%;
+    -moz-border-radius: 50%; 
+    -webkit-border-radius: 50%; 
+    border-radius: 50%;
+    text-align: center;
+    background: #d6f5fa;
+    box-shadow: 0 0 0px 2px #41b7f2;
+}
+
+#percent_glyph {
+    top: 50%;
+    float:left;
+    width:100%;
+    padding-top:50%;
+    line-height:1em;
+    margin-top:-0.5em;
+    text-align:center;
+    color: #ff812a;
+}
+
+#percent_circle {
+	margin: 10%;
+    width: 50%;
+    height:0;
+    padding-bottom: 50%;
+    -moz-border-radius: 50%; 
+    -webkit-border-radius: 50%; 
+    border-radius: 50%;
+    text-align: center;
+    background: #ffdfc4;
+    box-shadow: 0 0 0px 2px #ff812a;
+}
+
+#label_div {
+    /*font-size: 0.5vw;
+    top: 50%;
+    float:left;*/
+    font-size: 1.0vw;
+    width:100%;
+    padding-top:3%;
+    line-height:1em;
+    text-align:center;
+    color: grey;
+}
+
+#scene_label_div {
+    font-size: 1.0vw;
+    width:100%;
+    padding-top:3%;
+    line-height:1em;
+    text-align:center;
+    color: grey;
+}
+
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ *  Start CSS for the graph
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #bottom_div {
     margin: 1%;
     height: 75%;
