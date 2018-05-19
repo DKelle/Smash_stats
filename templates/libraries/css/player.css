@@ -76,8 +76,9 @@ div {
 }
 
 #q_left {
+    padding: 2.5vh;
     float: left;
-    width: 50%;
+    width: 30%;
     height: 100%;
     text-align: center;
     font-size: 1vw;
@@ -85,10 +86,10 @@ div {
 
 #q_right {
     float: right;
-    width: 50%;
+    width: 70%;
     height: 100%;
-    padding: 3%;
-    text-align: center;
+    padding: 4vh;
+    text-align: right;
     font-size: 1.5vw;
 }
 
@@ -96,29 +97,14 @@ div {
     top: 50%;
     float:left;
     width:100%;
-    padding-top:50%;
     line-height:1em;
     margin-top:-0.5em;
-    text-align:center;
     color: #30ad14;
 }
 
-/*#win_circle {
-    box-shadow: 0 0 0px 2px #30ad14;
-    padding: 13%;
-    margin: 4%;
-    width: 33%;
-    height: 81%;
-    border-radius: 100px;
-    text-align: center;
-    background: #c9e8c2;
-}*/
-
 #win_circle {
-	margin: 10%;
-    width: 50%;
-    height:0;
-    padding-bottom: 50%;
+    width: 10vh;
+    height: 10vh;
     -moz-border-radius: 50%; 
     -webkit-border-radius: 50%; 
     border-radius: 50%;
@@ -131,18 +117,14 @@ div {
     top: 50%;
     float:left;
     width:100%;
-    padding-top:50%;
     line-height:1em;
     margin-top:-0.5em;
-    text-align:center;
     color: #f22e4e;
 }
 
 #loss_circle {
-	margin: 10%;
-    width: 50%;
-    height:0;
-    padding-bottom: 50%;
+    width: 10vh;
+    height: 10vh;
     -moz-border-radius: 50%; 
     -webkit-border-radius: 50%; 
     border-radius: 50%;
@@ -155,18 +137,14 @@ div {
     top: 50%;
     float:left;
     width:100%;
-    padding-top:50%;
     line-height:1em;
     margin-top:-0.5em;
-    text-align:center;
     color: #41b7f3;
 }
 
 #rank_circle {
-	margin: 10%;
-    width: 50%;
-    height:0;
-    padding-bottom: 50%;
+    width: 10vh;
+    height: 10vh;
     -moz-border-radius: 50%; 
     -webkit-border-radius: 50%; 
     border-radius: 50%;
@@ -179,18 +157,14 @@ div {
     top: 50%;
     float:left;
     width:100%;
-    padding-top:50%;
     line-height:1em;
     margin-top:-0.5em;
-    text-align:center;
     color: #ff812a;
 }
 
 #percent_circle {
-	margin: 10%;
-    width: 50%;
-    height:0;
-    padding-bottom: 50%;
+    width: 10vh;
+    height: 10vh;
     -moz-border-radius: 50%; 
     -webkit-border-radius: 50%; 
     border-radius: 50%;
@@ -200,23 +174,21 @@ div {
 }
 
 #label_div {
-    /*font-size: 0.5vw;
-    top: 50%;
-    float:left;*/
-    font-size: 1.0vw;
+    font-size: 0.9vw;
     width:100%;
+    height: 40%;
     padding-top:3%;
     line-height:1em;
-    text-align:center;
+    text-align:right;
     color: grey;
 }
 
 #scene_label_div {
-    font-size: 1.0vw;
+    font-size: 0.9vw;
     width:100%;
     padding-top:3%;
     line-height:1em;
-    text-align:center;
+    text-align:right;
     color: grey;
 }
 
