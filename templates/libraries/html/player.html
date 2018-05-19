@@ -7,6 +7,13 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <link rel="stylesheet" href="templates/libraries/css/nav.css">
         <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+
+        <script src= "https://cdn.zingchart.com/zingchart.min.js"></script>
+        <script> 
+            zingchart.MODULESDIR = "https://cdn.zingchart.com/modules/";
+            ZC.LICENSE = ["569d52cefae586f634c54f86dc99e6a9","ee6b7db5b51705a13dc2339db3edaf6d"];
+        </script>
+
         <script type="text/javascript" src="templates/libraries/js/player.js"></script>
 
         <script>
@@ -45,7 +52,7 @@
                         <div id='q_right'>
                             <div id='win_count' style='height: 60%;'>
                             </div>
-                            <div id='label_div' style='height: 40%;'>
+                            <div id='label_div'>
                                 Total Wins
                             </div>
                         </div>
@@ -59,7 +66,7 @@
                         </div>
 
                         <div id='q_right'>
-                            <div id='loss_count'>
+                            <div id='loss_count' style='height: 60%;'>
                             </div>
                             <div id='label_div'>
                                 Total Losses
@@ -75,7 +82,7 @@
                         </div>
 
                         <div id='q_right'>
-                            <div id='percent_count'>
+                            <div id='percent_count' style='height: 60%;'>
                             </div>
                             <div id='label_div'>
                                 Win Rate
@@ -91,7 +98,7 @@
                         </div>
 
                         <div id='q_right'>
-                            <div id='rank_count'>
+                            <div id='rank_count' style='height: 60%;'>
                             </div>
                             <div id='scene_label_div'>
                                 Current Rank
@@ -106,10 +113,17 @@
                     </div>
 
                     <div id='right_div'>
+                        <div id="myChart">
+                            <a class="zc-ref"></a>
+                        </div>
                     </div>
                 </div>
             </div>
 
         </div>
+
+
+        <!-- Now that we have defined all body elements, run some js -->
+        <script type="text/javascript" src="templates/libraries/js/player_rank_graph.js"></script>
     </body>
 </html>
