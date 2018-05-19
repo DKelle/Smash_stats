@@ -91,7 +91,7 @@ i, span {
 #sidebar.active ul li a {
     padding: 20px 10px;
     text-align: center;
-    font-size: 0.85em;
+    font-size: 1.1vh;
 }
 
 #sidebar.active ul li a i {
