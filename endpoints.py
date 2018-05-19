@@ -29,7 +29,15 @@ def player():
         init()
 
     tag = request.args.get('tag', default="christmasmike")
-    return render_template('libraries/html/player.html')
+    sql = "SELECT count(*) FROM matches WHERE winner='{}'".format(tag)
+    wins = db.exec(sql)[0][0]
+    
+    sql = "SELECT count(*) FROM matches WHERE (player1='{}' or player2='{}') AND NOT winner='{}'".format(tag, tag, tag)
+    losses = db.exec(sql)[0][0]
+
+    percentage = (0.0+int(1000*((0.0+wins)/(0.0+losses+wins))))/10
+
+    return render_template('libraries/html/player.html', tag=tag, wins=wins, losses=losses, percentage=percentage)
 
 @endpoints.route("/temp")
 def temp():

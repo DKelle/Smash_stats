@@ -7,10 +7,18 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <link rel="stylesheet" href="templates/libraries/css/nav.css">
         <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+        <script type="text/javascript" src="templates/libraries/js/player.js"></script>
+
+        <script>
+            window['tag'] = '{{tag}}'
+            window['wins'] = '{{wins}}'
+            window['losses'] = '{{losses}}'
+            window['percentage'] = '{{percentage}}'
+        </script>
 
     </head>
 
-    <body>
+    <body onload='init()'>
 
         <div class="wrapper">
             <div id="bg"></div>
@@ -21,11 +29,13 @@
             </script>
 
             <div id='screen'>
-                <div id='name_div'right_div>
+                <div id='tag_div'right_div>
                 </div>
 
                 <div id='top_div'right_div>
                     <div id='q1_div'>
+                        <div id='left_div'>
+                        </div>
                     </div>
 
                     <div id='q2_div'>
