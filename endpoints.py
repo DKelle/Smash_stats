@@ -28,7 +28,7 @@ def player():
     if db == None:
         init()
 
-    tag = request.args.get('tag', default="christmasmike")
+    tag = request.args.get('tag', default="christmasmike").capitalize()
     sql = "SELECT count(*) FROM matches WHERE winner='{}'".format(tag)
     wins = db.exec(sql)[0][0]
     
@@ -43,7 +43,13 @@ def player():
     sql = "SELECT scene FROM players WHERE tag='{}'".format(tag)
     scene = db.exec(sql)[0][0].capitalize()
 
-    return render_template('libraries/html/player.html', tag=tag, wins=wins, losses=losses, percentage=percentage, rank=rank, scene=scene)
+    ranks_data, months_ranked = bracket_utils.get_ranking_graph_data(db, tag)
+    ranks_data = json.dumps(ranks_data)
+    months_ranked = json.dumps(months_ranked)
+    print(months_ranked)
+
+
+    return render_template('libraries/html/player.html', tag=tag, wins=wins, losses=losses, percentage=percentage, rank=rank, scene=scene, ranks_data=ranks_data, months_ranked=months_ranked)
 
 @endpoints.route("/temp")
 def temp():

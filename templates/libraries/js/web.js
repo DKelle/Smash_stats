@@ -490,6 +490,7 @@ function doTheTreeViz(control) {
 
 	function getColor(d) {
         // TODO update this as we get more scenes
+        console.log(JSON.stringify(control.color_map));
 		return control.options.nodeFocus && d.isCurrentlyFocused ? control.options.nodeFocusColor : control.color_map[d.group];
 	}
 

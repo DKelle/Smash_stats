@@ -402,6 +402,18 @@ def get_last_month(db, scene):
     date = res[0][0]
     return date
 
+def get_first_ranked_month(db, scene, player):
+    sql = "select date from ranks where scene='{}' and player='{}' order by date limit 1;".format(scene, player)
+    res = db.exec(sql)
+    date = res[0][0]
+    return date
+
+def get_last_ranked_month(db, scene, player):
+    sql = "select date from ranks where scene='{}' and player='{}' order by date desc limit 1;".format(scene, player)
+    res = db.exec(sql)
+    date = res[0][0]
+    return date
+
 def iter_months(first, last):
     # Both first and last are date strings in the format yyyy-mm-dd
 
@@ -440,6 +452,48 @@ def has_month_passed(date):
         return True
 
     return False
+
+def get_monthly_ranks_for_scene(db, scene, tag):
+    sql = "SELECT date, rank FROM ranks WHERE scene='{}' AND player='{}'".format(scene, tag)
+    res = db.exec(sql)
+
+    # Build up a dict of {date: rank}
+    ranks = {}
+    for r in res:
+        ranks[r[0]] = r[1]
+
+    return ranks
+
+def get_ranking_graph_data(db, tag):
+    # First, we have to find out which scenes this player is ranked in
+    sql = "SELECT DISTINCT scene FROM ranks WHERE player='{}'".format(tag)
+    scenes = db.exec(sql)
+    scenes = [s[0] for s in scenes]
+
+    # Get the first time we were ranked in each of these scenes
+    first_months = [get_first_ranked_month(db, s, tag) for s in scenes]
+    last_months = [get_last_ranked_month(db, s, tag) for s in scenes]
+
+    first_month = min(first_months)
+    last_month = max(last_months)
+
+    # Get a list of each month that we want to know the ranks for
+    iterated_months = iter_months(first_month, last_month)
+
+    # Get individual rankings per month, per scene
+    monthly_ranks_per_scene = {s:get_monthly_ranks_for_scene(db, s, tag) for s in scenes}
+
+    ranks_per_scene = {s:[] for s in scenes}
+    # Reformat this data to use with Zing
+    for month in iterated_months:
+        for s in scenes:
+            scene_ranks = monthly_ranks_per_scene[s]
+            if month in scene_ranks:
+                ranks_per_scene[s].append(scene_ranks[month])
+            else:
+                ranks_per_scene[s].append('null')
+
+    return ranks_per_scene, iterated_months
 
 
 def get_n_tournaments_before_date(db, scene, date, limit):
