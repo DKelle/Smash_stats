@@ -21,8 +21,9 @@ for (var key in ranks_data) {
 		var values = ranks_data[key];
 		var lineColor = color_dict[key];
 		var marker = {'backgroundColor': color_dict[key]};
+		var text = key;
 
-		var d = {'values': values, 'lineColor': lineColor, 'marker': marker};
+		var d = {'values': values, 'lineColor': lineColor, 'marker': marker, 'text': text};
 		my_series.push(d);
     }
 }
@@ -65,7 +66,7 @@ var myConfig = {
      scaleX:{
        lineColor: '#000',
        zooming: true,
-       zoomTo:[0,15],
+       zoomTo:[0,100],
        item:{
         "font-angle":-45,    
          fontColor:'#000'
@@ -75,6 +76,7 @@ var myConfig = {
      scaleY:{
        minorTicks: 1,
        lineColor: '#000',
+	   mirrored: true,
        tick:{
          lineColor: '#E3E3E5'
        },
