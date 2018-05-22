@@ -3,6 +3,7 @@
 
     <head>
         <link href="templates/libraries/css/player.css" rel="stylesheet" type="text/css" />
+        <link href="templates/libraries/css/recently_played.css" rel="stylesheet" type="text/css" />
         <link rel='stylesheet prefetch' href='templates/libraries/css/animate.min.css'>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <link rel="stylesheet" href="templates/libraries/css/nav.css">
@@ -112,6 +113,53 @@
 
                 <div id='bottom_div'>
                     <div id='left_div'>
+						<div id='top_half'>
+							Big Wins
+							<div class="table100 ver5 m-b-110">
+								<div class="table100-head">
+									<table>
+										<thead>
+											<tr class="row100 head">
+												<th class="cell100 column1">Opponent</th>
+												<th class="cell100 column2">Rank</th>
+												<th class="cell100 column3">Date</th>
+											</tr>
+										</thead>
+									</table>
+								</div>
+
+								<div class="table100-body js-pscroll">
+									<table>
+										<tbody id='wins_table'>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+
+						<div id='bottom_half'>
+							Bad Losses
+							<div class="table100 ver5 m-b-110">
+								<div class="table100-head">
+									<table>
+										<thead>
+											<tr class="row100 head">
+												<th class="cell100 column1">Opponent</th>
+												<th class="cell100 column2">Rank</th>
+												<th class="cell100 column3">Date</th>
+											</tr>
+										</thead>
+									</table>
+								</div>
+
+								<div class="table100-body js-pscroll">
+									<table>
+										<tbody id='losses_table'>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
                     </div>
 
                     <div id='right_div'>

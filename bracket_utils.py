@@ -423,7 +423,8 @@ def iter_months(first, last):
     last = '{}-{}'.format(last_y, last_m)
     # Calculate ranks on the first of every month between first and last
     months = []
-    while cur < last:
+    months.append('{}-01'.format(cur))
+    while cur <= last:
         m = str(int(m) + 1)
 
         if m == '13':

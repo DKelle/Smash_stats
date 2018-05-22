@@ -56,6 +56,7 @@ var myConfig = {
        margin:'dynamic 70'
      },
      plot:{
+
        aspect: 'spline',
        lineWidth: 2,
        marker:{
@@ -98,6 +99,7 @@ var myConfig = {
        }
      },
      tooltip:{
+	   text: "Ranked %v. Click for info",
        borderWidth: 0,
        borderRadius: 3
      },
@@ -147,6 +149,79 @@ zingchart.shape_click = function(p){
   }
 }
 
-zingchart.click = function(p) {
-    console.log(p);
+//zingchart.click = function(p) {
+//    console.log(p);
+//	
+//}
+
+zingchart.node_click = function(e) {
+	var rank = e.value;
+	var date = e.scaletext;
+	console.log(e);
+
+	big_wins_url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/big_wins?tag="+tag+"&date="+date;
+	big_wins = httpGet(big_wins_url);
+
+	bad_losses_url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/bad_losses?tag="+tag+"&date="+date;
+	bad_losses = httpGet(bad_losses_url);
+
+    format_recent_wins_losses_graph(JSON.parse(big_wins), JSON.parse(bad_losses));
+}
+
+function httpGet(theUrl)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
+    xmlHttp.send( null );
+    return xmlHttp.responseText;
+}
+
+function format_recent_wins_losses_graph(wins, losses) {
+    table = document.getElementById('wins_table');
+    table.innerHTML = '';
+    for (var i = 0; i < wins.length; i++) {
+        add_table_row(table, wins[i]);
+    }
+
+    table = document.getElementById('losses_table');
+    table.innerHTML = '';
+    for (var i = 0; i < losses.length; i++) {
+        add_table_row(table, losses[i]);
+    }
+}
+
+function add_table_row(table, col_data) {
+    var row = document.createElement("tr");
+    row.className = "row100 body";
+    var url = 'http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/player?tag='+col_data[0];
+	var createClickHandler = function(url) {
+		return function() {
+			document.location.href = url;
+		}
+	}
+	row.onclick = createClickHandler(url);
+
+    for(var i = 0; i < col_data.length; i++) {
+
+        var c = document.createElement('td');
+        c.className = "cell100 column" +  (i+1);
+        c.innerHTML = col_data[i];
+
+        //var player_link = document.createElement("a");
+        //player_link.setAttribute("href", url);
+        //c.appendChild(player_link);
+
+        row.appendChild(c);
+
+        // For IE only, you can simply set the innerText of the node.
+        // // The below code, however, should work on all browsers.
+        // var linkText = document.createTextNode("Click me");
+        // link.appendChild(linkText);
+        //
+        // // Add the link to the previously created TableCell.
+        // newCell.appendChild(link);
+
+    }
+
+    table.appendChild(row);
 }

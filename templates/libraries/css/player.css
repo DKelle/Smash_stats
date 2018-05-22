@@ -208,7 +208,7 @@ div {
     float: left;
     box-shadow: 0 0 0px 1px #7386D5;
     border-radius: 5px;
-    height: 79%;
+    height: 90%;
     width: 28%;
 }
 
@@ -216,8 +216,7 @@ div {
     background: #fff;
     float: right;
     box-shadow: 0 0 0px 1px #7386D5;
-    border-radius: 5px;
-    height: 79%;
+    height: 90%;
     width: 71%;
 }
 
@@ -232,4 +231,27 @@ div {
 	display:none;
 	background:white;
 	color: white;
+}
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ *  Start CSS for the 'recent wins' section
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#top_half {
+    height: 45%;
+    width: 100%;
+    margin: auto;
+    font-size: 150%;
+    text-align: center;
+    padding: 1vh;
+}
+
+#bottom_half {
+    height: 45%;
+    width: 100%;
+    margin: auto;
+    font-size: 150%;
+    text-align: center;
+    padding: 1vh;
 }

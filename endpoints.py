@@ -66,7 +66,6 @@ def wins():
     result = [str(x) for x in result]
     result = '\n'.join(result)
     return json.dumps(result)
-    return render_template('hello.html', wins=result)
 
 @endpoints.route("/losses")
 def losses():
@@ -156,12 +155,75 @@ def ranks():
 
     return json.dumps(results)
 
-@endpoints.route('/graph')
-def serve_page():
+@endpoints.route('/matches_at_date')
+def matches_at_date():
+    if db == None:
+        init()
+
     tag = request.args.get('tag', default=None)
-    data = web(tag)
-    #return render_template('web.html', data=data)
-    return render_template('libraries/vis-4.21.0/examples/network/basicUsage.html', data=data)
+    date = request.args.get('date', default=None)
+
+    if tag and date:
+        y, m, d = date.split('-')
+        previous_m = '12' if m == '01' else str(int(m)-1)
+        previous_m = previous_m.zfill(2)
+        previous_y = str(int(y)-1) if m == '01' else y
+        previous_date = '{}-{}-{}'.format(previous_y, previous_m, d)
+        sql = "select * from matches where (player1='{}' or player2='{}') and date<='{}' and date>='{}'".format(tag, tag, date, previous_date); 
+
+        data = db.exec(sql)
+
+        return json.dumps(data)
+    
+    return ''
+
+@endpoints.route('/big_wins')
+def big_wins():
+    if db == None:
+        init()
+
+    tag = request.args.get('tag', default=None)
+    date = request.args.get('date', default=None)
+
+    if tag and date:
+        # This sql statement is a bit of a doozy...
+        select = 'select ranks.player, ranks.rank, matches.date'
+        frm = 'from matches join ranks where ((ranks.player=matches.player1 and matches.player2="{}")'.format(tag)
+        player_where = 'or (ranks.player=matches.player2 and matches.player1="{}")) and winner="{}"'.format(tag, tag)
+        date_where = 'and matches.scene=ranks.scene and datediff(ranks.date, matches.date)<=31 and ranks.date>matches.date'
+        also_date_where = 'and ranks.date="{}"'.format(date)
+        order = 'order by rank;'
+
+        sql = '{} {} {} {} {} {}'.format(select, frm, player_where, date_where, also_date_where, order)
+        data = db.exec(sql)
+
+        return json.dumps(data)
+    
+    return ''
+
+@endpoints.route('/bad_losses')
+def bad_losses():
+    if db == None:
+        init()
+
+    tag = request.args.get('tag', default=None)
+    date = request.args.get('date', default=None)
+
+    if tag and date:
+        # This sql statement is a bit of a doozy...
+        select = 'select ranks.player, ranks.rank, matches.date'
+        frm = 'from matches join ranks where ((ranks.player=matches.player1 and matches.player2="{}")'.format(tag)
+        player_where = 'or (ranks.player=matches.player2 and matches.player1="{}")) and not winner="{}"'.format(tag, tag)
+        date_where = 'and matches.scene=ranks.scene and datediff(ranks.date, matches.date)<=31 and ranks.date>matches.date'
+        also_date_where = 'and ranks.date="{}"'.format(date)
+        order = 'order by rank desc;'
+
+        sql = '{} {} {} {} {} {}'.format(select, frm, player_where, date_where, also_date_where, order)
+        data = db.exec(sql)
+
+        return json.dumps(data)
+    
+    return ''
 
 @endpoints.route('/web')
 def web(tag=None):
