@@ -59,13 +59,6 @@ class processData(object):
 
         LOG.info("tournament placings for {} are {}".format(bracket, tournament_placings))
 
-    def bulk_update_ranks(self, scene):
-        # This scene has never been ranked.
-        # Collect the earliest 1 month of data, and use it to calculate ranks
-        # Add in one more month of data, recalculate ranks.
-        # Repeat until we have rankings form every month of this scenes history
-        pass
-
     def check_and_update_ranks(self, scene):
         # There are 2 cases here:
         #   1) Ranks have never been calculated for this scene before
@@ -89,7 +82,7 @@ class processData(object):
             last_month = bracket_utils.get_last_month(self.db, scene)
             
             # Iterate through all tournaments going month by month, and calculate ranks
-            months = bracket_utils.iter_months(first_month, last_month)
+            months = bracket_utils.iter_months(first_month, last_month, include_first=False)
             for month in months:
                 urls, _ = bracket_utils.get_n_tournaments_before_date(self.db, scene, month, n)
                 self.process_ranks(scene, urls, month)
@@ -103,15 +96,22 @@ class processData(object):
             # Check to see if it's been more than 1 month since we last calculated ranks
             more_than_one_month = bracket_utils.has_month_passed(last_rankings_date)
             if more_than_one_month:
+                msg = 'Detected that we need up update monthly ranks for {}, on {}'.format(scene, today)
+                tweet(msg)
+
                 # Get only the last n tournaments, so it doesn't take too long to process
                 today = datetime.datetime.today().strftime('%Y-%m-%d')
-                LOG.info('Detected that we need up update monthly ranks for {}, on {}'.format(scene, today))
-                recent_tournaments, _ = bracket_utils.get_n_tournaments_before_date(self.db, scene, today, n)
+                LOG.info(msg)
 
                 # We should only ever calculate ranks on the 1st. If today is not the first, log error
                 if not today.split('-')[-1] == '1':
                     LOG.exc('We are calculating ranks today, {}, but it isnt the first'.format(today))
-                self.process_ranks(scene, recent_tournaments, today)
+
+                months = bracket_utils.iter_months(last_rankings_date, today, include_first=False)
+                for month in months:
+                    urls, _ = bracket_utils.get_n_tournaments_before_date(self.db, scene, month, n)
+                    self.process_ranks(scene, urls, month)
+
             else:
                 LOG.info('It has not yet been 1 month since we calculated ranks for {}. Skipping'.format(scene))
 

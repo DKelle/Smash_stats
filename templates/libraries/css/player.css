@@ -200,7 +200,8 @@ div {
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #bottom_div {
     margin: 1%;
-    height: 75%;
+    height: 71vh;
+    transition: all 0.3s;
 }
 
 #left_div {

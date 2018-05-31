@@ -15,13 +15,16 @@ months_ranked = months_ranked.slice(1).slice(0, -1);
 months_ranked = JSON.parse(months_ranked);
 var my_series = [];
 var my_scale_x = months_ranked;
+var plot_index_to_scene = [];
 for (var key in ranks_data) {
+    var i = 0;
 	// Build up the list that Zing will use to create the graph
     if (ranks_data.hasOwnProperty(key)) {
 		var values = ranks_data[key];
 		var lineColor = color_dict[key];
 		var marker = {'backgroundColor': color_dict[key]};
 		var text = key;
+        plot_index_to_scene.push(key);
 
 		var d = {'values': values, 'lineColor': lineColor, 'marker': marker, 'text': text};
 		my_series.push(d);
@@ -99,7 +102,7 @@ var myConfig = {
        }
      },
      tooltip:{
-	   text: "Ranked %v. Click for info",
+	   text: "Ranked %v in %t on %k. Click for info",
        borderWidth: 0,
        borderRadius: 3
      },
@@ -149,23 +152,25 @@ zingchart.shape_click = function(p){
   }
 }
 
-//zingchart.click = function(p) {
-//    console.log(p);
-//	
-//}
-
 zingchart.node_click = function(e) {
 	var rank = e.value;
 	var date = e.scaletext;
-	console.log(e);
+    var scene = plot_index_to_scene[e.plotindex];
 
-	big_wins_url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/big_wins?tag="+tag+"&date="+date;
-	big_wins = httpGet(big_wins_url);
+	big_wins_url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/big_wins?tag="+tag+"&date="+date+"&scene="+scene;
+	big_wins = JSON.parse(httpGet(big_wins_url));
 
-	bad_losses_url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/bad_losses?tag="+tag+"&date="+date;
-	bad_losses = httpGet(bad_losses_url);
+	bad_losses_url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/bad_losses?tag="+tag+"&date="+date+"&scene="+scene;
+	bad_losses = JSON.parse(httpGet(bad_losses_url));
 
-    format_recent_wins_losses_graph(JSON.parse(big_wins), JSON.parse(bad_losses));
+    if (big_wins.length + bad_losses.length == 0) {
+        hide_wins_chart();
+    }
+    else {
+        open_wins_chart();
+    }
+
+    format_recent_wins_losses_graph(big_wins, bad_losses);
 }
 
 function httpGet(theUrl)
@@ -190,6 +195,36 @@ function format_recent_wins_losses_graph(wins, losses) {
     }
 }
 
+function hide_wins_chart() {
+    var container_div = document.getElementById('left_div');
+    container_div.style.width = "0%";
+
+    var container_div = document.getElementById('right_div');
+    container_div.style.width = "100%";
+
+    //var top_half = document.getElementById('top_half');
+    //top_half.innerHTML = '';
+
+    //var bottom_half = document.getElementById('bottom_half');
+    //bottom_half.innerHTML = '';
+
+}
+
+function open_wins_chart() {
+    var container_div = document.getElementById('left_div');
+    container_div.style.width = "28%";
+
+    var container_div = document.getElementById('right_div');
+    container_div.style.width = "71%";
+
+    //var top_half = document.getElementById('top_half');
+    //top_half.innerHTML = 'Big Wins';
+      
+    //var bottom_half = document.getElementById('bottom_half');
+    //bottom_half.innerHTML = 'Bad Losses';
+
+}
+
 function add_table_row(table, col_data) {
     var row = document.createElement("tr");
     row.className = "row100 body";
@@ -207,19 +242,7 @@ function add_table_row(table, col_data) {
         c.className = "cell100 column" +  (i+1);
         c.innerHTML = col_data[i];
 
-        //var player_link = document.createElement("a");
-        //player_link.setAttribute("href", url);
-        //c.appendChild(player_link);
-
         row.appendChild(c);
-
-        // For IE only, you can simply set the innerText of the node.
-        // // The below code, however, should work on all browsers.
-        // var linkText = document.createTextNode("Click me");
-        // link.appendChild(linkText);
-        //
-        // // Add the link to the previously created TableCell.
-        // newCell.appendChild(link);
 
     }
 

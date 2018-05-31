@@ -414,17 +414,20 @@ def get_last_ranked_month(db, scene, player):
     date = res[0][0]
     return date
 
-def iter_months(first, last):
+def iter_months(first, last, include_first=True):
     # Both first and last are date strings in the format yyyy-mm-dd
 
     y, m, d = first.split('-')
     last_y, last_m, last_d = last.split('-')
     cur = '{}-{}'.format(y, m)
     last = '{}-{}'.format(last_y, last_m)
+
     # Calculate ranks on the first of every month between first and last
     months = []
-    months.append('{}-01'.format(cur))
-    while cur <= last:
+    if include_first:
+        months.append('{}-01'.format(cur))
+
+    while cur < last:
         m = str(int(m) + 1)
 
         if m == '13':
@@ -436,7 +439,11 @@ def iter_months(first, last):
         cur = '{}-{}'.format(y, m)
         months.append('{}-01'.format(cur))
 
-    return months
+    # We don't actually want to include this last month.
+    # Eg. if the last tournament was played on 2018-02-04, we don't want to calculate the ranks
+    # For Feb. until March starts
+
+    return months[:len(months)-1]
 
 def has_month_passed(date):
     y, m, d = date.split('-')

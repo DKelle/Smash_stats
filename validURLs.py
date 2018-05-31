@@ -25,7 +25,7 @@ class validURLs(object):
         # Should we tweet when we are done analyzing? Only if we are totally repopulating
         sql = 'SELECT count(*) FROM matches'
         res = self.db.exec(sql)
-        if len(res) == 0:
+        if res[0][0] == 0:
             should_tweet = True
 
         # Create a processor to analyze new matches

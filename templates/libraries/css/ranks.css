@@ -1,0 +1,26 @@
+body, html, #container {
+    height: 100%;
+    position:fixed;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+}
+
+#screen {
+    background: #d9dff7;
+    width: 100%;
+}
+
+#top_div {
+    display: flex;
+    margin: 1%;
+    height: 8vh;
+}
+
+#bottom_div {
+    margin: 0 auto;
+    height: 86vh;
+    width: 65vw;
+    transition: all 1.3s;
+}

@@ -2,16 +2,20 @@ DNS = 'ec2-18-216-108-45.us-east-2.compute.amazonaws.com'
 
 TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike', 'christmas mike xmas', 'christmas mike late', 'halloween mike', 'im 12', 'im12'],
         ['circuits', 'circuits', 'jkelle', 'circuits xmas'],
+        ['gamepad', 'sms gamepad'],
         ['remo', 'su remo'],
+        ['kuro', 'ss kuro'],
+        ['b00', 'boo'],
         ['hnic', 'hnic xmas'],
         ['1111', '11 11', 'vuibol'],
         ['qmantra', 'qmantra xmas'],
 	['megafox', 'su | megafox'],
 	['hakii', 'su l hakii', 'su | hakii', 'su redriot i hakii', 'hih | hakii', 'su | sleepyhakii', 'su|hakii', 'su | hakii $', 'su  redriot i hakii', 'hoh | hakii', 'su| hakii'],
 	['lucy', 'ttn | lucy'],
+        ['moist', 'f9moist', 'kuyamoist'],
 	['sassy', 'atx | sassy', 'f9sassy'],
 	['crump', 'donald crump', 'captain crump', 'abc | crump'],
-	['dragonite', 'su dragonite', 'su | dragonite', 'tpwn | dragonite', 'tpwn | dragonite_pr', 'tpwn| dragonite (gnw)', 'atx hoh | dragonite', 'dragonite_pr', 'hoh | dragonite', 'mega dragonite', 'tpwn|dragonite', 'armada | dragonite', 'aes | dragonite'],
+	['dragonite', 'tmg dragonite', 'su dragonite', 'su | dragonite', 'tpwn | dragonite', 'tpwn | dragonite_pr', 'tpwn| dragonite (gnw)', 'atx hoh | dragonite', 'dragonite_pr', 'hoh | dragonite', 'mega dragonite', 'tpwn|dragonite', 'armada | dragonite', 'aes | dragonite'],
 	['gallium', 's.e.s punk', 'ses punk'],
 	['mt', 'mt_'],
 	['wolf', ' wolf'],
@@ -20,7 +24,7 @@ TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike', 'ch
 	['take a seat', 'take a \_', 'take a \\_', 'takeaseat', 'take a seat xmas'],
 	['bobby big ballz', 'bobby big balls'],
 	['prof. cube', 'type r professor cube', 'prof cube', 'professor cube', 'profesor cube', 'cube', 'processorcube', 'prof cube $'],
-	['cashoo', 'hoh | cashoo', 'hoh l cashoo'],
+	['cashoo', 'hoh | cashoo', 'hoh l cashoo', 'cash00'],
 	['ul | chandy', 'ul| chandy', 'cnb | chandy', 'chandy'],
 	['spankey', 'spanky'],
 	['jack the reaper', 'jackthereaper'],
@@ -193,7 +197,7 @@ PRO_WIIU = ['https://smash.gg/tournament/super-smash-con-2017/events/wii-u-singl
         'https://smash.gg/tournament/genesis-5/event/smash-for-wii-u-singles']
 
 SLEEP_TIME = 10 * 60 * 6 #1 hour
-TOURNAMENTS_PER_RANK = 35
+TOURNAMENTS_PER_RANK = 20
 
 
 TEST_URLS = [('test1', ['https://challonge.com/smash_web_test_###']),

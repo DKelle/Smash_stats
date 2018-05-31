@@ -50,9 +50,73 @@ def player():
 
     return render_template('libraries/html/player.html', tag=tag, wins=wins, losses=losses, percentage=percentage, rank=rank, scene=scene, ranks_data=ranks_data, months_ranked=months_ranked)
 
+@endpoints.route("/ranks")
+def ranks():
+    if db == None:
+        init()
+
+    scene = request.args.get('scene', default='austin')
+    date = request.args.get('date', default='2018-05-01')
+
+    # Get all the urls that this player has participated in
+    sql = "SELECT * FROM ranks WHERE scene = '{}' and date='{}'".format(scene, date)
+    return render_template('libraries/html/ranks.html', scene=scene, date=date)
+
+@endpoints.route("/rankings")
+def rankings():
+    if db == None:
+        init()
+
+    scene = request.args.get('scene', default='austin')
+    date = request.args.get('date', default='2018-05-01')
+
+    # Get all the urls that this player has participated in
+    sql = "SELECT * FROM ranks WHERE scene = '{}' and date='{}'".format(scene, date)
+    res = db.exec(sql)
+
+    # Make a dict out of this data
+    # eg {'christmasmike': 50}
+    cur_ranks = {}
+    for r in res:
+        tag = r[1]
+        rank = r[2]
+
+        cur_ranks[tag] = rank
+
+    # Now get the ranks from last month, so we know if these players went up or down
+    y, m, d = date.split('-')
+    prev_m = '12' if m == '01' else str(int(m) - 1).zfill(2)
+    prev_y = str(int(y) - 1).zfill(2) if m == '01' else y
+    prev_date = '{}-{}-01'.format(prev_y, prev_m)
+
+    # Get all the urls that this player has participated in
+    sql = "SELECT * FROM ranks WHERE scene = '{}' and date='{}'".format(scene, prev_date)
+    res = db.exec(sql)
+
+    # Make a dict out of this data
+    # eg {'christmasmike': 50}
+    prev_ranks = {}
+    for r in res:
+        tag = r[1]
+        rank = r[2]
+
+        prev_ranks[tag] = rank
+
+    return render_template('libraries/html/ranks.html', cur_ranks=cur_ranks, prev_ranks=prev_ranks)
+
+    container = {'cur': cur_ranks, 'prev': prev_ranks}
+    return json.dumps(container)
+
+
 @endpoints.route("/temp")
 def temp():
-    return render_template('libraries/templates/html/player.html')
+    return json.dumps('32')
+
+
+@endpoints.route("/base")
+def base():
+    return render_template('libraries/templates/html/base.html')
+
 
 @endpoints.route("/wins")
 def wins():
@@ -142,19 +206,6 @@ def placings():
 
     return json.dumps(results)
 
-@endpoints.route("/ranks")
-def ranks():
-    if db == None:
-        init()
-
-    scene = request.args.get('scene', default='austin')
-
-    # Get all the urls that this player has participated in
-    sql = "SELECT * FROM ranks WHERE scene = '{}'".format(scene)
-    results = list(db.exec(sql))
-
-    return json.dumps(results)
-
 @endpoints.route('/matches_at_date')
 def matches_at_date():
     if db == None:
@@ -184,6 +235,7 @@ def big_wins():
 
     tag = request.args.get('tag', default=None)
     date = request.args.get('date', default=None)
+    scene = request.args.get('scene', default=None)
 
     if tag and date:
         # This sql statement is a bit of a doozy...
@@ -192,9 +244,10 @@ def big_wins():
         player_where = 'or (ranks.player=matches.player2 and matches.player1="{}")) and winner="{}"'.format(tag, tag)
         date_where = 'and matches.scene=ranks.scene and datediff(ranks.date, matches.date)<=31 and ranks.date>matches.date'
         also_date_where = 'and ranks.date="{}"'.format(date)
+        scene_where = 'and ranks.scene="{}"'.format(scene)
         order = 'order by rank;'
 
-        sql = '{} {} {} {} {} {}'.format(select, frm, player_where, date_where, also_date_where, order)
+        sql = '{} {} {} {} {} {} {}'.format(select, frm, player_where, date_where, also_date_where, scene_where, order)
         data = db.exec(sql)
 
         return json.dumps(data)
@@ -208,6 +261,7 @@ def bad_losses():
 
     tag = request.args.get('tag', default=None)
     date = request.args.get('date', default=None)
+    scene = request.args.get('scene', default=None)
 
     if tag and date:
         # This sql statement is a bit of a doozy...
@@ -216,9 +270,10 @@ def bad_losses():
         player_where = 'or (ranks.player=matches.player2 and matches.player1="{}")) and not winner="{}"'.format(tag, tag)
         date_where = 'and matches.scene=ranks.scene and datediff(ranks.date, matches.date)<=31 and ranks.date>matches.date'
         also_date_where = 'and ranks.date="{}"'.format(date)
+        scene_where = 'and ranks.scene="{}"'.format(scene)
         order = 'order by rank desc;'
 
-        sql = '{} {} {} {} {} {}'.format(select, frm, player_where, date_where, also_date_where, order)
+        sql = '{} {} {} {} {} {} {}'.format(select, frm, player_where, date_where, also_date_where, scene_where, order)
         data = db.exec(sql)
 
         return json.dumps(data)
