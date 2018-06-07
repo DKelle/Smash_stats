@@ -4,7 +4,7 @@ import subprocess
 from datetime import datetime
 
 max_size = 1 * 1000000
-fname = 'smash.log'
+fname = 'logs/smash.log'
 logging.basicConfig(filename=fname,level=logging.INFO)
 
 

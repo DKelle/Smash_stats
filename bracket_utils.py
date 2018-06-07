@@ -1,4 +1,5 @@
 from time import sleep
+import operator
 from bs4 import BeautifulSoup
 from requests import get
 import constants
@@ -396,10 +397,38 @@ def get_first_month(db, scene):
     date = res[0][0]
     return date
 
+def get_next_month(date):
+    y, m, d = date.split('-')
+    m = '01' if m == '12' else str(int(m)+1).zfill(2)
+    y = str(int(y)+1).zfill(2) if m == '01' else y
+    date = '{}-{}-{}'.format(y, m, d)
+    return date
+
+def get_previous_month(date):
+    y, m, d = date.split('-')
+    m = '12' if m == '01' else str(int(m) - 1).zfill(2)
+    y = str(int(y) - 1).zfill(2) if m == '12' else y
+    date = '{}-{}-{}'.format(y, m, d)
+    return date
+
 def get_last_month(db, scene):
     sql = "select date from matches where scene='{}' order by date desc limit 1;".format(scene)
     res = db.exec(sql)
     date = res[0][0]
+
+    # If it has been more than 1 month since this last tournament,
+    # go ahead and round this date up by a 1 month
+    # eg, if the last tournament was 2015-01-15 (a long time ago)
+    # we can assume the scene won't have more tournaments
+    # So just round to 2015-02-01
+    today = datetime.datetime.today().strftime('%Y-%m-%d')
+    y, m, d = today.split('-')
+    cy, cm, cd = date.split('-')
+    if y > cy or m > cm:
+        # Add 1 to the month before we return
+        # eg 2018-03-01 -> 2018-04-01
+        date = get_next_month(date)
+
     return date
 
 def get_first_ranked_month(db, scene, player):
@@ -414,7 +443,7 @@ def get_last_ranked_month(db, scene, player):
     date = res[0][0]
     return date
 
-def iter_months(first, last, include_first=True):
+def iter_months(first, last, include_first=True, include_last=False):
     # Both first and last are date strings in the format yyyy-mm-dd
 
     y, m, d = first.split('-')
@@ -427,7 +456,9 @@ def iter_months(first, last, include_first=True):
     if include_first:
         months.append('{}-01'.format(cur))
 
-    while cur < last:
+
+    op = operator.ge if include_last else operator.gt
+    while op(last, cur):
         m = str(int(m) + 1)
 
         if m == '13':
@@ -462,6 +493,7 @@ def has_month_passed(date):
     return False
 
 def get_monthly_ranks_for_scene(db, scene, tag):
+
     sql = "SELECT date, rank FROM ranks WHERE scene='{}' AND player='{}'".format(scene, tag)
     res = db.exec(sql)
 
@@ -486,7 +518,7 @@ def get_ranking_graph_data(db, tag):
     last_month = max(last_months)
 
     # Get a list of each month that we want to know the ranks for
-    iterated_months = iter_months(first_month, last_month)
+    iterated_months = iter_months(first_month, last_month, include_last=True)
 
     # Get individual rankings per month, per scene
     monthly_ranks_per_scene = {s:get_monthly_ranks_for_scene(db, s, tag) for s in scenes}
@@ -503,9 +535,22 @@ def get_ranking_graph_data(db, tag):
 
     return ranks_per_scene, iterated_months
 
+def get_tournaments_during_month(db, scene, date):
+    y, m, d = date.split('-')
+    ym_date = '{}-{}'.format(y, m)
+    sql = "select url, date from matches where scene='{}' and date like '%{}%' group by url, date order by date".format(scene, ym_date)
+    res = db.exec(sql)
+    urls = [r[0] for r in res]
+    return urls
 
 def get_n_tournaments_before_date(db, scene, date, limit):
     sql = "select url, date from matches where scene='{}' and date<='{}' group by url, date order by date desc limit {};".format(scene, date, limit)
+    res = db.exec(sql)
+    urls = [r[0] for r in res]
+    return urls, date
+
+def get_n_tournaments_after_date(db, scene, date, limit):
+    sql = "select url, date from matches where scene='{}' and date>='{}' group by url, date order by date desc limit {};".format(scene, date, limit)
     res = db.exec(sql)
     urls = [r[0] for r in res]
     return urls, date

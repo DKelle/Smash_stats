@@ -23,6 +23,10 @@ def main():
     return render_template('libraries/html/web.html', data=data, tag=tag)
     #return render_template('libraries/html/temp.html', data=data, tag=tag)
 
+@endpoints.route("/temp")
+def temp():
+    return render_template('libraries/temp/index.html')
+
 @endpoints.route("/player")
 def player():
     if db == None:
@@ -85,9 +89,7 @@ def rankings():
 
     # Now get the ranks from last month, so we know if these players went up or down
     y, m, d = date.split('-')
-    prev_m = '12' if m == '01' else str(int(m) - 1).zfill(2)
-    prev_y = str(int(y) - 1).zfill(2) if m == '01' else y
-    prev_date = '{}-{}-01'.format(prev_y, prev_m)
+    prev_date = bracket_utils.get_previous_month(date)
 
     # Get all the urls that this player has participated in
     sql = "SELECT * FROM ranks WHERE scene = '{}' and date='{}'".format(scene, prev_date)
@@ -106,11 +108,6 @@ def rankings():
 
     container = {'cur': cur_ranks, 'prev': prev_ranks}
     return json.dumps(container)
-
-
-@endpoints.route("/temp")
-def temp():
-    return json.dumps('32')
 
 
 @endpoints.route("/base")
