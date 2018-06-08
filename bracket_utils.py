@@ -333,7 +333,15 @@ def get_tournament_placings(bracket_url):
 
     return placings_map
 
-def player_in_bracket(player, bracket, url):
+def player_in_url(db, player, url):
+    sql = "SELECT * FROM matches WHERE (player1='{}' or player2='{}') and url='{}'".format(player, player, url)
+    res = db.exec(sql)
+    if len(res) > 0:
+        return True
+    LOG.info('player {} is not in {}'.format(player, url))
+    return False
+
+def player_in_bracket(player, bracket=None):
     # Make sure to add quotations around the tag
     # this way, we ony match on actual tags, and not *tag*
     #player = '<title>'+player+'</title>'
@@ -361,7 +369,7 @@ def get_urls_with_players(players=["Christmas Mike", "christmasmike"], base_urls
             bracket_url = base.replace('###', str(i))
             bracket = get_sanitized_bracket(bracket_url)
             for player in players:
-                if bracket and player_in_bracket(player, bracket, bracket_url):
+                if bracket and player_in_bracket(player, bracket=bracket):
                     urls.append(bracket_url)
                     break
     return urls
@@ -497,10 +505,13 @@ def get_monthly_ranks_for_scene(db, scene, tag):
     sql = "SELECT date, rank FROM ranks WHERE scene='{}' AND player='{}'".format(scene, tag)
     res = db.exec(sql)
 
+    res = [r for r in res if played_during_month(db, scene, tag, get_previous_month(r[0]))]
+
     # Build up a dict of {date: rank}
     ranks = {}
     for r in res:
         ranks[r[0]] = r[1]
+
 
     return ranks
 
@@ -542,6 +553,16 @@ def get_tournaments_during_month(db, scene, date):
     res = db.exec(sql)
     urls = [r[0] for r in res]
     return urls
+
+def played_during_month(db, scene, tag, date):
+    # First, which tournaments were hosted during this month?
+    tournaments = get_tournaments_during_month(db, scene, date)
+
+    for tournament in tournaments:
+        if player_in_url(db, tag, url=tournament):
+            return True
+
+    return False
 
 def get_n_tournaments_before_date(db, scene, date, limit):
     sql = "select url, date from matches where scene='{}' and date<='{}' group by url, date order by date desc limit {};".format(scene, date, limit)
@@ -599,7 +620,7 @@ def get_display_base(url, counter=None):
             name = re.sub("[^a-z A-Z 0-9 # / \ .]",'', title)
             return name
         else:
-            LOG.info('dallas: url {} has no title'.format(url))
+            LOG.info('url {} has no title'.format(url))
 
     # We couldn't find a title in the HTML. See if we have a hard-coded one
     d_map = constants.DISPLAY_MAP

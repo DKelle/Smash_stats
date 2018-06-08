@@ -109,7 +109,7 @@ class processData(object):
                 months = bracket_utils.iter_months(last_rankings_date, today, include_first=False, include_last=True)
                 for month in months:
                     # Make sure that we actually have matches during this month
-                    # Say we are trying to calculate ranks for 2018-05-01, the player would need to have matches during 2018-04-01
+                    # Say we are trying to calculate ranks for 2018-05-01, the player would need to have matches during 2018-04-01-2018-04-30
                     prev_date = bracket_utils.get_previous_month(month)
                     brackets_during_month = bracket_utils.get_tournaments_during_month(self.db, scene, prev_date)
 
@@ -167,10 +167,12 @@ class processData(object):
             win_loss_dict[p2][p1].append((date, winner == p2))
 
         ranks = get_ranks(win_loss_dict)
+
         tag_rank_map = {}
         for i, x in enumerate(ranks):
             points, player = x
             rank = len(ranks) - i
+
             sql = "INSERT INTO ranks (scene, player, rank, points, date) VALUES ('{}', '{}', '{}', '{}', '{}');"\
                     .format(str(scene), str(player), int(rank), str(points), str(recent_date))
             self.db.exec(sql)

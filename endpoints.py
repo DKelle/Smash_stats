@@ -236,7 +236,7 @@ def big_wins():
 
     if tag and date:
         # This sql statement is a bit of a doozy...
-        select = 'select ranks.player, ranks.rank, matches.date'
+        select = 'select ranks.player, ranks.rank, matches.date, matches.score'
         frm = 'from matches join ranks where ((ranks.player=matches.player1 and matches.player2="{}")'.format(tag)
         player_where = 'or (ranks.player=matches.player2 and matches.player1="{}")) and winner="{}"'.format(tag, tag)
         date_where = 'and matches.scene=ranks.scene and datediff(ranks.date, matches.date)<=31 and ranks.date>matches.date'
@@ -262,7 +262,7 @@ def bad_losses():
 
     if tag and date:
         # This sql statement is a bit of a doozy...
-        select = 'select ranks.player, ranks.rank, matches.date'
+        select = 'select ranks.player, ranks.rank, matches.date, matches.score'
         frm = 'from matches join ranks where ((ranks.player=matches.player1 and matches.player2="{}")'.format(tag)
         player_where = 'or (ranks.player=matches.player2 and matches.player1="{}")) and not winner="{}"'.format(tag, tag)
         date_where = 'and matches.scene=ranks.scene and datediff(ranks.date, matches.date)<=31 and ranks.date>matches.date'
