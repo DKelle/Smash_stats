@@ -540,9 +540,7 @@ def get_ranking_graph_data(db, tag):
         for s in scenes:
             scene_ranks = monthly_ranks_per_scene[s]
             if month in scene_ranks:
-                ranks_per_scene[s].append(scene_ranks[month])
-            else:
-                ranks_per_scene[s].append('null')
+                ranks_per_scene[s].append([month, scene_ranks[month]])
 
     
 
