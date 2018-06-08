@@ -16,6 +16,7 @@ div {
  *
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #tag_div {
+	display: flex;
     background: #fff;
     margin: 1%;
     height: 10%;
@@ -26,9 +27,10 @@ div {
 }
 
 #tag_container_div {
+	width: 50%;
+	margin: 0 auto;
+	padding-top: 2.5vh;
     background: #fff;
-    padding: 1%;
-    height: 50%;
     border-radius: 5px;
     text-align: -webkit-center;
     font-size: 1.5vw;
@@ -275,6 +277,7 @@ div {
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 form {
+	height: 7vh;
 	outline: 0;
 	float: right;
 	margin: 1.5vh 2vw 1vw 1vw;

@@ -42,8 +42,9 @@
 
             <div id='screen'>
                 <div id='tag_div' class='has-feedback'>
-					<form method="post">
-						<input type="text" class="textbox" placeholder="Search">
+					<div id='tag_container_div'></div>
+					<form method="get" onsubmit="return handleSearch();">
+						<input id='searchValue' type="text" class="textbox" placeholder="Search">
 						<input title="Search" value="" type="submit" class="button"></input>
 						<i id='search_glyph' class="glyphicon glyphicon-search form-control-feedback"></i>
 					</form>
