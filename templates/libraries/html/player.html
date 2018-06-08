@@ -41,10 +41,15 @@
             </script>
 
             <div id='screen'>
-                <div id='tag_div'right_div>
+                <div id='tag_div' class='has-feedback'>
+					<form method="post">
+						<input type="text" class="textbox" placeholder="Search">
+						<input title="Search" value="" type="submit" class="button"></input>
+						<i id='search_glyph' class="glyphicon glyphicon-search form-control-feedback"></i>
+					</form>
                 </div>
 
-                <div id='top_div'right_div>
+                <div id='top_div'>
                     <div id='q1_div'>
                         <div id='q_left'>
                             <div id='win_circle'>
@@ -123,6 +128,7 @@
 												<th class="cell100 column1">Opponent</th>
 												<th class="cell100 column2">Rank</th>
 												<th class="cell100 column3">Date</th>
+												<th class="cell100 column4">Score</th>
 											</tr>
 										</thead>
 									</table>

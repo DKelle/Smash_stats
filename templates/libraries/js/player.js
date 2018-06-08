@@ -1,7 +1,6 @@
 function init() {
-    console.log('dallas');
-    tag_div = document.getElementById('tag_div');
-    tag_div.innerHTML = tag;
+    //tag_div = document.getElementById('tag_container_div');
+    //tag_div.innerHTML = tag;
 
     win_icon_div = document.getElementById('q_left');
 
