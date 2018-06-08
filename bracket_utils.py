@@ -544,6 +544,8 @@ def get_ranking_graph_data(db, tag):
             else:
                 ranks_per_scene[s].append('null')
 
+    
+
     return ranks_per_scene, iterated_months
 
 def get_tournaments_during_month(db, scene, date):

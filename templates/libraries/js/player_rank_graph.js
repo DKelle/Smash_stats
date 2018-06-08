@@ -1,3 +1,5 @@
+hide_wins_chart();
+
 var color_dict =  {
  "sms": "#1f77b4",
  "austin": "#ff7f0e",

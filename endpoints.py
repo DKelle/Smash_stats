@@ -247,6 +247,15 @@ def big_wins():
         sql = '{} {} {} {} {} {} {}'.format(select, frm, player_where, date_where, also_date_where, scene_where, order)
         data = db.exec(sql)
 
+        # Before we return this data, reformat score data from [2,1] -> 2 - 1, for eg
+        def reformat(score):
+            score = score.replace('[', '')
+            score = score.replace(']', '')
+            win, loss = score.split(',')
+            score = '{} - {}'.format(win, loss)
+            print ('score is {}'.format(score))
+            return score
+        data = [[r[0], r[1], r[2], reformat(r[3])] for r in data]
         return json.dumps(data)
     
     return ''
@@ -272,6 +281,16 @@ def bad_losses():
 
         sql = '{} {} {} {} {} {} {}'.format(select, frm, player_where, date_where, also_date_where, scene_where, order)
         data = db.exec(sql)
+
+        # Before we return this data, reformat score data from [2,1] -> 1-2, for eg
+        def reformat(score):
+            score = score.replace('[', '')
+            score = score.replace(']', '')
+            win, loss = score.split(',')
+            score = '{} - {}'.format(loss, win)
+            print ('score is {}'.format(score))
+            return score
+        data = [[r[0], r[1], r[2], reformat(r[3])] for r in data]
 
         return json.dumps(data)
     
