@@ -1,4 +1,5 @@
 import MELEE_SINGLES_BRACKETS
+import WIIU_BRACKETS
 
 DNS = 'ec2-18-216-108-45.us-east-2.compute.amazonaws.com'
 
@@ -85,56 +86,7 @@ DISPLAY_MAP = {'heatwave': 'Heatwave',
         'RAA': 'Reading At Alkek'}
 
 PRO_MELEE = MELEE_SINGLES_BRACKETS.MELEE_SINGLES        
-
-PRO_WIIU = ['https://smash.gg/tournament/super-smash-con-2017/events/wii-u-singles/brackets/144668',
-        'https://smash.gg/tournament/get-on-my-level-2017/events/super-smash-bros-for-wii-u-singles',
-        'https://smash.gg/tournament/dreamhack-atlanta-2017/events/super-smash-bros-for-wii-u/',
-        'https://smash.gg/tournament/evo-2017/events/super-smash-bros-for-wii-u/',
-        'https://smash.gg/tournament/smash-n-splash-3/events/wii-u-singles/',
-        'https://smash.gg/tournament/royal-flush/events/wii-u-singles',
-        'https://smash.gg/tournament/dreamhack-austin-2017/events/super-smash-bros-for-wii-u',
-        'https://smash.gg/tournament/ceo-dreamland/events/wii-u-singles',
-        'https://smash.gg/tournament/full-bloom-3/events/wii-u-singles/',
-        'https://smash.gg/tournament/beast-7-1/events/wii-u-singles/',
-        'https://smash.gg/tournament/genesis-4/events/wii-u-singles',
-        'https://smash.gg/tournament/don-t-park-on-the-grass/events/wii-u-singles',
-        'https://smash.gg/tournament/ugc-smash-open/events/wii-u-singles/',
-        'https://smash.gg/tournament/canada-cup-2016/events/wii-u-singles/',
-        'https://smash.gg/tournament/eclipse-2/events/wii-u-singles/brackets',
-        'https://smash.gg/tournament/the-big-house-6/events/wii-u-singles/',
-        'https://smash.gg/tournament/shine-2016-1/events/wii-u-singles',
-        'https://smash.gg/tournament/super-smash-con-2016/events/wii-u-singles',
-        'https://smash.gg/tournament/ozhadou-nationals-15/event/wii-u-singles',
-        'https://smash.gg/tournament/super-bit-wars-6/event/wii-u-singles',
-        'https://smash.gg/tournament/ugc-smash-open/event/wii-u-singles',
-        'https://smash.gg/tournament/gatorlan-fall-2017/event/wii-u-singles',
-        'https://smash.gg/tournament/genesis-4/event/wii-u-singles',
-        'https://smash.gg/tournament/the-big-house-7/event/wii-u-singles',
-        'https://smash.gg/tournament/beast-7-1/event/wii-u-singles',
-        'https://smash.gg/tournament/final-round-20/event/wii-u-singles',
-        'https://smash.gg/tournament/smash-valley-v-featuring-lucky-abate-swedish-delight-wadi-more/event/wii-u-singles',
-        'https://smash.gg/tournament/no-fun-allowed/event/wii-u-singles',
-        'https://smash.gg/tournament/respawn-6/event/wii-u-singles',
-        'https://smash.gg/tournament/overlords-of-orlando-a-florida-monthly-series/event/wii-u-singles',
-        'https://smash.gg/tournament/cen-cal-standoff/event/wii-u-singles',
-        'https://smash.gg/tournament/thunderstruck-v/event/wii-u-singles',
-        'https://smash.gg/tournament/noods-noods-noods-melee-edition/event/wii-u-singles',
-        'https://smash.gg/tournament/poi-poundaz/event/wii-u-singles',
-        'https://smash.gg/tournament/esports-arizona-talking-stick-resort-2/event/super-smash-bros-for-wii-u-singles',
-        'https://smash.gg/tournament/kumite-in-tennessee-2018/event/wii-u-singles',
-        'https://smash.gg/tournament/syndicate-2017/event/wii-u-singles-1',
-        'https://smash.gg/tournament/full-bloom-4/event/wii-u-singles',
-        'https://smash.gg/tournament/gametyrant-expo-2017/event/super-smash-bros-for-wii-u-singles',
-        'https://smash.gg/tournament/hope-r-300-pot-bonus-ft-seagull-joe-icymist-tension/event/wii-u-singles',
-        'https://smash.gg/tournament/canada-cup-2017/event/wiiu-singles',
-        'https://smash.gg/tournament/cencal-standoff-2018-1/event/smash-bros-wii-u-singles',
-        'https://smash.gg/tournament/taw-tijuana-at-war/event/wii-u-singles',
-        'https://smash.gg/tournament/xanadu-end-of-an-era/event/wii-u-singles',
-        'https://smash.gg/tournament/tipped-off-12-presented-by-the-lab-gaming-center/event/wii-u-singles',
-        'https://smash.gg/tournament/tampa-never-sleeps-7/event/wii-u-singles',
-        'https://smash.gg/tournament/noods-noods-noods-oakland-edition-1/event/wii-u-singles',
-        'https://smash.gg/tournament/chicago-gaming-coalition-no-1/event/wii-u-singles',
-        'https://smash.gg/tournament/genesis-5/event/smash-for-wii-u-singles']
+PRO_WIIU = WIIU_BRACKETS.WII_U_BRACKETS
 
 SLEEP_TIME = 10 * 60 * 6 #1 hour
 TOURNAMENTS_PER_RANK = 20
