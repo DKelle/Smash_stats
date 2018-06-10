@@ -46,6 +46,13 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, dis
         t = url_parts[url_parts.index('tournament')+1]
         e = url_parts[url_parts.index('events')+1]
 
+        try:
+            start_at_epoch = smash.tournament_show(t)['start_at']
+            date = datetime.datetime.utcfromtimestamp(start_at_epoch).strftime("%Y-%m-%d")
+        except Exception:
+            LOG.exc('We couldnt find a date for tournament {}'.format(t))
+            date = '2017-09-26'
+
         # The event will be either 'melee' or 'wiiu'
 
         players = smash.tournament_show_players(t, e)
@@ -76,12 +83,8 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, dis
         time.sleep(.5)
 
         placings = bracket_utils.get_tournament_placings(url)
-        e = "pro" if "melee" in e else "pro_wiiu"
         for s in sets:
             
-            # Temporary
-            date = '2017-09-26'
-
             l_id = int(s['loser_id'])
             w_id = int(s['winner_id'])
             s1 = s['entrant_1_score']
@@ -116,7 +119,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, dis
                 continue
 
             sql = "INSERT INTO matches(player1, player2, winner, date, scene, url, display_name, score) VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(\
-                    winner, loser, winner, date, e, url, display_name, score)
+                    winner, loser, winner, date, scene, url, display_name, score)
 
             db.exec(sql)
             
@@ -126,7 +129,6 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, dis
 
             # Also update the player web with this match
             match_pairs.append((winner, g1, loser, g2))
-
     else:
         LOG.info("ERROR PARSING SMASHGG: {}".format(url))
         return
@@ -313,6 +315,8 @@ def get_coalesced_tag(tag, debug=debug):
     return tag
 
 def process(url, scene, db, display_name):
+    success = True
+
     # Just to be sure, make sure this bracket hasn't already been analyzed
     sql = "SELECT * FROM analyzed WHERE base_url = '" + str(url) + "';"
     result = db.exec(sql)
@@ -333,8 +337,12 @@ def process(url, scene, db, display_name):
         try:
             analyze_smashgg_tournament(db, url, scene, True, False, display_name)
         except Exception:
+            success = False
+
             LOG.exc('Hit exception while trying to analyze url {}'.format(url))
 
-    sql = "INSERT INTO analyzed (base_url) VALUES ('" + str(url)+"');" 
+        LOG.info('dallas: about to insert gg {}'.format(url))
 
+    sql = "INSERT INTO analyzed (base_url) VALUES ('" + str(url)+"');"
     db.exec(sql)
+    return success

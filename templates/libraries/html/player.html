@@ -26,6 +26,8 @@
             window['scene'] = '{{scene}}'
             window['ranks_data'] = '{{ranks_data|tojson}}'
             window['months_ranked'] = '{{months_ranked|tojson}}'
+            window['brackets_data'] = '{{brackets_data|tojson}}'
+            window['months_played'] = '{{months_played|tojson}}'
         </script>
 
     </head>
@@ -171,8 +173,14 @@
                     </div>
 
                     <div id='right_div'>
-                        <div id="myChart">
-                            <a class="zc-ref"></a>
+                        <div id='tabs_div'>
+                            <div onclick='setTab("rankings")' id='left_tab_div'>Lifetime Rankings</div>
+                            <div onclick='setTab("brackets")' id='right_tab_div'>Bracket Placing</div>
+                        </div>
+                        <div id='chart_div'>
+                            <div id="myChart">
+                                <a class="zc-ref"></a>
+                            </div>
                         </div>
                     </div>
                 </div>

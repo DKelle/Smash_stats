@@ -23,14 +23,18 @@ class processData(object):
         sql = "SELECT * FROM analyzed WHERE base_url = '" + str(bracket) + "';"
         result = self.db.exec(sql)
         if len(result) > 0:
-            LOG.info('dallas: tried to analyze {}, but has already been done.'.format(bracket))
+            LOG.info('tried to analyze {}, but has already been done.'.format(bracket))
             return
 
         # Send this bracket to get_results
         # We know the bracket is valid if it is from smashgg
         if 'smash.gg' in bracket:
-            get_results.process(bracket, scene, self.db, display_name)
-            self.insert_placing_data(bracket, new_bracket)
+            success = get_results.process(bracket, scene, self.db, display_name)
+            if success:
+                self.insert_placing_data(bracket, new_bracket)
+            else:
+                #TODO add this URL to a table called 'failed_smashgg_brackets' or something
+                LOG.exc('Analyzing smashgg tournament {} was not successful'.format(bracket))
 
         else:
             html, status = bracket_utils.hit_url(bracket)

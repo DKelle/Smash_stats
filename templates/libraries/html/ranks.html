@@ -16,7 +16,8 @@
 
     </head>
 
-    <body onload='init()'>
+    <body>
+    <!--<body onload='init()'>-->
 
         <div class="wrapper">
             <div id="bg"></div>
@@ -30,27 +31,32 @@
                 <div id='top_div'>
             </div>
             <div id='bottom_div'>
-                    <div class="table100 ver5 m-b-110">
-                        <div class="table100-head">
-                            <table>
-                                <thead>
-                                    <tr class="row100 head">
-                                        <th class="cell100 column1">Opponent</th>
-                                        <th class="cell100 column2">Rank</th>
-                                        <th class="cell100 column3">Date</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </div>
+				<!-- Row title -->
+					<main class="row title">
+					  <ul>
+						<li>Sport</li>
+						<li>Entry $</li>
+						<li><span class="title-hide">#</span> Entries</li>
+						<li>Max</li>
+						<li>Time</li>
+					  </ul>
+					</main>
+					<!-- Row 1 - fadeIn -->
+					<section class="row-fadeIn-wrapper">
+					  <article class="row fadeIn nfl">
+						<ul>
+						  <li><a href="#">NFL</a><span class="small"></span></li>
+						  <li>$50</li>
+						  <li>12</li>
+						  <li>48</li>
+						  <li>2:00ET</li>
+						</ul>
+						<ul class="more-content">
+						  <li>This 1665-player contest boasts a $300,000.00 prize pool and pays out the top 300 finishing positions. First place wins $100,000.00. Good luck!</li>
+						</ul>
+					  </article>
+					</section>
 
-                        <div class="table100-body js-pscroll">
-                            <table>
-                                <tbody id='ranks_table'>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
             </div>
 
         </div>

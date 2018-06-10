@@ -13,8 +13,17 @@ var color_dict =  {
 // Cut off start and end quote
 ranks_data = ranks_data.slice(1).slice(0, -1);
 ranks_data = JSON.parse(ranks_data);
+
 months_ranked = months_ranked.slice(1).slice(0, -1);
 months_ranked = JSON.parse(months_ranked);
+
+brackets_data = JSON.parse(brackets_data);
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+//    RANKINGS GRAPH
+//
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 var my_series = [];
 var my_scale_x = months_ranked;
 var plot_index_to_scene = [];
@@ -33,6 +42,31 @@ for (var key in ranks_data) {
     }
 }
 
+//months_played = months_played.slice(1).slice(0, -1);
+months_played = JSON.parse(months_played);
+var i = 0;
+// Build up the list that Zing will use to create the graph
+var brackets_series = [];
+var brackets_scale_x = months_played;
+for (var key in brackets_data) {
+	if (brackets_data.hasOwnProperty(key)) {
+		var values = brackets_data[key];
+		console.log(key);
+		console.log('just created list of values: '+ JSON.stringify(values));
+		var lineColor = color_dict[key];
+		var marker = {'backgroundColor': color_dict[key]};
+		var text = key;
+
+		var d = {'values': values, 'lineColor': lineColor, 'marker': marker, 'text': text};
+		brackets_series.push(d);
+	}
+}
+
+console.log(my_series);
+console.log(brackets_series);
+
+console.log(my_scale_x);
+console.log(brackets_scale_x);
 var myConfig = {
      type: 'line',
      backgroundColor:'#fff',
@@ -201,6 +235,9 @@ function hide_wins_chart() {
     var container_div = document.getElementById('left_div');
     container_div.style.width = "0%";
 
+    var container_div = document.getElementById('left_div');
+    container_div.style.visibility = "hidden";
+
     var container_div = document.getElementById('right_div');
     container_div.style.width = "100%";
 
@@ -213,6 +250,9 @@ function hide_wins_chart() {
 }
 
 function open_wins_chart() {
+    var container_div = document.getElementById('left_div');
+    container_div.style.visibility = "visible";
+
     var container_div = document.getElementById('left_div');
     container_div.style.width = "28%";
 
@@ -249,4 +289,30 @@ function add_table_row(table, col_data) {
     }
 
     table.appendChild(row);
+}
+
+function setTab(which) {
+    var selected_color = "#fff";
+    var unselected_color = "#eff6ff";
+    var rankings_tab = document.getElementById('left_tab_div');
+    var brackets_tab = document.getElementById('right_tab_div');
+
+    var rank_graph = document.getElementById('chart_div');
+	var series;
+    //The tab that was just clicked was either 'rankings' or 'brackets'
+    if (which == 'rankings') {
+        rankings_tab.style.backgroundColor = selected_color;
+        brackets_tab.style.backgroundColor = unselected_color;
+		series = my_series;
+    }
+    else {
+        rankings_tab.style.backgroundColor = unselected_color;
+        brackets_tab.style.backgroundColor = selected_color;
+		series = brackets_series;
+    }
+	console.log('about to change data to ' + JSON.stringify(series));
+	zingchart.exec('myChart', 'setseriesvalues', {
+		values : series
+	});
+
 }

@@ -88,11 +88,11 @@ class validURLs(object):
             LOG.info('Skipping pros because it has been done')
 
         for t in threads:
-            LOG.info('dallas: abouto call join for the analysis thread  {}'.format(t.name))
+            LOG.info('dallas: abouto call join for the analysis thread {}'.format(t.name))
             t.join()
             seconds_to_analyze = time.time() - self.start_time
             minutes = seconds_to_analyze / 60
-            LOG.info('dallas: joining for the analysis thread  {} in {} minutes'.format(t.name, minutes))
+            LOG.info('dallas: joining for the analysis thread {} in {} minutes'.format(t.name, minutes))
             if not analyzed_scenes and should_tweet:
                 tweet('joining for the analysis thread  {} in {} minutes'.format(t.name, minutes))
         LOG.info('dallas: we have joined all threads. Should tweet after this')
@@ -106,16 +106,19 @@ class validURLs(object):
             tweet('Done loading scene data. Took {} minutes'.format(minutes))
         
         # If this was the first time we ran, mark pro brackets as complete
-        # TODO temporarily dont calculate pro ranks... to memory intensive. Fix this
-        sql = "SELECT * FROM ranks WHERE scene='pro';"
-        res = self.db.exec(sql)
-        if len(res) == 0 and not self.testing and run_pros:
-            LOG.info('make pro ranks')
-            # After all the matches from this scene have been processed, calculate ranks
-            self.data_processor.process_ranks('pro')
-            self.data_processor.process_ranks('pro_wiiu')
+        for name in ['pro', 'pro_wiiu']:
+            sql = "SELECT * FROM ranks WHERE scene='{}';".format(name)
+            res = self.db.exec(sql)
+            if len(res) == 0 and not self.testing and run_pros:
+                LOG.info('make {} ranks'.format(name))
+
+                # After all the matches from this scene have been processed, calculate ranks
+                if not analyzed_scenes and should_tweet:
+                    tweet('About to start ranking for scene {}'.format(name))
+                self.data_processor.check_and_update_ranks(name)
 
     def analyze_smashgg(self, urls, name):
+        LOG.info('dallas: we are about to analyze scene {} with {} brackets'.format(name, len(urls)))
         for url in urls:
             # Before we process this URL, check to see if we already have
             sql = "SELECT * FROM analyzed where base_url='{}'".format(url)
@@ -139,7 +142,7 @@ class validURLs(object):
         base_urls = scene.get_base_urls()
         users = scene.get_users()
         name = scene.get_name()
-        LOG.info('dallas: found the following users for scene {}: {}'.format(name, users))
+        LOG.info('found the following users for scene {}: {}'.format(name, users))
 
         # This scene might have one user who always posts the brackets on their challonge account
         for user in users:
@@ -153,14 +156,14 @@ class validURLs(object):
                 # eg, just look at /users/christmasmike?page=1 instead of all the pages that exist
                 most_recent_page = bracket_utils.get_brackets_from_user(user, pages=1)
                 for bracket in most_recent_page:
-                    LOG.info('dallas; here are the brackets from the most recent page of user {}: {}'.format(user, most_recent_page))
+                    LOG.info('here are the brackets from the most recent page of user {}: {}'.format(user, most_recent_page))
                     # This user has already been analyzed, there's a good chance this bracket has been analyzed also
                     sql = "SELECT * FROM user_analyzed WHERE url='{}' AND user='{}';".format(bracket, user)
                     results = self.db.exec(sql)
 
                     if len(results) == 0:
                         # This is a new bracket that must have been published in the last hour or so
-                        LOG.info('dallas: found this url from a user: {} {}'.format(bracket, user))
+                        LOG.info('found this url from a user: {} {}'.format(bracket, user))
                         display_name = bracket_utils.get_display_base(bracket)
                         self.data_processor.process(bracket, name, display_name)
 
@@ -172,12 +175,12 @@ class validURLs(object):
                         msg = "Found new {} bracket: {}".format(name, bracket)
                         tweet(msg)
                     else:
-                        LOG.info('dallas: url {} is not new for user {}'.format(bracket, user))
+                        LOG.info('url {} is not new for user {}'.format(bracket, user))
             else:
                 # This is a new user, analyze all brackets
                 user_urls = bracket_utils.get_brackets_from_user(user)
                 for url in user_urls:
-                    LOG.info('dallas: found this url from a user: {} {}'.format(url, user))
+                    LOG.info('found this url from a user: {} {}'.format(url, user))
                     display_name = bracket_utils.get_display_base(url)
                     self.data_processor.process(url, name, display_name)
 
@@ -185,7 +188,7 @@ class validURLs(object):
                     sql = "INSERT INTO user_analyzed (url, user, scene) VALUES ('{}', '{}', '{}');".format(url, user, name)
                     self.db.exec(sql)
 
-                LOG.info('dallas: done with user {}'.format(user))
+                LOG.info('done with user {}'.format(user))
 
 
         # This scene might always call their brackets the same thing, eg weekly1, weekly2, weekly3 etc

@@ -546,6 +546,28 @@ def get_ranking_graph_data(db, tag):
 
     return ranks_per_scene, iterated_months
 
+def get_bracket_placings_in_scene(db, scene, tag):
+    sql = "select distinct matches.date, placings.place from placings join matches on \
+            matches.url=placings.url where scene='{}' and ((player1='{}' and placings.player=player1) or \
+            (player2='{}' and placings.player=player2));".format(scene, tag, tag)
+    print(sql)
+    res = db.exec(sql)
+
+    # Convert all placings to ints
+    res = [[r[0], int(r[1])] for r in res]
+    return res
+
+def get_bracket_graph_data(db, tag):
+    # First, we have to find out which scenes this player has brackets in
+    sql = "SELECT DISTINCT scene FROM ranks WHERE player='{}'".format(tag)
+    scenes = db.exec(sql)
+    scenes = [s[0] for s in scenes]
+
+    bracket_placings_by_scene = {s: get_bracket_placings_in_scene(db, s, tag) for s in scenes}
+
+    return bracket_placings_by_scene
+
+
 def get_tournaments_during_month(db, scene, date):
     y, m, d = date.split('-')
     ym_date = '{}-{}'.format(y, m)
@@ -640,3 +662,78 @@ def get_display_base(url, counter=None):
 
     # None of the above methods worked. Just call this by its URL
     return url
+
+def get_smashgg_brackets(pages=None, all_brackets=True, singles=True):
+    results = 0
+    per_page = 5
+    page = 1 if pages == None else pages[0]
+    brackets = {}
+    smash = pysmash.SmashGG()
+
+    def iterate():
+        print('PAGE {}'.format(page))
+        # melee
+        #results_url = 'https://smash.gg/results?per_page=5&filter=%7B%22completed%22%3Atrue%2C%22videogameIds%22%3A%221%22%7D&page={}'.format(page)
+        
+        #wiiu
+        results_url = 'https://smash.gg/results?per_page=5&filter=%7B%22completed%22%3Atrue%2C%22videogameIds%22%3A3%7D&page={}'.format(page)
+
+        #Get the html page
+        r = get(results_url)
+        data = r.text
+        soup = BeautifulSoup(data, "html.parser")
+        grep = 'singles' if singles else 'doubles'
+        #print(data)
+
+        links = soup.find_all('a')
+        for link in links:
+            try:
+                if link.has_attr('href') and 'tournament' in link['href']:
+                    url_parts = link['href'].split('/')
+
+                    t = url_parts[url_parts.index('tournament')+1]
+                    if t in brackets:
+                        continue
+
+                    events = smash.tournament_show_events(t)
+                    def get_event(events, matches):
+                        # Do we have a melee singles event?
+                        for e in events['events']:
+                            if all([match in e for match in matches]):
+                                return e
+                                
+                        return None
+                    e = get_event(events, ['wii', 'single'])
+                    if e == None:
+                        e = get_event(events, ['single'])
+                    if e == None:
+                        e = get_event(events, ['wii'])
+                    if e == None:
+                        e = get_event(events, ['smash-4'])
+                    if e == None:
+                        e = get_event(events, ['smash4'])
+                    if e == None:
+                        e = get_event(events, ['smash'])
+                    if e == None:
+                        print('dallas: couldnt get event for {} - {}'.format(t, events))
+                        continue
+
+                    url = 'https://smash.gg/tournament/{}/events/{}'.format(t, e)
+                    brackets[t] = url
+                    with open('threaded_smash_gg_brackets.txt', 'a') as f:
+                        f.write('PAGE{}[[{}]]\n'.format(page, url))
+
+                    
+            except Exception as e:
+                continue
+
+    if pages:
+        for page in pages:
+            iterate()
+    else:
+        while results < 7730:
+            iterate()
+            results = results + per_page
+            page = page + 1
+
+    return brackets

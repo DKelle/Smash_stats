@@ -229,7 +229,6 @@ div {
 #right_div {
     background: #fff;
     float: right;
-    box-shadow: 0 0 0px 1px #7386D5;
     height: 90%;
     width: 71%;
 }
@@ -245,6 +244,45 @@ div {
 	display:none;
 	background:white;
 	color: white;
+}
+
+#tabs_div {
+    height: 15%;
+    background-color: #d9dff7;
+}
+
+#left_tab_div {
+    height: 100%;
+    width: 50%;
+    line-height: 250%;
+    font-size: 350%;
+    background-color: #fff;
+    border-top-right-radius: 50px;
+    border-top-left-radius: 50px;
+    float: left;
+    text-align: center;
+    box-shadow: 0 0 0px 1px #7386D5;
+    transition: all 0.3s;
+}
+
+#right_tab_div {
+    line-height: 250%;
+    transition: all 0.3s;
+    height: 100%;
+    font-size: 350%;
+    width: 50%;
+    background-color: #eff6ff;
+    border-top-right-radius: 50px;
+    border-top-left-radius: 50px;
+    float: right;
+    text-align: center;
+    box-shadow: 0 0 0px 1px #7386D5;
+}
+
+#chart_div {
+    padding-top: 1px;
+    height: 85%;
+    box-shadow: 0 0 0px 1px #7386D5;
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

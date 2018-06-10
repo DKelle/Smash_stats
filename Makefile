@@ -12,6 +12,9 @@ clean:
 tail:
 	tail -f -n 50 logs/smash.log
 
+wsgi:
+	tail -f -n 50 logs/uwsgi.log
+
 clear:
 	python3 sql_utils.py clear
 	sh rm_web_pickles.sh

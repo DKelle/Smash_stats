@@ -51,8 +51,14 @@ def player():
     ranks_data = json.dumps(ranks_data)
     months_ranked = json.dumps(months_ranked)
 
+    brackets_data = bracket_utils.get_bracket_graph_data(db, tag)
+    months_played = []
+    for scene in brackets_data:
+        months_played.extend([bracket[0] for bracket in brackets_data[scene]])
 
-    return render_template('libraries/html/player.html', tag=tag, wins=wins, losses=losses, percentage=percentage, rank=rank, scene=scene, ranks_data=ranks_data, months_ranked=months_ranked)
+    months_played = sorted(months_played)
+
+    return render_template('libraries/html/player.html', tag=tag, wins=wins, losses=losses, percentage=percentage, rank=rank, scene=scene, ranks_data=ranks_data, months_ranked=months_ranked, brackets_data=brackets_data, months_played=months_played)
 
 @endpoints.route("/ranks")
 def ranks():
@@ -253,7 +259,6 @@ def big_wins():
             score = score.replace(']', '')
             win, loss = score.split(',')
             score = '{} - {}'.format(win, loss)
-            print ('score is {}'.format(score))
             return score
         data = [[r[0], r[1], r[2], reformat(r[3])] for r in data]
         return json.dumps(data)
@@ -288,7 +293,6 @@ def bad_losses():
             score = score.replace(']', '')
             win, loss = score.split(',')
             score = '{} - {}'.format(loss, win)
-            print ('score is {}'.format(score))
             return score
         data = [[r[0], r[1], r[2], reformat(r[3])] for r in data]
 
