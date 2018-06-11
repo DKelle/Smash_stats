@@ -51,8 +51,6 @@ var brackets_scale_x = months_played;
 for (var key in brackets_data) {
 	if (brackets_data.hasOwnProperty(key)) {
 		var values = brackets_data[key];
-		console.log(key);
-		console.log('just created list of values: '+ JSON.stringify(values));
 		var lineColor = color_dict[key];
 		var marker = {'backgroundColor': color_dict[key]};
 		var text = key;
@@ -62,12 +60,12 @@ for (var key in brackets_data) {
 	}
 }
 
-console.log(my_series);
-console.log(brackets_series);
+console.log('my series ' + my_series);
+console.log('bracket set ' +  brackets_series);
 
-console.log(my_scale_x);
-console.log(brackets_scale_x);
-var myConfig = {
+console.log('scale x ' + my_scale_x);
+console.log('scale b ' + brackets_scale_x);
+var rankings_config = {
      type: 'line',
      backgroundColor:'#fff',
      title:{
@@ -149,8 +147,6 @@ var myConfig = {
          backgroundColor:'#E3E3E5'
        }
      },
-
-
      shapes:[
               {
                 type:'rectangle',
@@ -175,9 +171,26 @@ var myConfig = {
 	series: my_series
 };
 
+var brackets_config = jQuery.extend(true, {}, rankings_config);
+brackets_config['scaleX'] = {
+       lineColor: '#000',
+       zooming: true,
+       zoomTo:[0,100],
+       item:{
+        "font-angle":-45,    
+         fontColor:'#000'
+       },
+	   values: brackets_scale_x 
+     }
+brackets_config['series'] = brackets_series;
+
+console.log('the rankings config is');
+console.log(rankings_config);
+console.log(JSON.stringify(rankings_config));
+
 zingchart.render({ 
     id: 'myChart', 
-    data: myConfig, 
+    data: rankings_config,
     height: "99%", 
     width: "99%" 
 });
@@ -296,23 +309,81 @@ function setTab(which) {
     var unselected_color = "#eff6ff";
     var rankings_tab = document.getElementById('left_tab_div');
     var brackets_tab = document.getElementById('right_tab_div');
+	var new_title = "";
 
     var rank_graph = document.getElementById('chart_div');
-	var series;
+	var config;
+
+	var new_data = my_series;
+	var new_scale = my_scale_x; 
     //The tab that was just clicked was either 'rankings' or 'brackets'
     if (which == 'rankings') {
         rankings_tab.style.backgroundColor = selected_color;
         brackets_tab.style.backgroundColor = unselected_color;
-		series = my_series;
+		config = rankings_config;
+        new_title = 'Rankings for ' + tag + ' over time'
     }
     else {
+		new_data = brackets_series;
+		new_scale = brackets_scale_x;
         rankings_tab.style.backgroundColor = unselected_color;
         brackets_tab.style.backgroundColor = selected_color;
-		series = brackets_series;
+		config = brackets_config;
+        new_title = 'Bracket placings for ' + tag
     }
-	console.log('about to change data to ' + JSON.stringify(series));
-	zingchart.exec('myChart', 'setseriesvalues', {
-		values : series
+
+	// Change the title of the graph to be about rankings or placings
+	zingchart.exec('myChart', 'modify', {
+		graphid : 0,
+		data : {
+				title : {
+				text : new_title
+			}
+		}
 	});
 
+
+	do_something(new_data, new_scale);
+	//console.log('about to change to this config');
+	//console.log(config);
+	//zingchart.exec('myChart', 'modifyplot', {
+	//	graphid : 0,
+	//	plotindex : 1,
+	//	data : config
+	//});
+
+}
+
+function do_something(data, scale) {
+	console.log('new data is ' + JSON.stringify(data));
+	console.log('new scale is ' + JSON.stringify(scale));
+	console.log('dallas: doing something');
+	zingchart.exec('myChart', 'modify', {
+		graphid : 0,
+		data : {
+			series: data
+		}
+	});
+	zingchart.exec('myChart', 'modify', {
+		graphid : 0,
+		data : {
+			
+			scaleX: {
+				values:scale 
+			}
+		}
+	});
+	zingchart.exec('myChart', 'viewall', {
+		graphid : 0
+	});
+     //scaleX:{
+     //  lineColor: '#000',
+     //  zooming: true,
+     //  zoomTo:[0,100],
+     //  item:{
+     //   "font-angle":-45,    
+     //    fontColor:'#000'
+     //  },
+	 //  values: my_scale_x
+     //},
 }
