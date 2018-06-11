@@ -55,7 +55,7 @@ for (var key in brackets_data) {
 		var marker = {'backgroundColor': color_dict[key]};
 		var text = key;
 
-		var d = {'values': values, 'lineColor': lineColor, 'marker': marker, 'text': text};
+		var d = {'values': values, 'lineColor': "#FFFFFF", 'marker': marker, 'text': text};
 		brackets_series.push(d);
 	}
 }
@@ -358,12 +358,7 @@ function do_something(data, scale) {
 	console.log('new data is ' + JSON.stringify(data));
 	console.log('new scale is ' + JSON.stringify(scale));
 	console.log('dallas: doing something');
-	zingchart.exec('myChart', 'modify', {
-		graphid : 0,
-		data : {
-			series: data
-		}
-	});
+    console.log('\n\n\n');
 	zingchart.exec('myChart', 'modify', {
 		graphid : 0,
 		data : {
@@ -371,6 +366,12 @@ function do_something(data, scale) {
 			scaleX: {
 				values:scale 
 			}
+		}
+	});
+	zingchart.exec('myChart', 'modify', {
+		graphid : 0,
+		data : {
+			series: data
 		}
 	});
 	zingchart.exec('myChart', 'viewall', {
