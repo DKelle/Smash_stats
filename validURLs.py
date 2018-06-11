@@ -83,6 +83,15 @@ class validURLs(object):
             t.daemon = True
             t.start()
             threads.append(t)
+            
+            # TODO smash5
+            # Now 5
+            #urls = constants.PRO_SMASH_5
+            #t = Thread(target=self.analyze_smashgg, name='pro_smash_5', args=(urls, 'pro_smash_5',))
+            #t.daemon = True
+            #t.start()
+            #threads.append(t)
+
 
         else:
             LOG.info('Skipping pros because it has been done')

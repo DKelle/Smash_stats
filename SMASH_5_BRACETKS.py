@@ -1,0 +1,1 @@
+SMASH_5_BRACKETS = []
