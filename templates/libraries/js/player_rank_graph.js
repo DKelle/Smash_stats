@@ -48,12 +48,16 @@ var brackets_series = [];
 var brackets_scale_x = months_played;
 for (var key in brackets_data) {
 	if (brackets_data.hasOwnProperty(key)) {
-		var values = brackets_data[key];
+		var values = [];
+        for (var i in brackets_data[key]) {
+            values.push(brackets_data[key][i]);
+            values.push('null');
+        }
 		var lineColor = color_dict[key];
 		var marker = {'backgroundColor': color_dict[key]};
 		var text = key;
 
-		var d = {'values': values, 'lineColor': "#FFFFFF", 'marker': marker, 'text': text};
+		var d = {'values': values, 'lineColor': lineColor, 'marker': marker, 'text': text};
 		brackets_series.push(d);
 	}
 }
