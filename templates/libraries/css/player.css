@@ -218,19 +218,35 @@ div {
 }
 
 #left_div {
+    transition: all 0.3s;
     background: #fff;
     float: left;
     box-shadow: 0 0 0px 1px #7386D5;
     border-radius: 5px;
+    visibility: hidden;
     height: 90%;
-    width: 28%;
+    width: 0%;
+    /*when this table is unhidden, width is 28*/
+}
+
+#middle_div {
+    transition: all 0.3s;
+    background: #fff;
+    height: 90%;
+    width: 100%;
 }
 
 #right_div {
+    transition: all 0.3s;
     background: #fff;
     float: right;
     height: 90%;
-    width: 71%;
+    box-shadow: 0 0 0px 1px #7386D5;
+    border-radius: 5px;
+    visibility: hidden;
+    height: 90%;
+    width: 0%;
+    /*when this table is unhidden, width is 28*/
 }
 
 #myChart {

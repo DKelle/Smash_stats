@@ -139,7 +139,7 @@
 
 								<div class="table100-body js-pscroll">
 									<table>
-										<tbody id='wins_table'>
+										<tbody id='wins_rankings_table'>
 										</tbody>
 									</table>
 								</div>
@@ -164,7 +164,7 @@
 
 								<div class="table100-body js-pscroll">
 									<table>
-										<tbody id='losses_table'>
+										<tbody id='losses_rankings_table'>
 										</tbody>
 									</table>
 								</div>
@@ -172,7 +172,7 @@
 						</div>
                     </div>
 
-                    <div id='right_div'>
+                    <div id='middle_div'>
                         <div id='tabs_div'>
                             <div onclick='setTab("rankings")' id='left_tab_div'>Lifetime Rankings</div>
                             <div onclick='setTab("brackets")' id='right_tab_div'>Bracket Placing</div>
@@ -182,6 +182,58 @@
                                 <a class="zc-ref"></a>
                             </div>
                         </div>
+                    </div>
+
+                    <div id='right_div'>
+						<div id='top_half'>
+							Tournament Wins
+							<div class="table100 ver5 m-b-110">
+								<div class="table100-head">
+									<table>
+										<thead>
+											<tr class="row100 head">
+												<th class="cell100 column1">Opponent</th>
+                                                <th class="cell100 column2">Opponent placing</th>
+												<th class="cell100 column3">Date</th>
+												<th class="cell100 column4">Score</th>
+											</tr>
+										</thead>
+									</table>
+								</div>
+
+								<div class="table100-body js-pscroll">
+									<table>
+										<tbody id='wins_brackets_table'>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+
+						<div id='bottom_half'>
+							Tournament Losses
+							<div class="table100 ver5 m-b-110">
+								<div class="table100-head">
+									<table>
+										<thead>
+											<tr class="row100 head">
+												<th class="cell100 column1">Opponent</th>
+												<th class="cell100 column2">Opponent placing</th>
+												<th class="cell100 column3">Date</th>
+												<th class="cell100 column3">Score</th>
+											</tr>
+										</thead>
+									</table>
+								</div>
+
+								<div class="table100-body js-pscroll">
+									<table>
+										<tbody id='losses_brackets_table'>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
                     </div>
                 </div>
             </div>

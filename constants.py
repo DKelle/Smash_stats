@@ -1,6 +1,6 @@
 import MELEE_SINGLES_BRACKETS
 import WIIU_BRACKETS
-import SMAHS_5_BRACKETS
+import SMASH_5_BRACKETS
 
 DNS = 'ec2-18-216-108-45.us-east-2.compute.amazonaws.com'
 
@@ -64,7 +64,7 @@ SMASHBREWS_RULS = ('smashbrews', {'enumerated': ['https://challonge.com/Smashbre
 COLORADO_SINGLES_URLS = ('colorado', {'enumerated': ['http://smashco.challonge.com/CSUWW###WUS', 'http://smascho.challonge.com/FCWUA###', 'http://smascho.challonge.com/FCWUIB###']})
 COLORADO_DOUBLES_URLS = ('colorado_doubles', {'enumerated': ['http://smashco.challonge.com/CSUWW###WUD', 'http://smashco.challonge.com/FCWUDC###']})
 COLORADO_URLS = ('colorado_both', {'enumerated': COLORADO_SINGLES_URLS + COLORADO_DOUBLES_URLS})
-SMS_URLS = ('sms', {'enumerated': ['http://challonge.com/RAA_###'], 'users': ['https://challonge.com/users/yellocake']})
+SMS_URLS = ('sms', {'enumerated': ['http://challonge.com/RAA_###', 'http://challonge.com/SMSH_###'], 'users': ['https://challonge.com/users/yellocake']})
 
 DISPLAY_MAP = {'heatwave': 'Heatwave',
         'NP9ATX': 'NP9',

@@ -1,5 +1,3 @@
-hide_wins_chart();
-
 var color_dict =  {
  "sms": "#1f77b4",
  "austin": "#ff7f0e",
@@ -60,11 +58,7 @@ for (var key in brackets_data) {
 	}
 }
 
-console.log('my series ' + my_series);
-console.log('bracket set ' +  brackets_series);
-
-console.log('scale x ' + my_scale_x);
-console.log('scale b ' + brackets_scale_x);
+var selected_tab = 'rankings';
 var rankings_config = {
      type: 'line',
      backgroundColor:'#fff',
@@ -184,10 +178,6 @@ brackets_config['scaleX'] = {
      }
 brackets_config['series'] = brackets_series;
 
-console.log('the rankings config is');
-console.log(rankings_config);
-console.log(JSON.stringify(rankings_config));
-
 zingchart.render({ 
     id: 'myChart', 
     data: rankings_config,
@@ -202,24 +192,43 @@ zingchart.shape_click = function(p){
 }
 
 zingchart.node_click = function(e) {
+	// figure out which tab we are on, and set the table data accordingly
 	var rank = e.value;
 	var date = e.scaletext;
     var scene = plot_index_to_scene[e.plotindex];
 
-	big_wins_url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/big_wins?tag="+tag+"&date="+date+"&scene="+scene;
-	big_wins = JSON.parse(httpGet(big_wins_url));
+	var wins = [];
+	var losses = [];
+	
+    console.log('selected is' + selected_tab);
+	if (selected_tab == 'rankings')
+	{
+		
+		big_wins_url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/big_wins?tag="+tag+"&date="+date+"&scene="+scene;
+		wins = JSON.parse(httpGet(big_wins_url));
 
-	bad_losses_url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/bad_losses?tag="+tag+"&date="+date+"&scene="+scene;
-	bad_losses = JSON.parse(httpGet(bad_losses_url));
+		bad_losses_url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/bad_losses?tag="+tag+"&date="+date+"&scene="+scene;
+		losses = JSON.parse(httpGet(bad_losses_url));
 
-    if (big_wins.length + bad_losses.length == 0) {
+	}
+	else {
+		tournament_wins_url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/tournament_wins?tag="+tag+"&date="+date+"&scene="+scene;
+		wins = JSON.parse(httpGet(tournament_wins_url));
+
+		tournament_losses_url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/tournament_losses?tag="+tag+"&date="+date+"&scene="+scene;
+		losses = JSON.parse(httpGet(tournament_losses_url));
+
+	}
+
+
+    if (wins.length + losses.length == 0) {
         hide_wins_chart();
     }
     else {
         open_wins_chart();
     }
 
-    format_recent_wins_losses_graph(big_wins, bad_losses);
+    format_table(wins, losses);
 }
 
 function httpGet(theUrl)
@@ -230,14 +239,17 @@ function httpGet(theUrl)
     return xmlHttp.responseText;
 }
 
-function format_recent_wins_losses_graph(wins, losses) {
-    table = document.getElementById('wins_table');
+function format_table(wins, losses) {
+	// Which tab are we viewing? Ranks, or brackets?
+    table_name = selected_tab == 'rankings' ? 'rankings_table' : 'brackets_table';
+
+    table = document.getElementById('wins_'+table_name);
     table.innerHTML = '';
     for (var i = 0; i < wins.length; i++) {
         add_table_row(table, wins[i]);
     }
 
-    table = document.getElementById('losses_table');
+    table = document.getElementById('losses_'+table_name);
     table.innerHTML = '';
     for (var i = 0; i < losses.length; i++) {
         add_table_row(table, losses[i]);
@@ -245,13 +257,16 @@ function format_recent_wins_losses_graph(wins, losses) {
 }
 
 function hide_wins_chart() {
+    console.log('hiding');
     var container_div = document.getElementById('left_div');
     container_div.style.width = "0%";
-
-    var container_div = document.getElementById('left_div');
     container_div.style.visibility = "hidden";
 
     var container_div = document.getElementById('right_div');
+    container_div.style.width = "0%";
+    container_div.style.visibility = "hidden";
+
+    var container_div = document.getElementById('middle_div');
     container_div.style.width = "100%";
 
     //var top_half = document.getElementById('top_half');
@@ -263,14 +278,18 @@ function hide_wins_chart() {
 }
 
 function open_wins_chart() {
-    var container_div = document.getElementById('left_div');
-    container_div.style.visibility = "visible";
+    // Are we opening the rankings table, or the brackets table?
+    var div_name = selected_tab == 'rankings' ? 'left_div' : 'right_div';
+    var float_direction = selected_tab == 'rankings' ? 'right' : 'left';
 
-    var container_div = document.getElementById('left_div');
+    var container_div = document.getElementById(div_name);
+    container_div.style.visibility = "visible";
     container_div.style.width = "28%";
 
-    var container_div = document.getElementById('right_div');
+    var container_div = document.getElementById('middle_div');
     container_div.style.width = "71%";
+    container_div.style.float = float_direction;
+
 
     //var top_half = document.getElementById('top_half');
     //top_half.innerHTML = 'Big Wins';
@@ -305,11 +324,18 @@ function add_table_row(table, col_data) {
 }
 
 function setTab(which) {
+    // If we just switched tabs, close the table
+    if (which != selected_tab) {
+        hide_wins_chart();
+        console.log('closing table');
+    }
+	selected_tab = which; 
     var selected_color = "#fff";
     var unselected_color = "#eff6ff";
     var rankings_tab = document.getElementById('left_tab_div');
     var brackets_tab = document.getElementById('right_tab_div');
 	var new_title = "";
+    var font_color = 'white';
 
     var rank_graph = document.getElementById('chart_div');
 	var config;
@@ -324,6 +350,7 @@ function setTab(which) {
         new_title = 'Rankings for ' + tag + ' over time'
     }
     else {
+        font_color = 'black';
 		new_data = brackets_series;
 		new_scale = brackets_scale_x;
         rankings_tab.style.backgroundColor = unselected_color;
@@ -337,13 +364,40 @@ function setTab(which) {
 		graphid : 0,
 		data : {
 				title : {
-				text : new_title
+				text : new_title,
 			}
 		}
 	});
 
+	zingchart.exec('myChart', 'modify', {
+		graphid : 0,
+		data : {
+			
+			scaleX: {
+				values:new_scale
+			}
+		}
+	});
+	zingchart.exec('myChart', 'modify', {
+		graphid : 0,
+		data : {
+			series: new_data
+		}
+	});
+	zingchart.exec('myChart', 'viewall', {
+		graphid : 0
+	});
 
-	do_something(new_data, new_scale);
+	//zingchart.exec('myChart', 'modify', {
+	//	graphid : 0,
+	//	data : {
+	//		plot: {
+	//			tooltip : {
+	//				fontColor: font_color
+	//			}
+	//		}
+	//	}
+	//});
 	//console.log('about to change to this config');
 	//console.log(config);
 	//zingchart.exec('myChart', 'modifyplot', {
@@ -352,39 +406,4 @@ function setTab(which) {
 	//	data : config
 	//});
 
-}
-
-function do_something(data, scale) {
-	console.log('new data is ' + JSON.stringify(data));
-	console.log('new scale is ' + JSON.stringify(scale));
-	console.log('dallas: doing something');
-    console.log('\n\n\n');
-	zingchart.exec('myChart', 'modify', {
-		graphid : 0,
-		data : {
-			
-			scaleX: {
-				values:scale 
-			}
-		}
-	});
-	zingchart.exec('myChart', 'modify', {
-		graphid : 0,
-		data : {
-			series: data
-		}
-	});
-	zingchart.exec('myChart', 'viewall', {
-		graphid : 0
-	});
-     //scaleX:{
-     //  lineColor: '#000',
-     //  zooming: true,
-     //  zoomTo:[0,100],
-     //  item:{
-     //   "font-angle":-45,    
-     //    fontColor:'#000'
-     //  },
-	 //  values: my_scale_x
-     //},
 }

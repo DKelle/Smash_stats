@@ -231,6 +231,70 @@ def matches_at_date():
     
     return ''
 
+@endpoints.route('/tournament_wins')
+def tournament_wins():
+    if db == None:
+        init()
+
+    tag = request.args.get('tag', default=None)
+    date = request.args.get('date', default=None)
+
+    if tag and date:
+        sql = "select player1, place, date, score from matches join placings on matches.url=placings.url and matches.player1=placings.player \
+                where winner='{}' and player2='{}' and date='{}';".format(tag, tag, date)
+        data = db.exec(sql)
+        sql = "select player2, place, date, score from matches join placings on matches.url=placings.url and matches.player2=placings.player \
+                where winner='{}' and player1='{}' and date='{}';".format(tag, tag, date)
+        data = data + db.exec(sql)
+
+        data = [r for r in data]
+        data.sort(key=lambda x: int(x[1]))
+
+        # Before we return this data, reformat score data from [2,1] -> 2 - 1, for eg
+        def reformat(score):
+            score = score.replace('[', '')
+            score = score.replace(']', '')
+            win, loss = score.split(',')
+            score = '{} - {}'.format(win, loss)
+            return score
+        data = [[r[0], r[1], r[2], reformat(r[3])] for r in data]
+        return json.dumps(data)
+    
+    return ''
+
+@endpoints.route('/tournament_losses')
+def tournament_losses():
+    if db == None:
+        init()
+
+    print ('dallas: inside the losses endpoint')
+    tag = request.args.get('tag', default=None)
+    date = request.args.get('date', default=None)
+
+    if tag and date:
+        print('dallas: found tag and ddate')
+        sql = "select player1, place, date, score from matches join placings on matches.url=placings.url and matches.player1=placings.player \
+                where winner!='{}' and player2='{}' and date='{}';".format(tag, tag, date)
+        data = db.exec(sql)
+        sql = "select player2, place, date, score from matches join placings on matches.url=placings.url and matches.player2=placings.player \
+                where winner!='{}' and player1='{}' and date='{}';".format(tag, tag, date)
+        data = data + db.exec(sql)
+
+        data = [r for r in data]
+        data.sort(key=lambda x: int(x[1]))
+
+        # Before we return this data, reformat score data from [2,1] -> 2 - 1, for eg
+        def reformat(score):
+            score = score.replace('[', '')
+            score = score.replace(']', '')
+            win, loss = score.split(',')
+            score = '{} - {}'.format(win, loss)
+            return score
+        data = [[r[0], r[1], r[2], reformat(r[3])] for r in data]
+        return json.dumps(data)
+    
+    return ''
+
 @endpoints.route('/big_wins')
 def big_wins():
     if db == None:
