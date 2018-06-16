@@ -22,7 +22,7 @@ body, html, #container {
 
 #center_div {
     margin: 0 auto;
-    height: 75%;
+    height: 65%;
     width: 65%;
     transition: all 1.3s;
     overflow:scroll;

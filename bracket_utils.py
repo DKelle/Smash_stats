@@ -644,6 +644,14 @@ def get_display_base(url, counter=None):
         else:
             LOG.info('url {} has no title'.format(url))
 
+        # We couldn't find the title in a div. It may be in an h1
+        display_name = soup.find('h1', {'class': 'title'})
+        if display_name:
+            name = display_name.find(text=True).lstrip().rstrip()
+            LOG.info('just found new title for url: {} - {}'.format(url, name))
+
+            return name
+
     # We couldn't find a title in the HTML. See if we have a hard-coded one
     d_map = constants.DISPLAY_MAP
     for k in d_map:

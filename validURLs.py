@@ -135,6 +135,12 @@ class validURLs(object):
             if len(res) == 0:
 
                 display_name = bracket_utils.get_display_base(url)
+
+                # We don't care about doubles tournaments
+                if 'doubles' in display_name.lower() or 'dubs' in display_name.lower():
+                    LOG.info('We are skipping the tournament {} because it is a doubles tournament'.format(display_name))
+                    continue
+
                 LOG.info('About to process pro bracket {}'.format(url))
                 self.data_processor.process(url, name, display_name)
             else:
@@ -174,6 +180,11 @@ class validURLs(object):
                         # This is a new bracket that must have been published in the last hour or so
                         LOG.info('found this url from a user: {} {}'.format(bracket, user))
                         display_name = bracket_utils.get_display_base(bracket)
+                        # We don't care about doubles tournaments
+                        if 'doubles' in display_name.lower() or 'dubs' in display_name.lower():
+                            LOG.info('We are skipping the tournament {} because it is a doubles tournament'.format(display_name))
+                            continue
+
                         self.data_processor.process(bracket, name, display_name)
 
                         # mark this bracket as analyzed
@@ -191,6 +202,11 @@ class validURLs(object):
                 for url in user_urls:
                     LOG.info('found this url from a user: {} {}'.format(url, user))
                     display_name = bracket_utils.get_display_base(url)
+                    # We don't care about doubles tournaments
+                    if 'doubles' in display_name.lower() or 'dubs' in display_name.lower():
+                        LOG.info('We are skipping the tournament {} because it is a doubles tournament'.format(display_name))
+                        continue
+
                     self.data_processor.process(url, name, display_name)
 
                     # mark this bracket as analyzed
@@ -240,6 +256,11 @@ class validURLs(object):
                         # Create the display name for this bracket
                         # Eg challonge.com/NP9ATX54 -> NP9 54
                         display_name = bracket_utils.get_display_base(bracket, counter=i)
+                        # We don't care about doubles tournaments
+                        if 'doubles' in display_name.lower() or 'dubs' in display_name.lower():
+                            LOG.info('We are skipping the tournament {} because it is a doubles tournament'.format(display_name))
+                            continue
+
                         self.data_processor.process(bracket, name, display_name, new_bracket=True)
 
             else:
@@ -257,6 +278,11 @@ class validURLs(object):
                     # Create the display name for this bracket
                     # Eg challonge.com/NP9ATX54 -> NP9 54
                     display_name = bracket_utils.get_display_base(bracket, counter=i)
+                    # We don't care about doubles tournaments
+                    if 'doubles' in display_name.lower() or 'dubs' in display_name.lower():
+                        LOG.info('We are skipping the tournament {} because it is a doubles tournament'.format(display_name))
+                        continue
+
                     self.data_processor.process(bracket, name, display_name)
 
                     # Calculate ranks after each tournament so we can see how players are progressing

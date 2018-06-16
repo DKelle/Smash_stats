@@ -8,6 +8,10 @@ var color_dict =  {
  "pro_wiiu":"#e377c2",
 };
 
+// Make a map of date to tournemante
+// eg. 2017-05-26 -> Heatwave 23
+var date_to_display_name = {};
+
 // Cut off start and end quote
 ranks_data = ranks_data.slice(1).slice(0, -1);
 ranks_data = JSON.parse(ranks_data);
@@ -102,7 +106,6 @@ var rankings_config = {
      scaleX:{
        lineColor: '#000',
        zooming: true,
-       zoomTo:[0,100],
        item:{
         "font-angle":-45,    
          fontColor:'#000'
@@ -173,7 +176,6 @@ var brackets_config = jQuery.extend(true, {}, rankings_config);
 brackets_config['scaleX'] = {
        lineColor: '#000',
        zooming: true,
-       zoomTo:[0,100],
        item:{
         "font-angle":-45,    
          fontColor:'#000'
@@ -363,7 +365,7 @@ function setTab(which) {
         brackets_tab.style.backgroundColor = selected_color;
 		config = brackets_config;
         new_tooltip = "Placed %v on %k. Click for info";
-        new_tooltip = "Ranke %v in %t on %k. Click for info";
+        new_tooltip = "Placed %v in %t on '%k. Click for info";
 
         new_title = 'Bracket placings for ' + tag
     }
@@ -391,6 +393,15 @@ function setTab(which) {
 		graphid : 0,
 		data : {
 			series: new_data
+		}
+	});
+	zingchart.exec('myChart', 'modify', {
+		graphid : 0,
+		data : {
+			
+			scaleX: {
+				values:new_scale
+			}
 		}
 	});
 	zingchart.exec('myChart', 'viewall', {
