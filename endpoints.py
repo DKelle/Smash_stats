@@ -53,8 +53,8 @@ def player():
 
     brackets_data = bracket_utils.get_bracket_graph_data(db, tag)
     months_played = []
-    for scene in brackets_data:
-        months_played.extend([bracket[0] for bracket in brackets_data[scene]])
+    for s in brackets_data:
+        months_played.extend([bracket[0] for bracket in brackets_data[s]])
 
     months_played = sorted(months_played)
 
@@ -66,19 +66,13 @@ def ranks():
         init()
 
     scene = request.args.get('scene', default='austin')
-    date = request.args.get('date', default='2018-05-01')
-
-    # Get all the urls that this player has participated in
-    sql = "SELECT * FROM ranks WHERE scene = '{}' and date='{}'".format(scene, date)
-    return render_template('libraries/html/ranks.html', scene=scene, date=date)
-
-@endpoints.route("/rankings")
-def rankings():
-    if db == None:
-        init()
-
-    scene = request.args.get('scene', default='austin')
-    date = request.args.get('date', default='2018-05-01')
+    date = request.args.get('date')
+ 
+    # If no date was provided, pick the date of the latest tournament
+    if date == None:
+        sql = "SELECT distinct date FROM ranks WHERE scene='{}' ORDER BY date DESC LIMIT 1;".format(scene)
+        res = db.exec(sql)
+        date = res[0][0]
 
     # Get all the urls that this player has participated in
     sql = "SELECT * FROM ranks WHERE scene = '{}' and date='{}'".format(scene, date)
@@ -110,16 +104,11 @@ def rankings():
 
         prev_ranks[tag] = rank
 
-    return render_template('libraries/html/ranks.html', cur_ranks=cur_ranks, prev_ranks=prev_ranks)
-
-    container = {'cur': cur_ranks, 'prev': prev_ranks}
-    return json.dumps(container)
-
+    return render_template('libraries/html/ranks.html', cur_ranks=cur_ranks, prev_ranks=prev_ranks, scene=scene, date=date)
 
 @endpoints.route("/base")
 def base():
     return render_template('libraries/templates/html/base.html')
-
 
 @endpoints.route("/wins")
 def wins():

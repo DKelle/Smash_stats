@@ -2,22 +2,21 @@
 <html lang="en">
 
     <head>
-        <link rel='stylesheet prefetch' href='templates/libraries/css/animate.min.css'>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <link rel="stylesheet" href="templates/libraries/css/nav.css">
         <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
         <link rel='stylesheet prefetch' href='templates/libraries/css/ranks.css'>
-		<link href="templates/libraries/css/table_v2.css" rel="stylesheet" type="text/css" />
 
 		<script>
 			window['prev_ranks'] = '{{prev_ranks|tojson}}'
 			window['cur_ranks'] = '{{cur_ranks|tojson}}'
+			window['date'] = '{{date}}'
+			window['scene'] = '{{scene}}'
 		</script>
 
     </head>
 
-    <body>
-    <!--<body onload='init()'>-->
+    <body onload='init()'>
 
         <div class="wrapper">
             <div id="bg"></div>
@@ -29,34 +28,32 @@
 
             <div id='screen'>
                 <div id='top_div'>
-            </div>
-            <div id='bottom_div'>
-				<!-- Row title -->
-					<main class="row title">
-					  <ul>
-						<li>Sport</li>
-						<li>Entry $</li>
-						<li><span class="title-hide">#</span> Entries</li>
-						<li>Max</li>
-						<li>Time</li>
-					  </ul>
-					</main>
-					<!-- Row 1 - fadeIn -->
-					<section class="row-fadeIn-wrapper">
-					  <article class="row fadeIn nfl">
-						<ul>
-						  <li><a href="#">NFL</a><span class="small"></span></li>
-						  <li>$50</li>
-						  <li>12</li>
-						  <li>48</li>
-						  <li>2:00ET</li>
-						</ul>
-						<ul class="more-content">
-						  <li>This 1665-player contest boasts a $300,000.00 prize pool and pays out the top 300 finishing positions. First place wins $100,000.00. Good luck!</li>
-						</ul>
-					  </article>
-					</section>
-
+					<div class="form-group">
+						<label>First check in:</label>
+						<input type="text" class="form-control form-control-1 input-sm" placeholder="CheckIn" >
+					</div>
+				</div>
+				<div id='center_div'>
+					<table id='ranks_table'>
+						<thead>
+							<tr>
+								<th>Tag</th>
+								<th>Rank</th>
+								<th>Change</th>
+							</tr>
+						</thead>
+					</table>
+				</div>
+				<div id='bottom_div'>
+					<div onclick="previous_month('{{date}}')" id='prev_month_div'>
+						<i id='prev_glyph' class="glyphicon glyphicon-triangle-left"></i>
+						Previous Month
+					</div>
+					<div onclick="next_month('{{date}}')" id='next_month_div'>
+						<i id='next_glyph' class="glyphicon glyphicon-triangle-right"></i>
+						Next Month
+					</div>
+				</div>
             </div>
 
         </div>

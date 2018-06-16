@@ -340,6 +340,7 @@ function setTab(which) {
     var brackets_tab = document.getElementById('right_tab_div');
 	var new_title = "";
     var font_color = 'white';
+    var new_tooltip
 
     var rank_graph = document.getElementById('chart_div');
 	var config;
@@ -351,7 +352,8 @@ function setTab(which) {
         rankings_tab.style.backgroundColor = selected_color;
         brackets_tab.style.backgroundColor = unselected_color;
 		config = rankings_config;
-        new_title = 'Rankings for ' + tag + ' over time'
+        new_title = 'Rankings for ' + tag + ' over time';
+        new_tooltip = "Ranked %v in %t on %k. Click for info";
     }
     else {
         font_color = 'black';
@@ -360,6 +362,9 @@ function setTab(which) {
         rankings_tab.style.backgroundColor = unselected_color;
         brackets_tab.style.backgroundColor = selected_color;
 		config = brackets_config;
+        new_tooltip = "Placed %v on %k. Click for info";
+        new_tooltip = "Ranke %v in %t on %k. Click for info";
+
         new_title = 'Bracket placings for ' + tag
     }
 
@@ -392,22 +397,15 @@ function setTab(which) {
 		graphid : 0
 	});
 
-	//zingchart.exec('myChart', 'modify', {
-	//	graphid : 0,
-	//	data : {
-	//		plot: {
-	//			tooltip : {
-	//				fontColor: font_color
-	//			}
-	//		}
-	//	}
-	//});
-	//console.log('about to change to this config');
-	//console.log(config);
-	//zingchart.exec('myChart', 'modifyplot', {
-	//	graphid : 0,
-	//	plotindex : 1,
-	//	data : config
-	//});
+    //changing the tooltip... Some reason, this doesn't work
+    
+	zingchart.exec('myChart', 'modify', {
+		graphid : 0,
+		data : {
+			tooltip: {
+                text:new_tooltip
+			}
+		}
+	});
 
 }
