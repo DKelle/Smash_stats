@@ -2,7 +2,7 @@ import MELEE_SINGLES_BRACKETS
 import WIIU_BRACKETS
 import SMASH_5_BRACKETS
 
-DNS = 'ec2-18-216-108-45.us-east-2.compute.amazonaws.com'
+DNS = 'ec2-18-218-117-97.us-east-2.compute.amazonaws.com'
 
 TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike', 'christmas mike xmas', 'christmas mike late', 'halloween mike', 'im 12', 'im12'],
         ['circuits', 'circuits', 'jkelle', 'circuits xmas'],

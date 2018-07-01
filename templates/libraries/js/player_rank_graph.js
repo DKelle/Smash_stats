@@ -210,18 +210,18 @@ zingchart.node_click = function(e) {
 	if (selected_tab == 'rankings')
 	{
 		
-		big_wins_url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/big_wins?tag="+tag+"&date="+date+"&scene="+scene;
+		big_wins_url = "http://ec2-18-218-117-97.us-east-2.compute.amazonaws.com:5000/big_wins?tag="+tag+"&date="+date+"&scene="+scene;
 		wins = JSON.parse(httpGet(big_wins_url));
 
-		bad_losses_url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/bad_losses?tag="+tag+"&date="+date+"&scene="+scene;
+		bad_losses_url = "http://ec2-18-218-117-97.us-east-2.compute.amazonaws.com:5000/bad_losses?tag="+tag+"&date="+date+"&scene="+scene;
 		losses = JSON.parse(httpGet(bad_losses_url));
 
 	}
 	else {
-		tournament_wins_url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/tournament_wins?tag="+tag+"&date="+date+"&scene="+scene;
+		tournament_wins_url = "http://ec2-18-218-117-97.us-east-2.compute.amazonaws.com:5000/tournament_wins?tag="+tag+"&date="+date+"&scene="+scene;
 		wins = JSON.parse(httpGet(tournament_wins_url));
 
-		tournament_losses_url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/tournament_losses?tag="+tag+"&date="+date+"&scene="+scene;
+		tournament_losses_url = "http://ec2-18-218-117-97.us-east-2.compute.amazonaws.com:5000/tournament_losses?tag="+tag+"&date="+date+"&scene="+scene;
 		losses = JSON.parse(httpGet(tournament_losses_url));
 
 	}
@@ -263,7 +263,6 @@ function format_table(wins, losses) {
 }
 
 function hide_wins_chart() {
-    console.log('hiding');
     var container_div = document.getElementById('left_div');
     container_div.style.width = "0%";
     container_div.style.visibility = "hidden";
@@ -308,7 +307,7 @@ function open_wins_chart() {
 function add_table_row(table, col_data) {
     var row = document.createElement("tr");
     row.className = "row100 body";
-    var url = 'http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/player?tag='+col_data[0];
+    var url = 'http://ec2-18-218-117-97.us-east-2.compute.amazonaws.com:5000/player?tag='+col_data[0];
 	var createClickHandler = function(url) {
 		return function() {
 			document.location.href = url;
@@ -333,7 +332,6 @@ function setTab(which) {
     // If we just switched tabs, close the table
     if (which != selected_tab) {
         hide_wins_chart();
-        console.log('closing table');
     }
 	selected_tab = which; 
     var selected_color = "#fff";
@@ -376,47 +374,27 @@ function setTab(which) {
 		data : {
 				title : {
 				text : new_title,
-			}
-		}
-	});
-
-	zingchart.exec('myChart', 'modify', {
-		graphid : 0,
-		data : {
-			
+			},
 			scaleX: {
 				values:new_scale
-			}
-		}
-	});
-	zingchart.exec('myChart', 'modify', {
-		graphid : 0,
-		data : {
-			series: new_data
-		}
-	});
-	zingchart.exec('myChart', 'modify', {
-		graphid : 0,
-		data : {
-			
-			scaleX: {
-				values:new_scale
-			}
-		}
-	});
-	zingchart.exec('myChart', 'viewall', {
-		graphid : 0
-	});
-
-    //changing the tooltip... Some reason, this doesn't work
-    
-	zingchart.exec('myChart', 'modify', {
-		graphid : 0,
-		data : {
+			},
+			series: new_data,
 			tooltip: {
                 text:new_tooltip
 			}
 		}
 	});
+
+	zingchart.exec('myChart', 'viewall', {
+		graphid : 0
+	});
+	console.log('boutta change the chart amrea');
+
+    //changing the tooltip... Some reason, this doesn't work
+
+    //zingchart.exec('myChart', 'reload', {
+    //        graphid : 0
+    //});
+
 
 }

@@ -50,7 +50,7 @@ function add_table_rows(table, cols) {
         col_data = cols[rank];
         var row = document.createElement("tr");
 
-        var url = 'http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/player?tag='+col_data[0];
+        var url = 'http://ec2-18-218-117-97.us-east-2.compute.amazonaws.com:5000/player?tag='+col_data[0];
         var createClickHandler = function(url) {
             return function() {
                 document.location.href = url;
@@ -114,7 +114,7 @@ function capitalize_first_letters(str) {
 function previous_month(date) {
 	console.log('we are getting previous mont ' + date);
 	var prev = prev_date(date);
-	var url = 'http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/ranks?scene='+scene+'&date='+prev;
+	var url = 'http://ec2-18-218-117-97.us-east-2.compute.amazonaws.com:5000/ranks?scene='+scene+'&date='+prev;
 	console.log('date is ' + prev);
 	window.location.replace(url);
 }
@@ -122,7 +122,7 @@ function previous_month(date) {
 function next_month(date) {
 	console.log('we are getting next mont ' + date);
 	var next = next_date(date);
-	var url = 'http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/ranks?scene='+scene+'&date='+next;
+	var url = 'http://ec2-18-218-117-97.us-east-2.compute.amazonaws.com:5000/ranks?scene='+scene+'&date='+next;
 	window.location.replace(url);
 }
 

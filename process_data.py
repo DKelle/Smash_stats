@@ -113,7 +113,7 @@ class processData(object):
                 months = bracket_utils.iter_months(last_rankings_date, today, include_first=False, include_last=True)
                 for month in months:
                     # Make sure that we actually have matches during this month
-                    # Say we are trying to calculate ranks for 2018-05-01, the player would need to have matches during 2018-04-01-2018-04-30
+                    # Say we are trying to calculate ranks for 2018-05-01, the player would need to have matches during 2018-04-01, 2018-04-30
                     prev_date = bracket_utils.get_previous_month(month)
                     brackets_during_month = bracket_utils.get_tournaments_during_month(self.db, scene, prev_date)
 

@@ -495,7 +495,7 @@ def has_month_passed(date):
 
     # Otherwise, we know that 'date' is in the past, and 'today' is current.
     # We must be in a new month now. Always rank on the 1st
-    if today_d == '1':
+    if today_d == '01':
         return True
 
     return False

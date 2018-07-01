@@ -145,7 +145,7 @@ function update_stats_nav(node) {
         if(typeof p2 == 'undefined') {
             break;
         }
-        url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/h2h?tag1="+p1+"&tag2="+p2;
+        url = "http://ec2-18-218-117-97.us-east-2.compute.amazonaws.com:5000/h2h?tag1="+p1+"&tag2="+p2;
 
         result = JSON.parse(httpGet(url));
         matches = result.length;
@@ -251,11 +251,11 @@ function update_stats_nav(node) {
 			ul.removeChild(ul.childNodes[0]);
 		}
 
-        url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/entrants?tag1="+p1;
+        url = "http://ec2-18-218-117-97.us-east-2.compute.amazonaws.com:5000/entrants?tag1="+p1;
         result = JSON.parse(httpGet(url));
         matches = result.length;
 
-        url = "http://ec2-18-216-108-45.us-east-2.compute.amazonaws.com:5000/placings?tag="+p1;
+        url = "http://ec2-18-218-117-97.us-east-2.compute.amazonaws.com:5000/placings?tag="+p1;
         placings = JSON.parse(httpGet(url));
 
 		for(var i = 0; i < result.length; i ++) {
