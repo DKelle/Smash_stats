@@ -46,6 +46,7 @@ def _get_last_valid_url(base_url, start=1):
         #if base_url == "https://austinsmash4.challonge.com/atx145":
         #    print
         url = base_url.replace('###', str(start))
+        print('about to check url {}'.format(url))
         if debug: print('start is ' + str(start))
 
         data, status = hit_url(url)
@@ -333,8 +334,13 @@ def get_tournament_placings(bracket_url):
 
     return placings_map
 
-def player_in_url(db, player, url):
-    sql = "SELECT * FROM matches WHERE (player1='{}' or player2='{}') and url='{}'".format(player, player, url)
+def player_in_url(db, player, urls):
+    sql = "SELECT * FROM matches WHERE (player1='{}' or player2='{}')".format(player, player, urls)
+    if len(urls) > 0:
+        sql = sql + " and (url='{}'"
+        for url in urls[1:]:
+            sql = sql + " or url='{}'"
+        sql = sql + ");"
     res = db.exec(sql)
     if len(res) > 0:
         return True
@@ -580,9 +586,8 @@ def played_during_month(db, scene, tag, date):
     # First, which tournaments were hosted during this month?
     tournaments = get_tournaments_during_month(db, scene, date)
 
-    for tournament in tournaments:
-        if player_in_url(db, tag, url=tournament):
-            return True
+    if player_in_url(db, tag, urls=tournaments):
+        return True
 
     return False
 
@@ -671,7 +676,7 @@ def get_display_base(url, counter=None):
     # None of the above methods worked. Just call this by its URL
     return url
 
-def get_smashgg_brackets(pages=None, all_brackets=True, singles=True):
+def get_smashgg_brackets(pages=None, all_brackets=True, singles=True, scene='pro'):
     results = 0
     per_page = 5
     page = 1 if pages == None else pages[0]
@@ -682,9 +687,10 @@ def get_smashgg_brackets(pages=None, all_brackets=True, singles=True):
         print('PAGE {}'.format(page))
         # melee
         #results_url = 'https://smash.gg/results?per_page=5&filter=%7B%22completed%22%3Atrue%2C%22videogameIds%22%3A%221%22%7D&page={}'.format(page)
+        results_url = "https://smash.gg/tournaments?per_page=30&filter=%7B%22upcoming%22%3Afalse%2C%22videogameIds%22%3A4%2C%22past%22%3Atrue%7D&page={}".format(page)
         
         #wiiu
-        results_url = 'https://smash.gg/results?per_page=5&filter=%7B%22completed%22%3Atrue%2C%22videogameIds%22%3A3%7D&page={}'.format(page)
+        #results_url = 'https://smash.gg/results?per_page=5&filter=%7B%22completed%22%3Atrue%2C%22videogameIds%22%3A3%7D&page={}'.format(page)
 
         #Get the html page
         r = get(results_url)
@@ -711,20 +717,34 @@ def get_smashgg_brackets(pages=None, all_brackets=True, singles=True):
                                 return e
                                 
                         return None
-                    e = get_event(events, ['wii', 'single'])
-                    if e == None:
-                        e = get_event(events, ['single'])
-                    if e == None:
-                        e = get_event(events, ['wii'])
-                    if e == None:
-                        e = get_event(events, ['smash-4'])
-                    if e == None:
-                        e = get_event(events, ['smash4'])
-                    if e == None:
-                        e = get_event(events, ['smash'])
-                    if e == None:
-                        print('dallas: couldnt get event for {} - {}'.format(t, events))
-                        continue
+
+                    if scene=='pro_wiiu':
+                        e = get_event(events, ['wii', 'single'])
+                        if e == None:
+                            e = get_event(events, ['single'])
+                        if e == None:
+                            e = get_event(events, ['wii'])
+                        if e == None:
+                            e = get_event(events, ['smash-4'])
+                        if e == None:
+                            e = get_event(events, ['smash4'])
+                        if e == None:
+                            e = get_event(events, ['smash'])
+                        if e == None:
+                            continue
+
+                    elif scene=='pro':
+                        e = get_event(events, ['melee', 'single'])
+                        if e == None:
+                            e = get_event(events, ['single'])
+                        if e == None:
+                            e = get_event(events, ['gamecube'])
+                        if e == None:
+                            e = get_event(events, ['melee'])
+                        if e == None:
+                            e = get_event(events, ['smash'])
+                        if e == None:
+                            continue
 
                     url = 'https://smash.gg/tournament/{}/events/{}'.format(t, e)
                     brackets[t] = url

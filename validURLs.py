@@ -8,18 +8,18 @@ import time
 from tweet import tweet
 
 analyzed_scenes = False
-run_pros = False
-should_tweet = False
+run_pros = True
+should_tweet = True
 
 LOG = logger.logger(__name__)
 
 class validURLs(object):
-    def __init__(self, scenes, testing=False):
+    def __init__(self, scenes, testing=False, db_name='smash'):
         global should_tweet
         self.start_time = time.time()
         self.testing = testing
         self.scenes = scenes
-        db_name = 'smash_test' if testing else 'smash'
+        db_name = 'smash_test' if testing else db_name
         self.db = get_db(db=db_name)
 
         # Should we tweet when we are done analyzing? Only if we are totally repopulating
@@ -60,52 +60,64 @@ class validURLs(object):
             chunk = self.scenes[i1:i2]
             name = [scene.get_name() for scene in chunk]
             t = Thread(target=self.analyze_scenes, name=str(name), args=(chunk,))
-            LOG.info('dallas: Trying to start the analysis thread for scenes {}'.format(t.name))
+            LOG.info('Trying to start the analysis thread for scenes {}'.format(t.name))
             t.start()
             threads.append(t)
 
         # Start the pros
         # Have we analyzed them before?
-        sql = "SELECT * FROM players WHERE scene='pro';"
-        res = self.db.exec(sql)
-        if run_pros and len(res) == 0 and not self.testing:
-            # Start 1 thread for melee and 1 thread for wiiu
-            LOG.info('about to start pros')
-            urls = constants.PRO_MELEE
-            t = Thread(target=self.analyze_smashgg, name='pro', args=(urls, 'pro',))
-            t.daemon = True
-            t.start()
-            threads.append(t)
+        #sql = "SELECT * FROM players WHERE scene='pro';"
+        #res = self.db.exec(sql)
+        #if run_pros and len(res) == 0 and not self.testing:
+        #    # Start 1 thread for melee and 1 thread for wiiu
+        #    LOG.info('about to start pros')
+        #    urls = constants.PRO_MELEE
+        #    t = Thread(target=self.analyze_smashgg, name='pro', args=(urls, 'pro',))
+        #    t.daemon = True
+        #    t.start()
+        #    threads.append(t)
 
-            # Now wiiu
-            urls = constants.PRO_WIIU
-            t = Thread(target=self.analyze_smashgg, name='pro_wiiu', args=(urls, 'pro_wiiu',))
-            t.daemon = True
-            t.start()
-            threads.append(t)
-            
-            # TODO smash5
-            # Now 5
-            #urls = constants.PRO_SMASH_5
-            #t = Thread(target=self.analyze_smashgg, name='pro_smash_5', args=(urls, 'pro_smash_5',))
-            #t.daemon = True
-            #t.start()
-            #threads.append(t)
+        #    # Now wiiu
+        #    urls = constants.PRO_WIIU
+        #    t = Thread(target=self.analyze_smashgg, name='pro_wiiu', args=(urls, 'pro_wiiu',))
+        #    t.daemon = True
+        #    t.start()
+        #    threads.append(t)
+        #    
+        #    # TODO smash5
+        #    # Now 5
+        #    #urls = constants.PRO_SMASH_5
+        #    #t = Thread(target=self.analyze_smashgg, name='pro_smash_5', args=(urls, 'pro_smash_5',))
+        #    #t.daemon = True
+        #    #t.start()
+        #    #threads.append(t)
 
 
-        else:
-            LOG.info('Skipping pros because it has been done')
+        #else:
+        #    LOG.info('Skipping pros because it has been done')
 
         for t in threads:
-            LOG.info('dallas: abouto call join for the analysis thread {}'.format(t.name))
+            LOG.info('abouto call join for the analysis thread {}'.format(t.name))
             t.join()
             seconds_to_analyze = time.time() - self.start_time
             minutes = seconds_to_analyze / 60
-            LOG.info('dallas: joining for the analysis thread {} in {} minutes'.format(t.name, minutes))
+            LOG.info('joining for the analysis thread {} in {} minutes'.format(t.name, minutes))
             if not analyzed_scenes and should_tweet:
                 tweet('joining for the analysis thread  {} in {} minutes'.format(t.name, minutes))
-        LOG.info('dallas: we have joined all threads. Should tweet after this')
+        LOG.info('we have joined all threads. Should tweet after this')
 
+        # If this was the first time we ran, mark pro brackets as complete
+        for name in ['pro', 'pro_wiiu']:
+            sql = "SELECT * FROM ranks WHERE scene='{}';".format(name)
+            res = self.db.exec(sql)
+            if len(res) == 0 and not self.testing and run_pros:
+                LOG.info('PRO RANKS: make {} ranks'.format(name))
+
+                # After all the matches from this scene have been processed, calculate ranks
+                if not analyzed_scenes and should_tweet:
+                    tweet('About to start ranking for scene {}'.format(name))
+                self.data_processor.check_and_update_ranks(name)
+        
         # If this is the first time that we have gone through all the scenes, tweet me
         if not analyzed_scenes and should_tweet:
             analyzed_scenes = True
@@ -113,21 +125,9 @@ class validURLs(object):
             minutes = seconds_to_analyze / 60
             LOG.info('Just finished analyzing scenes for the first time. It took {} minutes. About to tweet'.format(minutes))
             tweet('Done loading scene data. Took {} minutes'.format(minutes))
-        
-        # If this was the first time we ran, mark pro brackets as complete
-        for name in ['pro', 'pro_wiiu']:
-            sql = "SELECT * FROM ranks WHERE scene='{}';".format(name)
-            res = self.db.exec(sql)
-            if len(res) == 0 and not self.testing and run_pros:
-                LOG.info('make {} ranks'.format(name))
-
-                # After all the matches from this scene have been processed, calculate ranks
-                if not analyzed_scenes and should_tweet:
-                    tweet('About to start ranking for scene {}'.format(name))
-                self.data_processor.check_and_update_ranks(name)
 
     def analyze_smashgg(self, urls, name):
-        LOG.info('dallas: we are about to analyze scene {} with {} brackets'.format(name, len(urls)))
+        LOG.info('we are about to analyze scene {} with {} brackets'.format(name, len(urls)))
         for url in urls:
             # Before we process this URL, check to see if we already have
             sql = "SELECT * FROM analyzed where base_url='{}'".format(url)

@@ -13,12 +13,10 @@ class logger():
         self.name = name
 
     def info(self, msg):
-        s = self.check_file_size()
         date = datetime.now()
         logging.info("[{}:{}]: {} - {}b".format(self.name, date, msg, s))
 
     def exc(self, msg):
-        s = self.check_file_size()
         date = datetime.now()
         msg = "[{}:{}]: {} - {}b".format(self.name, date, msg, s)
         logging.exception(msg)

@@ -3,7 +3,7 @@ from validURLs import validURLs
 from constants import TEST_URLS
 from scene import Scene
 from database_writer import DatabaseWriter
-from testing.testing_data import all_match_data
+from tests.testing_data import all_match_data
 from player_web import get_web
 from json import loads
 
@@ -33,7 +33,27 @@ def run_tests(db):
     test_valids(db)
     test_analyzed(db)
     test_endpoints(db)
-    pass
+
+    # Sometimes we may not want to run this test
+    y = input('Do you want to run compare db tests? (y/n)')
+    if y == 'y':
+        test_dbs_match()
+
+def test_dbs_match():
+    # Run through our real data base, and our 'temp' database
+    # The 'temp' database has real data from the past, which we know is correct
+    act_db = DatabaseWriter(db='smash')
+    exp_db = DatabaseWriter(db='temp')
+
+    tables = ['matches']
+    for table in tables:
+        sql = "SELECT * FROM {}".format(table)
+        exp = exp_db.exec(sql, testing=True)
+        act = act_db.exec(sql, testing=True)
+        for r in exp:
+            assert r in act
+        for r in act:
+            assert r in exp
 
 def test_web(db):
     print('About to run web tests...')

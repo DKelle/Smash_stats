@@ -11,7 +11,11 @@ from json import dumps, loads
 from random import randint
 LOG = logger.logger(__name__)
 
+
+lock = threading.Lock()
+
 player_web = None
+init = False
 ranks = {}
 worst_rank = 1 
 
@@ -22,40 +26,50 @@ def dump_pickle_data(base_fname, data):
     # Go from https://ausin_melee_bracket -> austin_melee_bracket
     fname = cwd+'/pickle/WEB_'+str(base_fname)+'.p'
 
-    with open(fname, "wb") as p:
-        pickle.dump(data, p)
+    with lock:
+        with open(fname, "wb") as p:
+            pickle.dump(data, p)
 
 def load_pickle_data(base_fname):                                             
     # Attempt to get data from pickle                                         
     cwd = os.getcwd()                                                         
                                                                               
-    fname = cwd+'/pickle/WEB_'+str(base_fname)+'.p'                             
-    LOG.info('attempting to load pickle data for {}'.format(fname))           
-                                                                              
-    try:                                                                      
-        with open(fname, 'rb') as p:                                          
-            data = pickle.load(p)                                             
-            return data                                                       
-                                                                              
-    except FileNotFoundError:                                                 
-        LOG.info('could not load pickle data for {}'.format(fname))           
-        return None                                                           
+    fname = cwd+'/pickle/WEB_'+str(base_fname)+'.p'
+    LOG.info('attempting to load web pickle data for {}'.format(fname))
+
+    with lock:
+        try:
+            with open(fname, 'rb') as p:
+                data = pickle.load(p)
+                return data
+
+        except FileNotFoundError:
+            LOG.info('could not load pickle data for {}, which is'.format(fname))
+            return None
+
 
 def update_web(match_pairs, db):
-    if player_web == None:
-        init_player_web()
+    global init
+    global player_web
+    if not init:
+        LOG.info('about to send the first update')
+        init = True
+        player_web = PlayerWeb()
+        LOG.info('just set player web, and it is {}'.format(player_web))
+    else:
+        LOG.info('this is not the first update')
 
+    if player_web == None:
+        LOG.info('already attempted to init, but plyaer web is still None')
     player_web.update(match_pairs, db)
 
-def init_player_web():
-    global player_web
-    player_web = PlayerWeb()
-
-    # vip TODO. Init the web + data structures from sql
-
-    LOG.info("Creating the player web")
-
 def update_ranks(tag_rank_map):
+    global init
+    global player_web
+    if not init:
+        LOG.info('about to send the first update')
+        init = True
+        player_web = PlayerWeb()
     player_web.update_ranks(tag_rank_map)
 
 def get_web(tag=None, db=None):
@@ -90,7 +104,9 @@ def get_web(tag=None, db=None):
             return json
 
 class PlayerWeb(object):
+    instance = None
     def __init__(self, *args):
+        LOG.info('creating PlayerWeb object')
         # All of our node related data structures
         self.tag_nid_map = {}
         self.nid_to_node_map = {}
@@ -115,11 +131,9 @@ class PlayerWeb(object):
                 setattr(self, field, load_pickle_data(field))
         self.current_node_id = len(self.nodes) 
 
-        for field in self.pickled_data:
-            LOG.info('after loading pickles, here is {}: {}'.format(field, getattr(self, field)))
-
         # There's a bug where the first node sometimes doesn't have any links... So make a fake node anyway
         self.create_node('No results', 9)
+        LOG.info('done creating the player web')
 
     def update(self, match_pairs, db):
         for match in match_pairs:
@@ -163,6 +177,7 @@ class PlayerWeb(object):
 
         # Instead of writing the web to sql, just pickle the data
         for field in self.pickled_data:
+            LOG.info('about to dump to web pickle file {}'.format(field))
             dump_pickle_data(field, getattr(self, field))
 
     def get_node(self, tag):

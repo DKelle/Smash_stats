@@ -108,7 +108,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, dis
                     if winner_place > 64 and loser_place > 64:
                         skip_count = skip_count + 1
                         if skip_count % 100 == 0:
-                            LOG.info('dallas: Both these players suck, so not entering this match {} got {} and {} got {}. Have now skipped {} total'.format(winner, winner_place, loser, loser_place, skip_count))
+                            LOG.info('Both these players suck, so not entering this match {} got {} and {} got {}. Have now skipped {} total'.format(winner, winner_place, loser, loser_place, skip_count))
 
                         continue
                 else:
@@ -191,23 +191,11 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
 
         #Before we use this tag, we should see if it is one that we should coalesce
         # eg, if this is 'thanksgiving mike', we should change it to 'christmas mike'
-        if 'hakii' in player1_tag or 'hakii' in player2_tag:
-            LOG.info('player1_tag is {}'.format(player1_tag))
-            LOG.info('player2_tag is {}'.format(player2_tag))
-
         player1_tag = sanitize_tag(player1_tag)
         player2_tag = sanitize_tag(player2_tag)
-        if 'hakii' in player1_tag or 'hakii' in player2_tag:
-            LOG.info('after sanitize...')
-            LOG.info('player1_tag is {}'.format(player1_tag))
-            LOG.info('player2_tag is {}'.format(player2_tag))
 
         player1_tag = get_coalesced_tag(player1_tag)
         player2_tag = get_coalesced_tag(player2_tag)
-        if 'hakii' in player1_tag or 'hakii' in player2_tag:
-            LOG.info('after coalesce...')
-            LOG.info('player1_tag is {}'.format(player1_tag))
-            LOG.info('player2_tag is {}'.format(player2_tag))
 
         players.add(player1_tag)
         players.add(player2_tag)
@@ -336,10 +324,11 @@ def process(url, scene, db, display_name):
     else:
         try:
             analyze_smashgg_tournament(db, url, scene, True, False, display_name)
-        except Exception:
+        except Exception as e:
             success = False
 
             LOG.exc('Hit exception while trying to analyze url {}'.format(url))
+            LOG.info('dallas: here is exception \n{}'.format(e))
 
         LOG.info('dallas: about to insert gg {}'.format(url))
 
