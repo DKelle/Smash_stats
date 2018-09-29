@@ -35,3 +35,6 @@ test:
 
 grep:
 	tail -f -n 50 logs/smash.log | grep dallas
+
+test:
+	tox
