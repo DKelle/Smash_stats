@@ -3,7 +3,7 @@ from validURLs import validURLs
 from constants import TEST_URLS
 from scene import Scene
 from database_writer import DatabaseWriter
-from tests.testing_data import all_match_data
+from tests.utils.testing_data import all_match_data
 from player_web import get_web
 from json import loads
 

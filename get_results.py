@@ -26,11 +26,15 @@ def sanitize_tag(tag):
     tag = tag.split('|')[-1].lstrip().rstrip()
     return re.sub("[^a-z A-Z 0-9 ]",'',tag.lower()).rstrip().lstrip()
 
-def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, display_name=None):
+def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, display_name=None, testing=False):
     global smash
     global skip_count
     if smash == None:
         smash = pysmash.SmashGG()
+
+
+    # For testing purposes, sometimes we don't want to update the web
+    use_web = not testing
 
     match_pairs = []
     tag_to_gid = {}
@@ -61,11 +65,12 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, dis
 
         # Check if these players are already in the players table
         scenes = bracket_utils.get_list_of_scene_names()
-        for player in players:
-        # Calculate the group for these two players
-            p = sanitize_tag(player['tag'])
-            gid = calculate_and_update_group(p, scene, db) if not p in tag_to_gid else tag_to_gid[p]
-            tag_to_gid[p] = gid
+        if not testing:
+            for player in players:
+            # Calculate the group for these two players
+                p = sanitize_tag(player['tag'])
+                gid = calculate_and_update_group(p, scene, db) if not p in tag_to_gid else tag_to_gid[p]
+                tag_to_gid[p] = gid
 
         # Create a map of ID to tag
         tag_id_dict = {}
@@ -124,19 +129,23 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, dis
             db.exec(sql)
             
             # Get the group that these 2 players belong to
-            g1 = tag_to_gid[winner]
-            g2 = tag_to_gid[loser]
+            if not testing:
+                g1 = tag_to_gid[winner]
+                g2 = tag_to_gid[loser]
 
-            # Also update the player web with this match
-            match_pairs.append((winner, g1, loser, g2))
+
+            if not testing:
+                # Also update the player web with this match
+                match_pairs.append((winner, g1, loser, g2))
     else:
         LOG.info("ERROR PARSING SMASHGG: {}".format(url))
         return
 
-    # we need to pass a list of scenes to the player web
-    LOG.info('about to update match pairs for bracket {}'.format(url))
-    update_web(match_pairs, db)
-    LOG.info('finished updating match pairs for bracket {}'.format(url))
+    if not testing:
+        # we need to pass a list of scenes to the player web
+        LOG.info('about to update match pairs for bracket {}'.format(url))
+        update_web(match_pairs, db)
+        LOG.info('finished updating match pairs for bracket {}'.format(url))
 
 def analyze_tournament(db, url, scene, dated, urls_per_player=False, display_name=None):
     #Scrape the challonge website for the raw bracket
