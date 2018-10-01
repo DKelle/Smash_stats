@@ -26,3 +26,19 @@ class TestAnalyzeSmashgg(unittest.TestCase):
         sql = "SELECT * FROM matches WHERE player1='armada' and player2='mang0'"
         res = self.db.exec(sql)
         self.assertEqual(len(res), 2)
+
+        # Check that amrada, hbox, mango, and m2k are all players in the tournament
+        players = ['armada', 'mang0', 'mew2king', 'hungrybox']
+        for p in players:
+            sql = "SELECT * FROM players WHERE tag='{}';".format(p)
+            res = self.db.exec(sql)
+
+            self.assertEqual(len(res), 1)
+
+        # Make sure these players are not in the tournament
+        players = ['christmasmike', 'ashleyismylove', 'meleeisgood']
+        for p in players:
+            sql = "SELECT * FROM players WHERE tag='{}';".format(p)
+            res = self.db.exec(sql)
+
+            self.assertEqual(len(res), 0)

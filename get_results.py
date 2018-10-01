@@ -65,10 +65,11 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, dis
 
         # Check if these players are already in the players table
         scenes = bracket_utils.get_list_of_scene_names()
-        if not testing:
-            for player in players:
-            # Calculate the group for these two players
-                p = sanitize_tag(player['tag'])
+        for player in players:
+            p = sanitize_tag(player['tag'])
+            create_player_if_not_exist(p, scene, db, testing)
+            if not testing:
+                # Calculate the group for these two players
                 gid = calculate_and_update_group(p, scene, db) if not p in tag_to_gid else tag_to_gid[p]
                 tag_to_gid[p] = gid
 
@@ -80,7 +81,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, dis
             # sanitize the tag
             tag = sanitize_tag(tag)
             
-            #TODO coalesce here
+            tag = get_coalesced_tag(tag)
             tag_id_dict[id] = tag
 
         sets = smash.tournament_show_sets(t, e)
@@ -159,7 +160,7 @@ def analyze_tournament(db, url, scene, dated, urls_per_player=False, display_nam
 
     analyze_bracket(db, sanitized, url, scene, dated, urls_per_player, display_name)
 
-def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player=False, display_name=None):
+def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player=False, display_name=None, testing=False):
     match_pairs = []
     tag_to_gid = {}
     players = set()
@@ -219,6 +220,8 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
         db.exec(sql, debug=False)
 
         # Calculate the group for these two players
+        create_player_if_not_exist(winner, scene, db, testing)
+        create_player_if_not_exist(loser, scene, db, testing)
         group_id1 = calculate_and_update_group(winner, scene, db) if not winner in tag_to_gid else tag_to_gid[winner]
         tag_to_gid[winner] = group_id1
         group_id2 = calculate_and_update_group(loser, scene, db) if not loser in tag_to_gid else tag_to_gid[loser]
@@ -229,19 +232,30 @@ def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player
 
     update_web(match_pairs, db)
 
-def calculate_and_update_group(p, scene, db):
+def create_player_if_not_exist(p, scene, db, testing=False):
     sql = "SELECT * FROM players WHERE tag='{}';".format(p)
     res = db.exec(sql)
-    gid = 0
-    scenes = bracket_utils.get_list_of_scene_names()
+    scenes = bracket_utils.get_list_of_scene_names() if not testing else [scene]
     if len(res) == 0:
+
+
         # This player has never player before. Assume they have no matches in any other scene
         matches_per_scene = {s:0 for s in scenes}
         if scene in scenes:
             matches_per_scene[scene] = 1
             matches_per_scene_str = json.dumps(matches_per_scene)
             sql = "INSERT INTO players (tag, matches_per_scene, scene) VALUES ('{}', '{}', '{}');".format(p, matches_per_scene_str, scene)
+            db.exec(sql)
 
+    return res
+
+def calculate_and_update_group(p, scene, db):
+    p = get_coalesced_tag(p)
+    sql = "SELECT * FROM players WHERE tag='{}';".format(p)
+    res = db.exec(sql)
+    gid = 0
+    scenes = bracket_utils.get_list_of_scene_names()
+    if len(res) == 0:
         # Set this players scene in the web since they do not have one yet
         group_id = scenes.index(scene)
         gid = group_id
@@ -337,9 +351,9 @@ def process(url, scene, db, display_name):
             success = False
 
             LOG.exc('Hit exception while trying to analyze url {}'.format(url))
-            LOG.info('dallas: here is exception \n{}'.format(e))
+            LOG.info('here is exception \n{}'.format(e))
 
-        LOG.info('dallas: about to insert gg {}'.format(url))
+        LOG.info('about to insert gg {}'.format(url))
 
     sql = "INSERT INTO analyzed (base_url) VALUES ('" + str(url)+"');"
     db.exec(sql)
