@@ -335,16 +335,18 @@ def get_tournament_placings(bracket_url):
     return placings_map
 
 def player_in_url(db, player, urls):
+
     sql = "SELECT * FROM matches WHERE (player1='{}' or player2='{}')".format(player, player, urls)
     if len(urls) > 0:
-        sql = sql + " and (url='{}'"
+        sql = sql + " and (url='{}'".format(urls[0])
         for url in urls[1:]:
-            sql = sql + " or url='{}'"
+            sql = sql + " or url='{}'".format(url)
         sql = sql + ");"
     res = db.exec(sql)
+
     if len(res) > 0:
         return True
-    LOG.info('player {} is not in {}'.format(player, url))
+    LOG.info('player {} is not in {}'.format(player, urls))
     return False
 
 def player_in_bracket(player, bracket=None):
@@ -518,7 +520,6 @@ def get_monthly_ranks_for_scene(db, scene, tag):
     for r in res:
         ranks[r[0]] = r[1]
 
-
     return ranks
 
 def get_ranking_graph_data(db, tag):
@@ -538,6 +539,8 @@ def get_ranking_graph_data(db, tag):
     iterated_months = iter_months(first_month, last_month, include_last=True)
 
     # Get individual rankings per month, per scene
+    arank = get_monthly_ranks_for_scene(db, 'austin', 'christmasmike')
+
     monthly_ranks_per_scene = {s:get_monthly_ranks_for_scene(db, s, tag) for s in scenes}
 
     ranks_per_scene = {s:[] for s in scenes}

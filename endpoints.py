@@ -5,6 +5,7 @@ from database_writer import get_db
 import constants
 import bracket_utils
 import requests
+import logger
 #sys.path.insert(0, '/home/ubuntu/Smash_stats/tools')
 #from tools import  
 
@@ -12,6 +13,8 @@ db = None
 
 BASE_URL = 'https://localhost:5000'
 endpoints = Blueprint('endpoints', __name__)
+
+LOG = logger.logger(__name__)
 
 @endpoints.route("/")
 def main():
@@ -260,15 +263,14 @@ def tournament_losses():
     if db == None:
         init()
 
-    print ('dallas: inside the losses endpoint')
     tag = request.args.get('tag', default=None)
     date = request.args.get('date', default=None)
 
     if tag and date:
-        print('dallas: found tag and ddate')
         sql = "select player1, place, date, score from matches join placings on matches.url=placings.url and matches.player1=placings.player \
                 where winner!='{}' and player2='{}' and date='{}';".format(tag, tag, date)
         data = db.exec(sql)
+
         sql = "select player2, place, date, score from matches join placings on matches.url=placings.url and matches.player2=placings.player \
                 where winner!='{}' and player1='{}' and date='{}';".format(tag, tag, date)
         data = data + db.exec(sql)
@@ -296,8 +298,9 @@ def big_wins():
     tag = request.args.get('tag', default=None)
     date = request.args.get('date', default=None)
     scene = request.args.get('scene', default=None)
-
-    if tag and date:
+    
+    valid = not (tag == None and date == None)
+    if valid:
         # This sql statement is a bit of a doozy...
         select = 'select ranks.player, ranks.rank, matches.date, matches.score'
         frm = 'from matches join ranks where ((ranks.player=matches.player1 and matches.player2="{}")'.format(tag)
@@ -306,6 +309,7 @@ def big_wins():
         also_date_where = 'and ranks.date="{}"'.format(date)
         scene_where = 'and ranks.scene="{}"'.format(scene)
         order = 'order by rank;'
+
 
         sql = '{} {} {} {} {} {} {}'.format(select, frm, player_where, date_where, also_date_where, scene_where, order)
         data = db.exec(sql)
@@ -319,7 +323,7 @@ def big_wins():
             return score
         data = [[r[0], r[1], r[2], reformat(r[3])] for r in data]
         return json.dumps(data)
-    
+
     return ''
 
 @endpoints.route('/bad_losses')

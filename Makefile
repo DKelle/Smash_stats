@@ -29,12 +29,10 @@ watch:
 anal:
 	watch python3 sql_utils.py watch analyzed
 
-test:
-	python3 sql_utils.py clear smash_test
-	python3 tests.py
-
 grep:
 	tail -f -n 50 logs/smash.log | grep dallas
 
 test:
 	tox
+	python3 sql_utils.py clear smash_test
+	python3 tests.py

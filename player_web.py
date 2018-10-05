@@ -73,6 +73,13 @@ def update_ranks(tag_rank_map):
     player_web.update_ranks(tag_rank_map)
 
 def get_web(tag=None, db=None):
+    global init
+    global player_web
+    if not init:
+        LOG.info('Trying to get the web, but it inst init... initing now.')
+        init = True
+        player_web = PlayerWeb()
+
     LOG.info('About to get the web, and db is {}'.format(db))
     start = time.time()
     LOG.info('About to start calculating player data for {} at {}'.format(tag, start))

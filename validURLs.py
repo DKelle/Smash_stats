@@ -107,16 +107,16 @@ class validURLs(object):
         LOG.info('we have joined all threads. Should tweet after this')
 
         # If this was the first time we ran, mark pro brackets as complete
-        for name in ['pro', 'pro_wiiu']:
-            sql = "SELECT * FROM ranks WHERE scene='{}';".format(name)
-            res = self.db.exec(sql)
-            if len(res) == 0 and not self.testing and run_pros:
-                LOG.info('PRO RANKS: make {} ranks'.format(name))
+        #for name in ['pro', 'pro_wiiu']:
+        #    sql = "SELECT * FROM ranks WHERE scene='{}';".format(name)
+        #    res = self.db.exec(sql)
+        #    if len(res) == 0 and not self.testing and run_pros:
+        #        LOG.info('PRO RANKS: make {} ranks'.format(name))
 
-                # After all the matches from this scene have been processed, calculate ranks
-                if not analyzed_scenes and should_tweet:
-                    tweet('About to start ranking for scene {}'.format(name))
-                self.data_processor.check_and_update_ranks(name)
+        #        # After all the matches from this scene have been processed, calculate ranks
+        #        if not analyzed_scenes and should_tweet:
+        #            tweet('About to start ranking for scene {}'.format(name))
+        #        self.data_processor.check_and_update_ranks(name)
         
         # If this is the first time that we have gone through all the scenes, tweet me
         if not analyzed_scenes and should_tweet:
