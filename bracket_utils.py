@@ -406,9 +406,9 @@ def get_list_of_named_scenes():
     return base_urls
 
 def get_list_of_scene_names():
-    # TODO This needs to change if you want to analyze another scene besides only ult
-    #return ['Smash Ultimate']
-    return ['sms', 'austin', 'smashbrews', 'colorado', 'colorado_doubles', 'pro', 'pro_wiiu', 'test1', 'test2']
+    scenes_to_analyze = constants.BRACKETS_TO_ANALYZE
+    scene_names = [scene[0] for scene in scenes_to_analyze]
+    return scene_names
 
 def get_last_n_tournaments(db, n, scene):
     today = datetime.datetime.today().strftime('%Y-%m-%d')

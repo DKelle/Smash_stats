@@ -52,6 +52,7 @@ TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike', 'ch
 	['kj', 'go! kj', 'go kj'],
 	['jtag', 'tgl | jtag', 'sms | jtag', 'sms jtag', 'jtg', 'j tag'],
 	['jka', 'tgl | jka'],
+	['chibi', 'asleep'],
 	['fcar', 'tgl | fcar'],
 	['resident', 'tgl | resident'],
 	['minty!', 'tgl | minty!', 'tgl | minty', 'minty'],
@@ -73,14 +74,39 @@ TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike', 'ch
         ['majinmike', 'majin mike'],
         ['karonite', 'red velvet', 'aos redvelvet', 'redvelvet']]
 
+##################################################
+#               OLD SMASH 4 BRACKETS             #
+##################################################
+
+AUSTIN_URLS_4 = ('austin', {'enumerated': ['https://challonge.com/HW2_###', 'http://challonge.com/heatwave###', 'https://challonge.com/NP9ATX###', 'http://challonge.com/hw###', 'https://challonge.com/alibaba###'], 'users': ['https://challonge.com/users/kuya_mark96', 'https://austinsmash4.challonge.com', 'https://challonge.com/users/barefootgamer']})
+SMASHBREWS_RULS_4 = ('smashbrews', {'enumerated': ['https://challonge.com/Smashbrews###', 'https://challonge.com/smashbrewsS3W###', 'https://challonge.com/smashbrewsS4W###', 'https://challonge.com/smashbrewsS5W###']})
+COLORADO_SINGLES_URLS_4 = ('colorado', {'enumerated': ['http://smashco.challonge.com/CSUWW###WUS', 'http://smascho.challonge.com/FCWUA###', 'http://smascho.challonge.com/FCWUIB###']})
+COLORADO_DOUBLES_URLS_4 = ('colorado_doubles', {'enumerated': ['http://smashco.challonge.com/CSUWW###WUD', 'http://smashco.challonge.com/FCWUDC###']})
+COLORADO_URLS_4 = ('colorado_both', {'enumerated': COLORADO_SINGLES_URLS_4 + COLORADO_DOUBLES_URLS_4})
+SMS_URLS_4 = ('sms', {'enumerated': ['http://challonge.com/RAA_###', 'http://challonge.com/SMSH_###', 'https://challonge.com/TGL_###'], 'users': ['https://challonge.com/users/yellocake']})
+
+##################################################
+#               OLD SMASH 4 BRACKETS             #
+##################################################
+
+
+
+
+##################################################
+#               SMASH ULTIMATE BRACKETS          #
+##################################################
+
+# THIS IS HACKY. Mages sanctum has terrible terrible *terrible* challonge urls. It contains dates. So we have one URL for each month, and it just works.
+# TODO: Maybe have validURLS check for 'game type' when iterating a users page. Only if the game is correct, analyze
+# There is a challonge user atxsanctumweeklies, but they also play PM and more
 # TODO DO NOT ADD MORE BRACKETS WITHOUT ADDING A CORRESPONDING DISPLAY NAME!!
-AUSTIN_URLS = ('austin', {'enumerated': ['https://challonge.com/HW2_###', 'http://challonge.com/heatwave###', 'https://challonge.com/NP9ATX###', 'http://challonge.com/hw###', 'https://challonge.com/alibaba###'], 'users': ['https://challonge.com/users/kuya_mark96', 'https://austinsmash4.challonge.com', 'https://challonge.com/users/barefootgamer']})
-SMASHBREWS_RULS = ('smashbrews', {'enumerated': ['https://challonge.com/Smashbrews###', 'https://challonge.com/smashbrewsS3W###', 'https://challonge.com/smashbrewsS4W###', 'https://challonge.com/smashbrewsS5W###']})
-COLORADO_SINGLES_URLS = ('colorado', {'enumerated': ['http://smashco.challonge.com/CSUWW###WUS', 'http://smascho.challonge.com/FCWUA###', 'http://smascho.challonge.com/FCWUIB###']})
-COLORADO_DOUBLES_URLS = ('colorado_doubles', {'enumerated': ['http://smashco.challonge.com/CSUWW###WUD', 'http://smashco.challonge.com/FCWUDC###']})
-COLORADO_URLS = ('colorado_both', {'enumerated': COLORADO_SINGLES_URLS + COLORADO_DOUBLES_URLS})
-SMS_URLS = ('sms', {'enumerated': ['http://challonge.com/RAA_###', 'http://challonge.com/SMSH_###', 'https://challonge.com/TGL_###'], 'users': ['https://challonge.com/users/yellocake']})
-SMASH_ULT = ('Smash Ultimate', {'enumerated': ['http://challonge.com/ikkikon20###8smashsingles', 'https://challonge.com/uuas###', 'https://challonge.com/beg6it###c', 'https://austinsmash4.challonge.com/atxult###', 'https://challonge.com/t###ys7v0w']})
+AUSTIN = ('Austin', {'enumerated': ['http://challonge.com/ikkikon20###8smashsingles', 'https://challonge.com/uuas###', 'https://challonge.com/beg6it###c', 'https://austinsmash4.challonge.com/atxult###', 'https://challonge.com/t###ys7v0w', 'https://challonge.com/cityscape###', 'https://challonge.com/magesultimate01###19', 'https://challonge.com/magesultimate02###19', 'https://challonge.com/magesultimate03###19', 'https://challonge.com/magesultimate04###19', 'https://challonge.com/magesultimate05###19', 'https://challonge.com/magesultimate06###19', 'https://challonge.com/magesultimate07###19', 'https://challonge.com/magesultimate08###19']})
+SMS = ('San Marcos', {'enumerated': ['https://challonge.com/RAAU_S###', 'https://challonge.com/RAA_US###']})
+
+##################################################
+#               SMASH ULTIMATE BRACKETS          #
+##################################################
+
 DISPLAY_MAP = {'heatwave': 'Heatwave',
         'NP9ATX': 'NP9',
         'challonge.com/hw': 'Heatwave',
@@ -116,8 +142,8 @@ TEST_URLS = [('test1', ['https://challonge.com/smash_web_test_###']),
         ('test2', ['https://challonge.com/smash_web_scene_two_###'])]
 
 # This is the master list of scenes that will be analyzed
-BRACKETS_TO_ANALYZE = [AUSTIN_URLS, SMASHBREWS_RULS, COLORADO_SINGLES_URLS, COLORADO_DOUBLES_URLS, SMS_URLS]
-#BRACKETS_TO_ANALYZE = [SMASH_ULT]
+#BRACKETS_TO_ANALYZE = [AUSTIN_URLS, SMASHBREWS_RULS, COLORADO_SINGLES_URLS, COLORADO_DOUBLES_URLS, SMS_URLS]
+BRACKETS_TO_ANALYZE = [AUSTIN, SMS]
 
 """
 Data structure we need -
