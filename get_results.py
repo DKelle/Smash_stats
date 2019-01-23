@@ -5,11 +5,13 @@ import datetime
 import re
 import pysmash
 import time
+import challonge
 
 from logger import logger
 from pprint import pprint
 from constants import TAGS_TO_COALESCE
 from player_web import update_web
+from urllib.error import HTTPError
 import os
 
 smash = None
@@ -24,7 +26,7 @@ def sanitize_tag(tag):
     tag = ''.join([i if ord(i) < 128 else ' ' for i in tag])
     # Parse out sponsor
     tag = tag.split('|')[-1].lstrip().rstrip()
-    return re.sub("[^a-z A-Z 0-9 ]",'',tag.lower()).rstrip().lstrip()
+    return re.sub("[^a-z A-Z 0-9 : /]",'',tag.lower()).rstrip().lstrip()
 
 def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, display_name=None, testing=False):
     global smash
@@ -124,10 +126,10 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, dis
             else:
                 continue
 
-            sql = "INSERT INTO matches(player1, player2, winner, date, scene, url, display_name, score) VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(\
-                    winner, loser, winner, date, scene, url, display_name, score)
+            sql = "INSERT INTO matches(player1, player2, winner, date, scene, url, display_name, score) VALUES ('{winner}', '{loser}', '{winner}', '{date}', '{scene}', '{url}', '{display_name}', '{score}');"
+            args = {'winner': winner, 'loser': loser, 'winner': winner, 'date': date, 'scene': scene, 'url': url, 'display_name': display_name, 'score': score}
 
-            db.exec(sql)
+            db.exec(sql, args)
             
             # Get the group that these 2 players belong to
             if not testing:
@@ -148,93 +150,122 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, dis
         update_web(match_pairs, db)
         LOG.info('finished updating match pairs for bracket {}'.format(url))
 
-def analyze_tournament(db, url, scene, dated, urls_per_player=False, display_name=None):
-    #Scrape the challonge website for the raw bracket
-    bracket = bracket_utils.get_bracket(url)
-
-    if bracket == None:
-        return
-
-    #Sanitize the braket
-    sanitized = bracket_utils.sanitize_bracket(bracket)
-
-    analyze_bracket(db, sanitized, url, scene, dated, urls_per_player, display_name)
-
-def analyze_bracket(db, bracket, base_url, scene, dated, include_urls_per_player=False, display_name=None, testing=False):
+def analyze_tournament(db, url, scene, dated, new_bracket, urls_per_player=False, display_name=None, testing=False):
     match_pairs = []
     tag_to_gid = {}
-    players = set()
-    #continuously find the next instances of 'player1' and 'player2'
-    if debug: print('analyz a bracket. Dated? ' + str(dated))
-    date = bracket_utils.get_date(base_url)
-    while 'player1' in bracket and 'player2' in bracket:
-        index = bracket.index("player1")
-        bracket = bracket[index:]
-        player1_id, player1_tag = get_player_info(bracket)
+    # We need to translate the name of the bracket into something the challonge api will understand.
+    # eg https://challonge.com/atx122 -> atx122
+    api_name = bracket_utils.translate_url_to_api_name(url)
+    user = open('secrets/user.secret').readline().rstrip()
+    api_key = open('secrets/api_key.secret').readline().rstrip()
+    challonge.set_credentials(user, api_key)
 
-        index = bracket.index("player2")
-        bracket = bracket[index:]
-        player2_id, player2_tag = get_player_info(bracket)
+    # Now that we are logged into the api, get all of the players
+    tournament = None
+    try:
+        tournament = challonge.tournaments.show(api_name)
+    except HTTPError as e:
+        # It's possible that we got the wrong api name for this tournament
+        if e.getcode() == 404:
+            # Parse out the username. eg smascho-FCWUA1 -> FCWUA1
+            try:
+                tournament = challonge.tournaments.show(api_name.split('-')[-1])
+            except HTTPError as e:
+                print(e)
+                LOG.exc('Couldnt find challonge info for tournament {}'.format(url))
+                return False
 
-        index = bracket.index("winner_id")
-        bracket = bracket[index:]
-        colon = bracket.index(":")
-        comma = bracket.index(",")
-        winner_id = bracket[colon+1:comma]
+    try:
+        if not tournament.get('started-at'):
+            LOG.info('URL {} has not been started. Will try again in an hour.'.format(url))
+            return False
+        date = str(tournament.get('started-at').strftime('%Y-%m-%d'))
+        players = challonge.participants.index(tournament['id'])
+        matches = challonge.matches.index(tournament["id"])
+        tag_player_id_map = {}
+        placings = {}
 
-        index = bracket.index('scores')
-        bracket = bracket[index:]
-        colon = bracket.index(":")
-        brace = bracket.index("]")
-        scores = json.loads(bracket[colon+1:brace+1])
-        if len(scores) == 0:
-            # If no score was reported, assume 2-0
-            scores = [2, 0]
+        for player in players:
+            LOG.info('dallas: this is a player {}'.format(player))
+            # In case the name is missing from the field we expect it to be in, have some fall backs. These should all have the same value
+            tag = player.get('display_name') or player.get('name') or player.get('challonge-username') or player.get('username')
 
-        winner_score = max(scores)
-        loser_score = min(scores)
-        scores = json.dumps([winner_score, loser_score])
-        
-        #on the off chance that the bracket was not filled out all way, and a player is left blank, skip
-        if winner_id == 'null' or player1_id == None or player2_id == None:
-            break
+            if not tag:
+                LOG.exc('UNEXPECTED ERROR: Tag is none for player. Skipping this player. This may cause issues with analyzing the rest of this bracket'.format(player))
+                continue
+            # Make sure to sanitize and coalesce this tag
+            tag = get_coalesced_tag(sanitize_tag(tag))
 
-        #Before we use this tag, we should see if it is one that we should coalesce
-        # eg, if this is 'thanksgiving mike', we should change it to 'christmas mike'
-        player1_tag = sanitize_tag(player1_tag)
-        player2_tag = sanitize_tag(player2_tag)
+            # Keep track of this players final placing in the tournament
+            placings[tag] = player.get('final-rank')
+            id = player.get('id')
+            tag_player_id_map[id] = tag
 
-        player1_tag = get_coalesced_tag(player1_tag)
-        player2_tag = get_coalesced_tag(player2_tag)
 
-        players.add(player1_tag)
-        players.add(player2_tag)
 
-        #Now that we have both players, and the winner ID, what's the tag of the winner?
-        winner = player1_tag if int(winner_id) == int(player1_id) else player2_tag
-        loser = player1_tag if winner == player2_tag else player2_tag
+        for match in matches:
+            # If this score was never reported, then there will not be a winner-id or loser-id. Just skip this match
+            if match.get('winner-id') == None or match.get('loser-id') == None:
+                continue
 
-        sql = "INSERT INTO matches(player1, player2, winner, date, scene, url, display_name, score) VALUES ('"
-        sql += str(player1_tag) + "', '" + str(player2_tag) + "', '" + str(winner) + "', '"+ str(date) + "', '"+str(scene) + "', '"+str(base_url)+"', '"+str(display_name)+"', '"+str(scores)+"'); "
+            # I'm not sure why this could happen. May be a bug in the challonge API.
+            # Sometimes the ID of the winner is not registered to a player in the tournament
+            if match.get('winner-id') not in tag_player_id_map or match.get('loser-id') not in tag_player_id_map:
+                continue
 
-        db.exec(sql, debug=False)
+            winner = tag_player_id_map[match.get('winner-id')]
+            loser = tag_player_id_map[match.get('loser-id')]
+            scores = (match.get('scores-csv', '2-0') or '2-0').split('-')
 
-        # Calculate the group for these two players
-        create_player_if_not_exist(winner, scene, db, testing)
-        create_player_if_not_exist(loser, scene, db, testing)
-        group_id1 = calculate_and_update_group(winner, scene, db) if not winner in tag_to_gid else tag_to_gid[winner]
-        tag_to_gid[winner] = group_id1
-        group_id2 = calculate_and_update_group(loser, scene, db) if not loser in tag_to_gid else tag_to_gid[loser]
-        tag_to_gid[loser] = group_id2
+            try:
+                # Convert the score to ints, or assume the score was 2-0
+                scores = [int(score) for score in scores]
+                scores =  sorted(scores, reverse=True)
+            except:
+                scores = [2, 0]
 
-        # Also insert this match into the player web
-        match_pairs.append((winner, group_id1, loser, group_id2))
+            sql = "INSERT INTO matches(player1, player2, winner, date, scene, url, display_name, score) VALUES ('{player1}', '{player2}', '{winner}', '{date}', '{scene}', '{base_url}', '{display_name}', '{scores}');"
+            args = {'player1': winner, 'player2': loser, 'winner': winner, 'date': date, 'scene': scene, 'base_url': url, 'display_name': display_name, 'scores': scores}
+            db.exec(sql, args, debug=True)
 
-    update_web(match_pairs, db)
+    	# We don't want to update the web if we are testing
+            if not testing:
+                group_id1 = calculate_and_update_group(winner, scene, db) if not winner in tag_to_gid else tag_to_gid[winner]
+                tag_to_gid[winner] = group_id1
+                group_id2 = calculate_and_update_group(loser, scene, db) if not loser in tag_to_gid else tag_to_gid[loser]
+                tag_to_gid[loser] = group_id2
+
+                # Also insert this match into the player web
+                match_pairs.append((winner, group_id1, loser, group_id2))
+
+        if not testing:
+            update_web(match_pairs, db)
+
+    except Exception as e:
+        print(e)
+        LOG.exc("Hit exception while analyzing matches in bracket {}".format(url))
+        return False
+
+    # Insert placings for this tournament
+    LOG.info('dallas: here are all the placings for url {}. {}'.format(url, placings))
+
+    for player, placing in placings.items():
+        sql = "INSERT INTO placings (url, player, place) VALUES ('{url}', '{player}', '{place}')"
+        args = {'url': url, 'player': player, 'place': placing}
+
+        db.exec(sql, args)
+
+        if 'christmasmike' == player and new_bracket:
+            if placing < 10:
+                msg = "Congrats on making {} dude! You're the best.".format(placing)
+                tweet(msg)
+
+    return True
 
 def create_player_if_not_exist(p, scene, db, testing=False):
-    sql = "SELECT * FROM players WHERE tag='{}';".format(p)
-    res = db.exec(sql)
+    sql = "SELECT * FROM players WHERE tag='{tag}';"
+    args = {'tag': p}
+    res = db.exec(sql, args)
     scenes = bracket_utils.get_list_of_scene_names() if not testing else [scene]
     if len(res) == 0:
 
@@ -244,22 +275,22 @@ def create_player_if_not_exist(p, scene, db, testing=False):
         if scene in scenes:
             matches_per_scene[scene] = 1
             matches_per_scene_str = json.dumps(matches_per_scene)
-            sql = "INSERT INTO players (tag, matches_per_scene, scene) VALUES ('{}', '{}', '{}');".format(p, matches_per_scene_str, scene)
-            db.exec(sql)
+            sql = "INSERT INTO players (tag, matches_per_scene, scene) VALUES ('{tag}', '{matches_per_scene_str}', '{scene}');"
+            args = {'tag': p, 'matches_per_scene_str': matches_per_scene_str, 'scene': scene}
+            db.exec(sql, args)
 
     return res
 
 def calculate_and_update_group(p, scene, db):
     p = get_coalesced_tag(p)
-    sql = "SELECT * FROM players WHERE tag='{}';".format(p)
-    res = db.exec(sql)
+    sql = "SELECT * FROM players WHERE tag='{tag}';"
+    args = {'tag': p}
+    res = db.exec(sql, args)
     gid = 0
     scenes = bracket_utils.get_list_of_scene_names()
     if len(res) == 0:
         # Set this players scene in the web since they do not have one yet
-        group_id = scenes.index(scene)
-        gid = group_id
-        db.exec(sql)
+        gid = scenes.index(scene)
     else:
         # This player has already played in other scenes. Update the counts
         matches_per_scene = json.loads(res[0][2])
@@ -285,13 +316,15 @@ def calculate_and_update_group(p, scene, db):
             LOG.info('Chaning the scene of player {} to {}'.format(p, scene))
             LOG.info('this is their matches per scene and group id after{}, {}'.format(matches_per_scene, group_id_after))
             # Update this players scene in the DB
-            sql = "UPDATE players SET matches_per_scene='{}', scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), scene, p)
-            db.exec(sql)
+            sql = "UPDATE players SET matches_per_scene='{matches}', scene='{scene}' WHERE tag='{tag}';"
+            args = {'matches': json.dumps(matches_per_scene), 'scene': scene, 'tag': p}
+            db.exec(sql, args)
 
         else:
             # This players scene didn't change, keep it the same
-            sql = "UPDATE players SET matches_per_scene='{}' WHERE tag='{}';".format(json.dumps(matches_per_scene), p)
-            db.exec(sql)
+            sql = "UPDATE players SET matches_per_scene='{matches}' WHERE tag='{tag}';"
+            args = {'matches': json.dumps(matches_per_scene), 'tag': p}
+            db.exec(sql, args)
 
     return gid
 
@@ -325,28 +358,30 @@ def get_coalesced_tag(tag, debug=debug):
     # If this is not a tag that we need to coalesce
     return tag
 
-def process(url, scene, db, display_name):
+def process(url, scene, db, display_name, new_bracket):
     success = True
 
     # Just to be sure, make sure this bracket hasn't already been analyzed
-    sql = "SELECT * FROM analyzed WHERE base_url = '" + str(url) + "';"
-    result = db.exec(sql)
+    sql = "SELECT * FROM analyzed WHERE base_url = '{url}';"
+    args = {'url': url}
+    result = db.exec(sql, args)
     if len(result) > 0:
         return
 
     # Also see if we made it partially through analyzing this bracket
-    sql = "SELECT * FROM matches WHERE url = '{}';".format(url)
-    result = db.exec(sql)
+    sql = "SELECT * FROM matches WHERE url = '{url}';"
+    result = db.exec(sql, args)
     if len(result) > 0:
         # Clear out these matches so we can start from the beginning
-        sql = "DELETE FROM matches WHERE url = '{}';".format(url)
-        db.exec(sql)
+        sql = "DELETE FROM matches WHERE url = '{url}';"
+        db.exec(sql, args)
 
+    success = False
     if "challonge" in url:
-        analyze_tournament(db, url, scene, True, False, display_name)
+        success = analyze_tournament(db, url, scene, True, False, display_name, new_bracket)
     else:
         try:
-            analyze_smashgg_tournament(db, url, scene, True, False, display_name)
+            sucess = analyze_smashgg_tournament(db, url, scene, True, False, display_name)
         except Exception as e:
             success = False
 
@@ -355,6 +390,7 @@ def process(url, scene, db, display_name):
 
         LOG.info('about to insert gg {}'.format(url))
 
-    sql = "INSERT INTO analyzed (base_url) VALUES ('" + str(url)+"');"
-    db.exec(sql)
+    if success:
+        sql = "INSERT INTO analyzed (base_url) VALUES ('{url}');"
+        db.exec(sql, args)
     return success
