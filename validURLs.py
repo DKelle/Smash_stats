@@ -15,18 +15,11 @@ LOG = logger.logger(__name__)
 
 class validURLs(object):
     def __init__(self, scenes, testing=False, db_name='smash'):
-        global should_tweet
         self.start_time = time.time()
         self.testing = testing
         self.scenes = scenes
         db_name = 'smash_test' if testing else db_name
         self.db = get_db(db=db_name)
-
-        # Should we tweet when we are done analyzing? Only if we are totally repopulating
-        sql = 'SELECT count(*) FROM matches'
-        res = self.db.exec(sql)
-        if res[0][0] == 0:
-            should_tweet = True
 
         # Create a processor to analyze new matches
         self.data_processor = processData(self.db) 
@@ -34,13 +27,26 @@ class validURLs(object):
 
 
     def init(self):
+        global should_tweet
+        # Should we tweet when we are done analyzing? Only if we are totally repopulating
+        sql = 'SELECT count(*) FROM matches'
+        res = self.db.exec(sql)
+        if res[0][0] == 0:
+            should_tweet = True
+        else:
+            should_tweet = False
+
         if not self.testing:
             while True:
+                if not should_tweet:
+                    LOG.info('WE ARE SLEEPING BEFORE STARTING THREADS')
+                    time.sleep(constants.SLEEP_TIME)
                 LOG.info('About to create analyziz threads')
                 self.create_analysis_threads()
                 LOG.info('just finished with analysis threads')
                 time.sleep(constants.SLEEP_TIME)
                 LOG.info('Just finished sleeping')
+
 
         # If we are testing, we only want to run once, and then check our state
         else:
@@ -58,11 +64,15 @@ class validURLs(object):
             i1 = int((length/num_threads)*i)
             i2 = int((length/num_threads)*(i+1))
             chunk = self.scenes[i1:i2]
-            name = [scene.get_name() for scene in chunk]
-            t = Thread(target=self.analyze_scenes, name=str(name), args=(chunk,))
-            LOG.info('Trying to start the analysis thread for scenes {}'.format(t.name))
-            t.start()
-            threads.append(t)
+            if chunk:
+                name = [scene.get_name() for scene in chunk]
+
+                t = Thread(target=self.analyze_scenes, name=str(name), args=(chunk,))
+                LOG.info('Trying to start the analysis thread for scenes {}'.format(t.name))
+                t.start()
+                threads.append(t)
+            else:
+                continue
 
         # Start the pros
         # Have we analyzed them before?
@@ -107,16 +117,17 @@ class validURLs(object):
         LOG.info('we have joined all threads. Should tweet after this')
 
         # If this was the first time we ran, mark pro brackets as complete
-        #for name in ['pro', 'pro_wiiu']:
-        #    sql = "SELECT * FROM ranks WHERE scene='{}';".format(name)
-        #    res = self.db.exec(sql)
+        #for scene in ['pro', 'pro_wiiu']:
+        #    sql = "SELECT * FROM ranks WHERE scene='{scene}';"
+        #    arguments = {'scene':scene}
+        #    res = self.db.exec(sql, arguments)
         #    if len(res) == 0 and not self.testing and run_pros:
-        #        LOG.info('PRO RANKS: make {} ranks'.format(name))
+        #        LOG.info('PRO RANKS: make {} ranks'.format(scene))
 
         #        # After all the matches from this scene have been processed, calculate ranks
         #        if not analyzed_scenes and should_tweet:
-        #            tweet('About to start ranking for scene {}'.format(name))
-        #        self.data_processor.check_and_update_ranks(name)
+        #            tweet('About to start ranking for scene {}'.format(scene))
+        #        self.data_processor.check_and_update_ranks(scene)
         
         # If this is the first time that we have gone through all the scenes, tweet me
         if not analyzed_scenes and should_tweet:
@@ -130,8 +141,9 @@ class validURLs(object):
         LOG.info('we are about to analyze scene {} with {} brackets'.format(name, len(urls)))
         for url in urls:
             # Before we process this URL, check to see if we already have
-            sql = "SELECT * FROM analyzed where base_url='{}'".format(url)
-            res = self.db.exec(sql)
+            sql = "SELECT * FROM analyzed where base_url='{url}'"
+            args = {'url':url}
+            res = self.db.exec(sql, args)
             if len(res) == 0:
 
                 display_name = bracket_utils.get_display_base(url)
@@ -162,8 +174,9 @@ class validURLs(object):
         # This scene might have one user who always posts the brackets on their challonge account
         for user in users:
             # Have we analyzed this user before?
-            sql = "SELECT * FROM user_analyzed WHERE user='{}';".format(user)
-            results = self.db.exec(sql)
+            sql = "SELECT * FROM user_analyzed WHERE user='{user}';"
+            args = {'user': user}
+            results = self.db.exec(sql, args)
 
             # Did we have any matches in the database?
             if len(results) > 0:
@@ -173,8 +186,9 @@ class validURLs(object):
                 for bracket in most_recent_page:
                     LOG.info('here are the brackets from the most recent page of user {}: {}'.format(user, most_recent_page))
                     # This user has already been analyzed, there's a good chance this bracket has been analyzed also
-                    sql = "SELECT * FROM user_analyzed WHERE url='{}' AND user='{}';".format(bracket, user)
-                    results = self.db.exec(sql)
+                    sql = "SELECT * FROM user_analyzed WHERE url='{bracket}' AND user='{user}';"
+                    args = {'bracket': bracket, 'user': user}
+                    results = self.db.exec(sql, args)
 
                     if len(results) == 0:
                         # This is a new bracket that must have been published in the last hour or so
@@ -188,8 +202,9 @@ class validURLs(object):
                         self.data_processor.process(bracket, name, display_name)
 
                         # mark this bracket as analyzed
-                        sql = "INSERT INTO user_analyzed (url, user, scene) VALUES ('{}', '{}', '{}');".format(bracket, user, name)
-                        self.db.exec(sql)
+                        sql = "INSERT INTO user_analyzed (url, user, scene) VALUES ('{bracket}', '{user}', '{name}');"
+                        args = {'bracket': bracket, 'user':user, 'name':name}
+                        self.db.exec(sql, args)
 
                         # Tweet that we found a new bracket
                         msg = "Found new {} bracket: {}".format(name, bracket)
@@ -210,8 +225,9 @@ class validURLs(object):
                     self.data_processor.process(url, name, display_name)
 
                     # mark this bracket as analyzed
-                    sql = "INSERT INTO user_analyzed (url, user, scene) VALUES ('{}', '{}', '{}');".format(url, user, name)
-                    self.db.exec(sql)
+                    sql = "INSERT INTO user_analyzed (url, user, scene) VALUES ('{url}', '{user}', '{name}');"
+                    args = {'url': url, 'user':user, 'name':name}
+                    self.db.exec(sql, args)
 
                 LOG.info('done with user {}'.format(user))
 
@@ -220,8 +236,9 @@ class validURLs(object):
         for base_url in base_urls:
             # attempt to load this data from the database
             LOG.info('About to start this analysis thread for scene {}'.format(scene.get_name()))
-            sql = "SELECT first,last FROM valids WHERE base_url = '" + str(base_url) + "';"
-            result = self.db.exec(sql)
+            sql = "SELECT first,last FROM valids WHERE base_url = '{base_url}';"
+            args = {'base_url': base_url}
+            result = self.db.exec(sql, args)
             has_results = len(result) > 0 
 
             # Did we find a match in the database?
@@ -245,8 +262,9 @@ class validURLs(object):
                         tweet(msg)
 
                     # If there's been a new last, update the database
-                    sql = "UPDATE valids SET last=" + str(new_last) + " where base_url = '"+str(base_url)+"';"
-                    self.db.exec(sql)
+                    sql = "UPDATE valids SET last={new_last} where base_url='{base_url}';"
+                    args = {'new_last': new_last, 'base_url': base_url}
+                    self.db.exec(sql, args)
 
 
                     # Analyze each of these new brackets
@@ -269,9 +287,9 @@ class validURLs(object):
                 last = bracket_utils._get_last_valid_url(base_url, first)
 
                 # This is new data, we need to put it into the db
-                sql = "INSERT INTO valids (base_url, first, last, scene) VALUES ("
-                sql += "'"+str(base_url)+"', "+str(first)+ ", "+str(last)+", '"+str(name)+"');"
-                self.db.exec(sql)
+                sql = "INSERT INTO valids (base_url, first, last, scene) VALUES ('{base_url}', '{first}', '{last}', '{name}');"
+                args = {'base_url': base_url, 'first': first, 'last': last, 'name': name}
+                self.db.exec(sql, args)
 
                 for i in range(first, last+1):
                     bracket = base_url.replace('###', str(i))

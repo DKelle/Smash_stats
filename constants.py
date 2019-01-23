@@ -4,6 +4,20 @@ import SMASH_5_BRACKETS
 
 DNS = 'ec2-18-218-117-97.us-east-2.compute.amazonaws.com'
 
+BLACKLIST = ['http://challonge.com/heatwave4',
+        'http://challonge.com/heatwave5',
+        'http://challonge.com/heatwave7'
+        'http://challonge.com/heatwave8',
+        'https://austinsmash4.challonge.com/arfi12_3v3s',
+        'http://challonge.com/heatwave9',
+        'https://challonge.com/Smashbrews69',
+        'http://challonge.com/hw46',
+        'http://challonge.com/heatwave10',
+        'http://challonge.com/heatwave13',
+        'http://challonge.com/heatwave14',
+        'http://challonge.com/heatwave15',
+        'http://challonge.com/heatwave18']
+
 TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike', 'christmas mike xmas', 'christmas mike late', 'halloween mike', 'im 12', 'im12'],
         ['circuits', 'circuits', 'jkelle', 'circuits xmas'],
         ['gamepad', 'sms gamepad'],
@@ -15,7 +29,7 @@ TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike', 'ch
         ['1111', '11 11', 'vuibol'],
         ['qmantra', 'qmantra xmas'],
 	['megafox', 'su | megafox'],
-	['hakii', 'su l hakii', 'su | hakii', 'su redriot i hakii', 'hih | hakii', 'su | sleepyhakii', 'su|hakii', 'su | hakii $', 'su  redriot i hakii', 'hoh | hakii', 'su| hakii'],
+	['hakii', 'hi im hakii', 'su l hakii', 'su | hakii', 'su redriot i hakii', 'hih | hakii', 'su | sleepyhakii', 'su|hakii', 'su | hakii $', 'su  redriot i hakii', 'hoh | hakii', 'su| hakii'],
 	['lucy', 'ttn | lucy'],
         ['moist', 'f9moist', 'kuyamoist'],
 	['sassy', 'atx | sassy', 'f9sassy'],
@@ -47,6 +61,7 @@ TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike', 'ch
 	['cruzin', 'sa  cruzin'],
 	['christmasmitch', 'mitchell', 'mitchell slan'],
         ['jibs', 'sfu jibs'],
+        ['robomex', 'robohex'],
         ['trane', 'irn trane'],
         ['ninjafish', 'sa  ninjafish'],
         ['mufin', 'sfu mufin'],
@@ -59,13 +74,13 @@ TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike', 'ch
         ['karonite', 'red velvet', 'aos redvelvet', 'redvelvet']]
 
 # TODO DO NOT ADD MORE BRACKETS WITHOUT ADDING A CORRESPONDING DISPLAY NAME!!
-AUSTIN_URLS = ('austin', {'enumerated': ['http://challonge.com/heatwave###', 'https://challonge.com/NP9ATX###', 'http://challonge.com/hw###', 'https://challonge.com/alibaba###'], 'users': ['https://challonge.com/users/kuya_mark96', 'https://austinsmash4.challonge.com']})
+AUSTIN_URLS = ('austin', {'enumerated': ['https://challonge.com/HW2_###', 'http://challonge.com/heatwave###', 'https://challonge.com/NP9ATX###', 'http://challonge.com/hw###', 'https://challonge.com/alibaba###'], 'users': ['https://challonge.com/users/kuya_mark96', 'https://austinsmash4.challonge.com', 'https://challonge.com/users/barefootgamer']})
 SMASHBREWS_RULS = ('smashbrews', {'enumerated': ['https://challonge.com/Smashbrews###', 'https://challonge.com/smashbrewsS3W###', 'https://challonge.com/smashbrewsS4W###', 'https://challonge.com/smashbrewsS5W###']})
 COLORADO_SINGLES_URLS = ('colorado', {'enumerated': ['http://smashco.challonge.com/CSUWW###WUS', 'http://smascho.challonge.com/FCWUA###', 'http://smascho.challonge.com/FCWUIB###']})
 COLORADO_DOUBLES_URLS = ('colorado_doubles', {'enumerated': ['http://smashco.challonge.com/CSUWW###WUD', 'http://smashco.challonge.com/FCWUDC###']})
 COLORADO_URLS = ('colorado_both', {'enumerated': COLORADO_SINGLES_URLS + COLORADO_DOUBLES_URLS})
-SMS_URLS = ('sms', {'enumerated': ['http://challonge.com/RAA_###', 'http://challonge.com/SMSH_###'], 'users': ['https://challonge.com/users/yellocake']})
-
+SMS_URLS = ('sms', {'enumerated': ['http://challonge.com/RAA_###', 'http://challonge.com/SMSH_###', 'https://challonge.com/TGL_###'], 'users': ['https://challonge.com/users/yellocake']})
+SMASH_ULT = ('Smash Ultimate', {'enumerated': ['http://challonge.com/ikkikon20###8smashsingles', 'https://challonge.com/uuas###', 'https://challonge.com/beg6it###c', 'https://austinsmash4.challonge.com/atxult###', 'https://challonge.com/t###ys7v0w']})
 DISPLAY_MAP = {'heatwave': 'Heatwave',
         'NP9ATX': 'NP9',
         'challonge.com/hw': 'Heatwave',
@@ -84,7 +99,10 @@ DISPLAY_MAP = {'heatwave': 'Heatwave',
         'Smashbrews': 'Smashbrews',
         'smashco': 'CSU',
         'smascho': 'CSU',
-        'RAA': 'Reading At Alkek'}
+        'RAA': 'Reading At Alkek',
+        'ikkikon': 'Ikkikon',
+        'uuas': 'Urban Up Air',
+        'atxult': 'Ultimate Smashpack'}
 
 PRO_MELEE = MELEE_SINGLES_BRACKETS.MELEE_SINGLES        
 PRO_WIIU = WIIU_BRACKETS.WII_U_BRACKETS
@@ -96,6 +114,10 @@ TOURNAMENTS_PER_RANK = 20
 
 TEST_URLS = [('test1', ['https://challonge.com/smash_web_test_###']),
         ('test2', ['https://challonge.com/smash_web_scene_two_###'])]
+
+# This is the master list of scenes that will be analyzed
+BRACKETS_TO_ANALYZE = [AUSTIN_URLS, SMASHBREWS_RULS, COLORADO_SINGLES_URLS, COLORADO_DOUBLES_URLS, SMS_URLS]
+#BRACKETS_TO_ANALYZE = [SMASH_ULT]
 
 """
 Data structure we need -

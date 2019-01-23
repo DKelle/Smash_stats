@@ -9,6 +9,7 @@ import os
 import pickle
 import pysmash
 from get_results import get_coalesced_tag
+from urllib.parse import urlparse
 import datetime
 
 DEFAULT_BASE_URLS = ['https://challonge.com/NP9ATX###', 'http://challonge.com/heatwave###', 'https://austinsmash4.challonge.com/atx###',\
@@ -22,20 +23,25 @@ def _get_first_valid_url(base_url):
     #Start from 1, and increment the number at the end or URL until we find a valid URL
     valid = False
     index = 1
-    while(not valid):
+    while(index < 100):
         url = base_url.replace('###', str(index))
         data, status = hit_url(url)
 
         if status < 300 and is_valid(data, url=base_url):
             if debug: print('url ' + url + ' is valid')
+            return index
             valid = True
         else:
             if debug: print('url ' + url + ' is not valid')
             index = index + 1
 
-    return index
+    return -1 
 
 def _get_last_valid_url(base_url, start=1):
+
+    # If there was no start, there won't be an end
+    if start == -1:
+        return -1
 
     #We know that URL number 'start' is valid. What is the next invalid URL?
     invalid_count = 0
@@ -334,7 +340,12 @@ def get_tournament_placings(bracket_url):
 
     return placings_map
 
-def player_in_url(db, player, urls):
+def player_in_urls(db, player, urls):
+    """
+    This method doesn't make use of the sql injection protection, because it would be more complicated to adapt.
+    This is probably fine, because the URLs aren't entirely user input. They still must match the hardcoded base_urls
+    provided by the smash api
+    """
 
     sql = "SELECT * FROM matches WHERE (player1='{}' or player2='{}')".format(player, player, urls)
     if len(urls) > 0:
@@ -383,13 +394,7 @@ def get_urls_with_players(players=["Christmas Mike", "christmasmike"], base_urls
     return urls
 
 def get_list_of_scenes():
-    austin = constants.AUSTIN_URLS
-    smashbrews = constants.SMASHBREWS_RULS
-    colorado = constants.COLORADO_SINGLES_URLS
-    colorado_doubles = constants.COLORADO_DOUBLES_URLS
-    sms = constants.SMS_URLS
-    base_urls = [sms, smashbrews, austin, colorado_doubles, colorado]
-    return base_urls
+    return constants.BRACKETS_TO_ANALYZE
 
 def get_list_of_named_scenes():
     austin = constants.AUSTIN_URLS
@@ -401,6 +406,8 @@ def get_list_of_named_scenes():
     return base_urls
 
 def get_list_of_scene_names():
+    # TODO This needs to change if you want to analyze another scene besides only ult
+    #return ['Smash Ultimate']
     return ['sms', 'austin', 'smashbrews', 'colorado', 'colorado_doubles', 'pro', 'pro_wiiu', 'test1', 'test2']
 
 def get_last_n_tournaments(db, n, scene):
@@ -408,8 +415,9 @@ def get_last_n_tournaments(db, n, scene):
     return get_n_tournaments_before_date(db, scene, today, n)
 
 def get_first_month(db, scene):
-    sql = "select date from matches where scene='{}' order by date limit 1;".format(scene)
-    res = db.exec(sql)
+    sql = "select date from matches where scene='{scene}' order by date limit 1;"
+    args = {'scene': scene}
+    res = db.exec(sql, args)
     date = res[0][0]
     return date
 
@@ -428,8 +436,9 @@ def get_previous_month(date):
     return date
 
 def get_last_month(db, scene):
-    sql = "select date from matches where scene='{}' order by date desc limit 1;".format(scene)
-    res = db.exec(sql)
+    sql = "select date from matches where scene='{scene}' order by date desc limit 1;"
+    args = {'scene': scene}
+    res = db.exec(sql, args)
     date = res[0][0]
 
     # If it has been more than 1 month since this last tournament,
@@ -448,14 +457,16 @@ def get_last_month(db, scene):
     return date
 
 def get_first_ranked_month(db, scene, player):
-    sql = "select date from ranks where scene='{}' and player='{}' order by date limit 1;".format(scene, player)
-    res = db.exec(sql)
+    sql = "select date from ranks where scene='{scene}' and player='{player}' order by date limit 1;"
+    args = {'scene': scene, 'player': player}
+    res = db.exec(sql, args)
     date = res[0][0]
     return date
 
 def get_last_ranked_month(db, scene, player):
-    sql = "select date from ranks where scene='{}' and player='{}' order by date desc limit 1;".format(scene, player)
-    res = db.exec(sql)
+    sql = "select date from ranks where scene='{scene}' and player='{player}' order by date desc limit 1;"
+    args = {'scene': scene, 'player': player}
+    res = db.exec(sql, args)
     date = res[0][0]
     return date
 
@@ -510,8 +521,9 @@ def has_month_passed(date):
 
 def get_monthly_ranks_for_scene(db, scene, tag):
 
-    sql = "SELECT date, rank FROM ranks WHERE scene='{}' AND player='{}'".format(scene, tag)
-    res = db.exec(sql)
+    sql = "SELECT date, rank FROM ranks WHERE scene='{scene}' AND player='{tag}'"
+    args = {'scene': scene, 'tag': tag}
+    res = db.exec(sql, args)
 
     res = [r for r in res if played_during_month(db, scene, tag, get_previous_month(r[0]))]
 
@@ -524,8 +536,9 @@ def get_monthly_ranks_for_scene(db, scene, tag):
 
 def get_ranking_graph_data(db, tag):
     # First, we have to find out which scenes this player is ranked in
-    sql = "SELECT DISTINCT scene FROM ranks WHERE player='{}'".format(tag)
-    scenes = db.exec(sql)
+    sql = "SELECT DISTINCT scene FROM ranks WHERE player='{tag}'"
+    args = {'tag': tag}
+    scenes = db.exec(sql, args)
     scenes = [s[0] for s in scenes]
 
     # Get the first time we were ranked in each of these scenes
@@ -537,9 +550,6 @@ def get_ranking_graph_data(db, tag):
 
     # Get a list of each month that we want to know the ranks for
     iterated_months = iter_months(first_month, last_month, include_last=True)
-
-    # Get individual rankings per month, per scene
-    arank = get_monthly_ranks_for_scene(db, 'austin', 'christmasmike')
 
     monthly_ranks_per_scene = {s:get_monthly_ranks_for_scene(db, s, tag) for s in scenes}
 
@@ -557,10 +567,10 @@ def get_ranking_graph_data(db, tag):
 
 def get_bracket_placings_in_scene(db, scene, tag):
     sql = "select distinct matches.date, placings.place from placings join matches on \
-            matches.url=placings.url where scene='{}' and ((player1='{}' and placings.player=player1) or \
-            (player2='{}' and placings.player=player2));".format(scene, tag, tag)
-    print(sql)
-    res = db.exec(sql)
+            matches.url=placings.url where scene='{scene}' and ((player1='{tag_one}' and placings.player=player1) or \
+            (player2='{tag_two}' and placings.player=player2));"
+    args = {'scene': scene, 'tag_one': tag, 'tag_two': tag}
+    res = db.exec(sql, args)
 
     # Convert all placings to ints
     res = [[r[0], int(r[1])] for r in res]
@@ -568,8 +578,9 @@ def get_bracket_placings_in_scene(db, scene, tag):
 
 def get_bracket_graph_data(db, tag):
     # First, we have to find out which scenes this player has brackets in
-    sql = "SELECT DISTINCT scene FROM ranks WHERE player='{}'".format(tag)
-    scenes = db.exec(sql)
+    sql = "SELECT DISTINCT scene FROM ranks WHERE player='{tag}'"
+    args = {'tag': tag}
+    scenes = db.exec(sql, args)
     scenes = [s[0] for s in scenes]
 
     bracket_placings_by_scene = {s: get_bracket_placings_in_scene(db, s, tag) for s in scenes}
@@ -580,8 +591,9 @@ def get_bracket_graph_data(db, tag):
 def get_tournaments_during_month(db, scene, date):
     y, m, d = date.split('-')
     ym_date = '{}-{}'.format(y, m)
-    sql = "select url, date from matches where scene='{}' and date like '%{}%' group by url, date order by date".format(scene, ym_date)
-    res = db.exec(sql)
+    sql = "select url, date from matches where scene='{scene}' and date like '%{date}%' group by url, date order by date"
+    args = {'scene': scene, 'date': ym_date}
+    res = db.exec(sql, args)
     urls = [r[0] for r in res]
     return urls
 
@@ -589,20 +601,22 @@ def played_during_month(db, scene, tag, date):
     # First, which tournaments were hosted during this month?
     tournaments = get_tournaments_during_month(db, scene, date)
 
-    if player_in_url(db, tag, urls=tournaments):
+    if player_in_urls(db, tag, urls=tournaments):
         return True
 
     return False
 
 def get_n_tournaments_before_date(db, scene, date, limit):
-    sql = "select url, date from matches where scene='{}' and date<='{}' group by url, date order by date desc limit {};".format(scene, date, limit)
-    res = db.exec(sql)
+    sql = "select url, date from matches where scene='{scene}' and date<='{date}' group by url, date order by date desc limit {limit};"
+    args = {'scene': scene, 'date': date, 'limit': limit}
+    res = db.exec(sql, args)
     urls = [r[0] for r in res]
     return urls, date
 
 def get_n_tournaments_after_date(db, scene, date, limit):
-    sql = "select url, date from matches where scene='{}' and date>='{}' group by url, date order by date desc limit {};".format(scene, date, limit)
-    res = db.exec(sql)
+    sql = "select url, date from matches where scene='{scene}' and date>='{date}' group by url, date order by date desc limit {limit};"
+    args = {'scene': scene, 'date': date, 'limit': limit}
+    res = db.exec(sql, args)
     urls = [r[0] for r in res]
     return urls, date
 
@@ -632,8 +646,9 @@ def get_date(url):
 def get_matches_from_urls(db, urls):
     matches = set()
     for url in urls:
-        sql = "SELECT * FROM matches WHERE url='{}';".format(url)
-        res = set(db.exec(sql))
+        sql = "SELECT * FROM matches WHERE url='{url}';"
+        args = {'url': url}
+        res = set(db.exec(sql, args))
         matches |= set(res)
 
     return matches
@@ -768,3 +783,18 @@ def get_smashgg_brackets(pages=None, all_brackets=True, singles=True, scene='pro
             page = page + 1
 
     return brackets
+
+def translate_url_to_api_name(url):
+    # eg. https://austinsmash4.challonge.com/atx122 -> austinsmash4-atx122
+    # eg. https://challonge.com/atx122 -> atx122
+    parse = urlparse(url)
+    net = parse.netloc
+    # Do we have a username? eg. austinsmash4
+    index = net.index('challonge')
+    user = None
+    if index > 0:
+        user = net[:index-1]
+    tourney_id = parse.path.replace('/', '')
+    if user:
+        return '{}-{}'.format(user, tourney_id)
+    return tourney_id

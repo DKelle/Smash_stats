@@ -19,9 +19,15 @@ class processData(object):
         self.db = db
 
     def process(self, bracket, scene, display_name, new_bracket=False):
+        # There are some brackets that have been blacklisted. Skip these brackets
+        if bracket in constants.BLACKLIST:
+            LOG.info('Skipping bracket due to blacklisting: {}'.format(bracket))
+            return
+
         # Before we do anything, check if this url has been analyzed already, and bomb out
-        sql = "SELECT * FROM analyzed WHERE base_url = '" + str(bracket) + "';"
-        result = self.db.exec(sql)
+        sql = "SELECT * FROM analyzed WHERE base_url = '{bracket}';"
+        args = {'bracket': bracket}
+        result = self.db.exec(sql, args)
         if len(result) > 0:
             LOG.info('tried to analyze {}, but has already been done.'.format(bracket))
             return
@@ -29,7 +35,7 @@ class processData(object):
         # Send this bracket to get_results
         # We know the bracket is valid if it is from smashgg
         if 'smash.gg' in bracket:
-            success = get_results.process(bracket, scene, self.db, display_name)
+            success = get_results.process(bracket, scene, self.db, display_name, new_bracket)
             if success:
                 self.insert_placing_data(bracket, new_bracket)
             else:
@@ -39,11 +45,9 @@ class processData(object):
         else:
             html, status = bracket_utils.hit_url(bracket)
             if status == 200 and bracket_utils.is_valid(html):
-                get_results.process(bracket, scene, self.db, display_name)
-                self.insert_placing_data(bracket, new_bracket)
+                get_results.process(bracket, scene, self.db, display_name, new_bracket)
 
     def insert_placing_data(self, bracket, new_bracket):
-        LOG.info('we have called insert placing data on bracket {}'.format(bracket))
         # Get the html from the 'standings' of this tournament
         tournament_placings = bracket_utils.get_tournament_placings(bracket)
 
@@ -52,10 +56,10 @@ class processData(object):
 
             # Coalesce tag
             player = get_coalesced_tag(player)
-            sql = "INSERT INTO placings (url, player, place) VALUES " \
-                    + " ('{}', '{}', '{}')".format(bracket, player, placing)
+            sql = "INSERT INTO placings (url, player, place) VALUES ('{url}', '{player}', '{place}')"
+            args = {'url': bracket, 'player': player, 'place': placing}
 
-            self.db.exec(sql)
+            self.db.exec(sql, args)
 
             if 'christmasmike' == player and new_bracket:
                 if placing < 10:
@@ -75,8 +79,9 @@ class processData(object):
 
         LOG.info('About to check if ranks need updating for {}'.format(scene))
         # First, do we have any ranks for this scene already?
-        sql = 'select count(*) from ranks where scene="{}";'.format(scene)
-        res = self.db.exec(sql)
+        sql = 'select count(*) from ranks where scene="{scene}";'
+        args = {'scene': scene}
+        res = self.db.exec(sql, args)
         count = res[0][0]
 
         n = 5 if (scene == 'pro' or scene == 'pro_wiiu') else constants.TOURNAMENTS_PER_RANK
@@ -94,8 +99,9 @@ class processData(object):
         else:
 
             # Get the date of the last time we calculated ranks
-            sql = "select date from ranks where scene='{}' order by date desc limit 1;".format(scene)
-            res = self.db.exec(sql)
+            sql = "select date from ranks where scene='{scene}' order by date desc limit 1;"
+            args = {'scene': scene}
+            res = self.db.exec(sql, args)
             last_rankings_date = res[0][0]
 
             # Check to see if it's been more than 1 month since we last calculated ranks
@@ -134,8 +140,9 @@ class processData(object):
         SCENE = 4
 
         # make sure if we already have calculated ranks for these players at this time, we do not do it again
-        sql = "SELECT * FROM ranks WHERE scene = '{}' AND date='{}';".format(str(scene), recent_date)
-        res = self.db.exec(sql)
+        sql = "SELECT * FROM ranks WHERE scene = '{scene}' AND date='{date}';"
+        args = {'scene': scene, 'date': recent_date}
+        res = self.db.exec(sql, args)
         if len(res) > 0:
             LOG.info('We have already calculated ranks for {} on date {}. SKipping'.format(scene, recent_date))
             return
@@ -177,13 +184,14 @@ class processData(object):
             points, player = x
             rank = len(ranks) - i
 
-            sql = "INSERT INTO ranks (scene, player, rank, points, date) VALUES ('{}', '{}', '{}', '{}', '{}');"\
-                    .format(str(scene), str(player), int(rank), str(points), str(recent_date))
-            self.db.exec(sql)
+            sql = "INSERT INTO ranks (scene, player, rank, points, date) VALUES ('{scene}', '{player}', '{rank}', '{points}', '{recent_date}');"
+            args = {'scene': scene, 'player': player, 'rank': rank, 'points': points, 'recent_date': recent_date}
+            self.db.exec(sql, args)
 
             # Only count this player if this is the scene he/she belongs to
-            sql = "SELECT scene FROM players WHERE tag='{}';".format(player)
-            res = self.db.exec(sql)
+            sql = "SELECT scene FROM players WHERE tag='{player}';"
+            args = {'player': player}
+            res = self.db.exec(sql, args)
 
             if len(res) == 0 or res[0][0] == scene:
                 # Also create a list to update the player web

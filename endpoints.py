@@ -36,23 +36,25 @@ def player():
         init()
 
     tag = request.args.get('tag', default="christmasmike").capitalize()
-    sql = "SELECT count(*) FROM matches WHERE winner='{}'".format(tag)
-    wins = db.exec(sql)[0][0]
+    sql = "SELECT count(*) FROM matches WHERE winner='{tag}'"
+    args = {'tag': tag}
+    wins = db.exec(sql, args)[0][0]
     
-    sql = "SELECT count(*) FROM matches WHERE (player1='{}' or player2='{}') AND NOT winner='{}'".format(tag, tag, tag)
-    losses = db.exec(sql)[0][0]
+    sql = "SELECT count(*) FROM matches WHERE (player1='{tag}' or player2='{tag}') AND NOT winner='{tag}'"
+    args = {'tag': tag}
+    losses = db.exec(sql, args)[0][0]
 
     percentage = (0.0+int(1000*((0.0+wins)/(0.0+losses+wins))))/10
 
-    sql = "select rank from players join ranks where players.scene=ranks.scene and players.tag=ranks.player and players.tag='{}' order by date desc limit 1;".format(tag)
-    res = db.exec(sql)
+    sql = "select rank, players.scene from players join ranks where players.scene=ranks.scene and players.tag=ranks.player and players.tag='{tag}' order by date desc limit 1;"
+    args = {'tag': tag}
+    res = db.exec(sql, args)
     rank = 0
+    scene = ''
     if len(res) > 0:
         rank = res[0][0]
+        scene = res[0][1]
 
-
-    sql = "SELECT scene FROM players WHERE tag='{}'".format(tag)
-    scene = db.exec(sql)[0][0].capitalize()
 
     ranks_data, months_ranked = bracket_utils.get_ranking_graph_data(db, tag)
     ranks_data = json.dumps(ranks_data)
@@ -77,13 +79,15 @@ def ranks():
  
     # If no date was provided, pick the date of the latest tournament
     if date == None:
-        sql = "SELECT distinct date FROM ranks WHERE scene='{}' ORDER BY date DESC LIMIT 1;".format(scene)
-        res = db.exec(sql)
+        sql = "SELECT distinct date FROM ranks WHERE scene='{scene}' ORDER BY date DESC LIMIT 1;"
+        args = {'scene': scene}
+        res = db.exec(sql, args)
         date = res[0][0]
 
     # Get all the urls that this player has participated in
-    sql = "SELECT * FROM ranks WHERE scene = '{}' and date='{}'".format(scene, date)
-    res = db.exec(sql)
+    sql = "SELECT * FROM ranks WHERE scene = '{scene}' and date='{date}'"
+    args = {'scene': scene, 'date': date}
+    res = db.exec(sql, args)
 
     # Make a dict out of this data
     # eg {'christmasmike': 50}
@@ -99,8 +103,9 @@ def ranks():
     prev_date = bracket_utils.get_previous_month(date)
 
     # Get all the urls that this player has participated in
-    sql = "SELECT * FROM ranks WHERE scene = '{}' and date='{}'".format(scene, prev_date)
-    res = db.exec(sql)
+    sql = "SELECT * FROM ranks WHERE scene = '{scene}' and date='{date}'"
+    args = {'scene': scene, 'date': prev_date}
+    res = db.exec(sql, args)
 
     # Make a dict out of this data
     # eg {'christmasmike': 50}
@@ -123,8 +128,9 @@ def wins():
         init()
 
     player = request.args.get('tag', default="christmasmike")
-    sql = "SELECT * FROM matches WHERE winner = '"+str(player)+"' ORDER BY date DESC;"
-    result = db.exec(sql)
+    sql = "SELECT * FROM matches WHERE winner = '{player}' ORDER BY date DESC;"
+    args = {'player': player}
+    result = db.exec(sql, args)
 
     result = [str(x) for x in result]
     result = '\n'.join(result)
@@ -136,9 +142,10 @@ def losses():
         init()
 
     player = request.args.get('tag', default="christmasmike")
-    sql = "SELECT * FROM matches WHERE (player1 = '"+str(player)+"' OR "\
-            +"player2 = '"+str(player)+"') AND winner != '"+str(player)+"' ORDER BY date DESC;"
-    result = db.exec(sql)
+    sql = "SELECT * FROM matches WHERE (player1 = '{player}' OR "\
+            +"player2 = '{player}') AND winner != '{player}' ORDER BY date DESC;"
+    args  = {'player': player}
+    result = db.exec(sql, args)
 
     result = [str(x) for x in result]
     return json.dumps('\n'.join(result))
@@ -150,15 +157,17 @@ def h2h():
 
     player1 = request.args.get('tag1', default="christmasmike")
     player2 = request.args.get('tag2', default="christmasmike")
-    sql = "SELECT * FROM matches WHERE (player1 = '"+str(player1)+"' OR "\
-            +"player2 = '"+str(player1)+"') AND (player1 = '"+str(player2)+"' OR "\
-            +"player2 = '"+str(player2)+"') ORDER BY date DESC;"
-    result = db.exec(sql)
+    sql = "SELECT * FROM matches WHERE (player1 = '{player1}' OR "\
+            +"player2 = '{player1}') AND (player1 = '{player2}' OR "\
+            +"player2 = '{player2}') ORDER BY date DESC;"
+    args = {'player1': player1, 'player2': player2}
+    result = db.exec(sql, args)
     return json.dumps(result)
 
 
 @endpoints.route("/entrants")
 def entrants(players=None):
+    # TODO this endpoint is not protected form sql injection
     if db == None:
         init()
 
@@ -199,8 +208,9 @@ def placings():
     tag = request.args.get('tag', default='christmas mike')
 
     # Get all the urls that this player has participated in
-    sql = "SELECT * FROM placings WHERE player = '{}'".format(tag)
-    results = list(db.exec(sql))
+    sql = "SELECT * FROM placings WHERE player = '{tag}'"
+    args = {'tag': tag}
+    results = list(db.exec(sql, args))
     results.sort(key=lambda x: int(x[2]))
 
     return json.dumps(results)
@@ -219,9 +229,10 @@ def matches_at_date():
         previous_m = previous_m.zfill(2)
         previous_y = str(int(y)-1) if m == '01' else y
         previous_date = '{}-{}-{}'.format(previous_y, previous_m, d)
-        sql = "select * from matches where (player1='{}' or player2='{}') and date<='{}' and date>='{}'".format(tag, tag, date, previous_date); 
+        sql = "select * from matches where (player1='{tag}' or player2='{tag}') and date<='{date}' and date>='{prev_date}'"
+        args = {'tag': tag, 'date': date, 'prev_date': previous_date}
 
-        data = db.exec(sql)
+        data = db.exec(sql, args)
 
         return json.dumps(data)
     
@@ -237,11 +248,13 @@ def tournament_wins():
 
     if tag and date:
         sql = "select player1, place, date, score from matches join placings on matches.url=placings.url and matches.player1=placings.player \
-                where winner='{}' and player2='{}' and date='{}';".format(tag, tag, date)
-        data = db.exec(sql)
+                where winner='{tag}' and player2='{tag}' and date='{date}';"
+        args = {'tag': tag, 'date': date}
+        data = db.exec(sql, args)
+
         sql = "select player2, place, date, score from matches join placings on matches.url=placings.url and matches.player2=placings.player \
-                where winner='{}' and player1='{}' and date='{}';".format(tag, tag, date)
-        data = data + db.exec(sql)
+                where winner='{tag}' and player1='{tag}' and date='{date}';"
+        data = data + db.exec(sql, args)
 
         data = [r for r in data]
         data.sort(key=lambda x: int(x[1]))
@@ -268,12 +281,13 @@ def tournament_losses():
 
     if tag and date:
         sql = "select player1, place, date, score from matches join placings on matches.url=placings.url and matches.player1=placings.player \
-                where winner!='{}' and player2='{}' and date='{}';".format(tag, tag, date)
-        data = db.exec(sql)
+                where winner!='{tag}' and player2='{tag}' and date='{date}';"
+        args = {'tag': tag, 'date': date}
+        data = db.exec(sql, args)
 
         sql = "select player2, place, date, score from matches join placings on matches.url=placings.url and matches.player2=placings.player \
-                where winner!='{}' and player1='{}' and date='{}';".format(tag, tag, date)
-        data = data + db.exec(sql)
+                where winner!='{tag}' and player1='{tag}' and date='{date}';"
+        data = data + db.exec(sql, args)
 
         data = [r for r in data]
         data.sort(key=lambda x: int(x[1]))
@@ -303,16 +317,18 @@ def big_wins():
     if valid:
         # This sql statement is a bit of a doozy...
         select = 'select ranks.player, ranks.rank, matches.date, matches.score'
-        frm = 'from matches join ranks where ((ranks.player=matches.player1 and matches.player2="{}")'.format(tag)
-        player_where = 'or (ranks.player=matches.player2 and matches.player1="{}")) and winner="{}"'.format(tag, tag)
+        frm = 'from matches join ranks where ((ranks.player=matches.player1 and matches.player2="{tag}")'
+        player_where = 'or (ranks.player=matches.player2 and matches.player1="{tag}")) and winner="{tag}"'
         date_where = 'and matches.scene=ranks.scene and datediff(ranks.date, matches.date)<=31 and ranks.date>matches.date'
-        also_date_where = 'and ranks.date="{}"'.format(date)
-        scene_where = 'and ranks.scene="{}"'.format(scene)
+        also_date_where = 'and ranks.date="{date}"'
+        scene_where = 'and ranks.scene="{scene}"'
         order = 'order by rank;'
+
+        args = {'tag': tag, 'date': date, 'scene': scene}
 
 
         sql = '{} {} {} {} {} {} {}'.format(select, frm, player_where, date_where, also_date_where, scene_where, order)
-        data = db.exec(sql)
+        data = db.exec(sql, args)
 
         # Before we return this data, reformat score data from [2,1] -> 2 - 1, for eg
         def reformat(score):
@@ -338,15 +354,17 @@ def bad_losses():
     if tag and date:
         # This sql statement is a bit of a doozy...
         select = 'select ranks.player, ranks.rank, matches.date, matches.score'
-        frm = 'from matches join ranks where ((ranks.player=matches.player1 and matches.player2="{}")'.format(tag)
-        player_where = 'or (ranks.player=matches.player2 and matches.player1="{}")) and not winner="{}"'.format(tag, tag)
+        frm = 'from matches join ranks where ((ranks.player=matches.player1 and matches.player2="{tag}")'
+        player_where = 'or (ranks.player=matches.player2 and matches.player1="{tag}")) and not winner="{tag}"'
         date_where = 'and matches.scene=ranks.scene and datediff(ranks.date, matches.date)<=31 and ranks.date>matches.date'
-        also_date_where = 'and ranks.date="{}"'.format(date)
-        scene_where = 'and ranks.scene="{}"'.format(scene)
+        also_date_where = 'and ranks.date="{date}"'
+        scene_where = 'and ranks.scene="{scene}"'
         order = 'order by rank desc;'
 
+        args = {'tag': tag, 'date': date, 'scene': scene}
+
         sql = '{} {} {} {} {} {} {}'.format(select, frm, player_where, date_where, also_date_where, scene_where, order)
-        data = db.exec(sql)
+        data = db.exec(sql, args)
 
         # Before we return this data, reformat score data from [2,1] -> 1-2, for eg
         def reformat(score):
