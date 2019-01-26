@@ -45,7 +45,8 @@ class processData(object):
         else:
             html, status = bracket_utils.hit_url(bracket)
             if status == 200 and bracket_utils.is_valid(html):
-                get_results.process(bracket, scene, self.db, display_name, new_bracket)
+                get_results.process(bracket, scene, self.db, display_name)
+                self.insert_placing_data(bracket, new_bracket)
 
     def insert_placing_data(self, bracket, new_bracket):
         # Get the html from the 'standings' of this tournament
@@ -99,7 +100,7 @@ class processData(object):
         else:
 
             # Get the date of the last time we calculated ranks
-            sql = "select date from ranks where scene='{scene}' order by date desc limit 1;"
+            sql = "select date from ranks where scene='{scene}' and date like '%01' order by date desc limit 1;"
             args = {'scene': scene}
             res = self.db.exec(sql, args)
             last_rankings_date = res[0][0]
@@ -130,25 +131,38 @@ class processData(object):
 
             else:
                 LOG.info('It has not yet been 1 month since we calculated ranks for {}. Skipping'.format(scene))
+                return
 
 
-    def process_ranks(self, scene, urls, recent_date):
+    def create_daily_ranks(self, scene, urls):
+        # Delete yesterdays ranks. Yesterday's ranks are any ranks that were not calculated monthly
+        # IE, any rank with a date that isn't on the first
+        sql = "delete from ranks where date not like '%01';"
+        self.db.exec(sql)
+
+        n = 5 if (scene == 'pro' or scene == 'pro_wiiu') else constants.TOURNAMENTS_PER_RANK
+        date = datetime.datetime.now().strftime("%Y-%m-%d")
+        urls, _ = bracket_utils.get_n_tournaments_before_date(self.db, scene, date, n)
+        matches = bracket_utils.get_matches_from_urls(self.db, urls)
+
+        win_loss_dict = self.get_win_loss_dict(scene, urls, matches)
+        ranks = get_ranks(win_loss_dict)
+        tag_rank_map = {}
+        for i, x in enumerate(ranks):
+            points, player = x
+            rank = len(ranks) - i
+
+            sql = "INSERT INTO ranks (scene, player, rank, points, date) VALUES ('{scene}', '{player}', '{rank}', '{points}', '{date}');"
+            args = {'scene': scene, 'player': player, 'rank': rank, 'points': points, 'date': date}
+            self.db.exec(sql, args)
+
+
+    def get_win_loss_dict(self, scene, urls, matches):
         PLAYER1 = 0
         PLAYER2 = 1
         WINNER = 2
         DATE = 3
         SCENE = 4
-
-        # make sure if we already have calculated ranks for these players at this time, we do not do it again
-        sql = "SELECT * FROM ranks WHERE scene = '{scene}' AND date='{date}';"
-        args = {'scene': scene, 'date': recent_date}
-        res = self.db.exec(sql, args)
-        if len(res) > 0:
-            LOG.info('We have already calculated ranks for {} on date {}. SKipping'.format(scene, recent_date))
-            return
-
-        matches = bracket_utils.get_matches_from_urls(self.db, urls)
-        LOG.info('About to start processing ranks for scene {} on {}'.format(scene, recent_date))
 
         # Iterate through each match, and build up our dict
         win_loss_dict = {}
@@ -177,7 +191,25 @@ class processData(object):
 
             win_loss_dict[p2][p1].append((date, winner == p2))
 
+        return win_loss_dict
+
+
+    def process_ranks(self, scene, urls, recent_date):
+
+        # make sure if we already have calculated ranks for these players at this time, we do not do it again
+        sql = "SELECT * FROM ranks WHERE scene = '{scene}' AND date='{date}';"
+        args = {'scene': scene, 'date': recent_date}
+        res = self.db.exec(sql, args)
+        if len(res) > 0:
+            LOG.info('We have already calculated ranks for {} on date {}. SKipping'.format(scene, recent_date))
+            return
+
+        matches = bracket_utils.get_matches_from_urls(self.db, urls)
+        LOG.info('About to start processing ranks for scene {} on {}'.format(scene, recent_date))
+
+        win_loss_dict = self.get_win_loss_dict(scene, urls, matches)
         ranks = get_ranks(win_loss_dict)
+
 
         tag_rank_map = {}
         for i, x in enumerate(ranks):

@@ -1,4 +1,5 @@
 from database_writer import get_db
+from datetime import datetime
 from process_data import processData
 from threading import Thread
 import logger
@@ -38,19 +39,31 @@ class validURLs(object):
 
         if not self.testing:
             while True:
-                if not should_tweet:
-                    LOG.info('WE ARE SLEEPING BEFORE STARTING THREADS')
-                    time.sleep(constants.SLEEP_TIME)
+
                 LOG.info('About to create analyziz threads')
                 self.create_analysis_threads()
                 LOG.info('just finished with analysis threads')
                 time.sleep(constants.SLEEP_TIME)
                 LOG.info('Just finished sleeping')
 
+                # Once a day, we want to calculate ranks, just in case there are new players who don't yet have a rank
+
 
         # If we are testing, we only want to run once, and then check our state
         else:
             self.create_analysis_threads()
+
+    def create_daily_ranks(self, scene):
+        """
+        Because we publish ranks on the first of each month, sometimes there can be a player who is new enough that
+        he has not yet been ranked, his player page can looked jank
+        Instead of showing a graph of rankings (because there haven't been any), it shows a blank space.
+
+        To fix this, each day we will create a one-time-ranking, only available for the day.
+        """
+        n = 5 if (scene == 'pro' or scene == 'pro_wiiu') else constants.TOURNAMENTS_PER_RANK
+        urls, _ = bracket_utils.get_last_n_tournaments(self.db, n, scene)
+        self.data_processor.create_daily_ranks(scene, urls)
 
     def create_analysis_threads(self):
         global analyzed_scenes
@@ -307,3 +320,9 @@ class validURLs(object):
         if not analyzed_scenes and should_tweet:
             tweet('About to start ranking for scene {}'.format(name))
         self.data_processor.check_and_update_ranks(name)
+
+        # Calulate once a day at 6 AM utc
+        # In the case that there was a brand new player in the new bracket,
+        # He wont have a rank yet. Calculate what rank he should be
+        self.create_daily_ranks(name)
+

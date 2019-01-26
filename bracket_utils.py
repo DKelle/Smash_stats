@@ -545,6 +545,20 @@ def get_ranking_graph_data(db, tag):
     first_months = [get_first_ranked_month(db, s, tag) for s in scenes]
     last_months = [get_last_ranked_month(db, s, tag) for s in scenes]
 
+
+    ranks_per_scene = {}
+    if not any([month.split('-')[-1] == '01' for month in first_months]):
+        for scene in scenes:
+        # This player hasn't been ranked yet. Return their secret daily ranking
+            sql = "SELECT rank, date FROM ranks WHERE scene='{scene}' AND player='{tag}'"
+            args = {'tag': tag, 'scene':scene}
+            res = db.exec(sql, args)
+            rank = res[0][0]
+            date = res[0][1]
+
+            ranks_per_scene[scene] = [date, rank]
+
+        return ranks_per_scene, [last_months[0]]
     first_month = min(first_months)
     last_month = max(last_months)
 

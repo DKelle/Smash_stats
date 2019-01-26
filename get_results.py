@@ -150,7 +150,7 @@ def analyze_smashgg_tournament(db, url, scene, dated, urls_per_player=False, dis
         update_web(match_pairs, db)
         LOG.info('finished updating match pairs for bracket {}'.format(url))
 
-def analyze_tournament(db, url, scene, dated, new_bracket, urls_per_player=False, display_name=None, testing=False):
+def analyze_tournament(db, url, scene, dated, urls_per_player=False, display_name=None, testing=False):
     match_pairs = []
     tag_to_gid = {}
     # We need to translate the name of the bracket into something the challonge api will understand.
@@ -183,10 +183,8 @@ def analyze_tournament(db, url, scene, dated, new_bracket, urls_per_player=False
         players = challonge.participants.index(tournament['id'])
         matches = challonge.matches.index(tournament["id"])
         tag_player_id_map = {}
-        placings = {}
 
         for player in players:
-            LOG.info('dallas: this is a player {}'.format(player))
             # In case the name is missing from the field we expect it to be in, have some fall backs. These should all have the same value
             tag = player.get('display_name') or player.get('name') or player.get('challonge-username') or player.get('username')
 
@@ -195,9 +193,6 @@ def analyze_tournament(db, url, scene, dated, new_bracket, urls_per_player=False
                 continue
             # Make sure to sanitize and coalesce this tag
             tag = get_coalesced_tag(sanitize_tag(tag))
-
-            # Keep track of this players final placing in the tournament
-            placings[tag] = player.get('final-rank')
             id = player.get('id')
             tag_player_id_map[id] = tag
 
@@ -245,20 +240,6 @@ def analyze_tournament(db, url, scene, dated, new_bracket, urls_per_player=False
         print(e)
         LOG.exc("Hit exception while analyzing matches in bracket {}".format(url))
         return False
-
-    # Insert placings for this tournament
-    LOG.info('dallas: here are all the placings for url {}. {}'.format(url, placings))
-
-    for player, placing in placings.items():
-        sql = "INSERT INTO placings (url, player, place) VALUES ('{url}', '{player}', '{place}')"
-        args = {'url': url, 'player': player, 'place': placing}
-
-        db.exec(sql, args)
-
-        if 'christmasmike' == player and new_bracket:
-            if placing < 10:
-                msg = "Congrats on making {} dude! You're the best.".format(placing)
-                tweet(msg)
 
     return True
 
@@ -358,7 +339,7 @@ def get_coalesced_tag(tag, debug=debug):
     # If this is not a tag that we need to coalesce
     return tag
 
-def process(url, scene, db, display_name, new_bracket):
+def process(url, scene, db, display_name):
     success = True
 
     # Just to be sure, make sure this bracket hasn't already been analyzed
@@ -378,7 +359,7 @@ def process(url, scene, db, display_name, new_bracket):
 
     success = False
     if "challonge" in url:
-        success = analyze_tournament(db, url, scene, True, False, display_name, new_bracket)
+        success = analyze_tournament(db, url, scene, True, False, display_name)
     else:
         try:
             sucess = analyze_smashgg_tournament(db, url, scene, True, False, display_name)

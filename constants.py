@@ -144,6 +144,7 @@ TEST_URLS = [('test1', ['https://challonge.com/smash_web_test_###']),
 # This is the master list of scenes that will be analyzed
 #BRACKETS_TO_ANALYZE = [AUSTIN_URLS, SMASHBREWS_RULS, COLORADO_SINGLES_URLS, COLORADO_DOUBLES_URLS, SMS_URLS]
 BRACKETS_TO_ANALYZE = [AUSTIN, SMS]
+BRACKETS_TO_ANALYZE = [SMS]
 
 """
 Data structure we need -
