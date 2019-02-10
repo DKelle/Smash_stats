@@ -137,8 +137,10 @@ class processData(object):
     def create_daily_ranks(self, scene, urls):
         # Delete yesterdays ranks. Yesterday's ranks are any ranks that were not calculated monthly
         # IE, any rank with a date that isn't on the first
-        sql = "delete from ranks where date not like '%01';"
-        self.db.exec(sql)
+        LOG.info('creatig daily ranks for scene {}'.format(scene))
+        sql = "delete from ranks where date not like '%01' and scene='{scene}';"
+        args = {'scene' : scene}
+        self.db.exec(sql, args)
 
         n = 5 if (scene == 'pro' or scene == 'pro_wiiu') else constants.TOURNAMENTS_PER_RANK
         date = datetime.datetime.now().strftime("%Y-%m-%d")

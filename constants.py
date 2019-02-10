@@ -61,6 +61,7 @@ TAGS_TO_COALESCE = [['christmasmike', 'thanksgiving mike', 'christmas mike', 'ch
 	['tenni', 'go! tenni'],
 	['cruzin', 'sa  cruzin'],
 	['christmasmitch', 'mitchell', 'mitchell slan'],
+	['ganon boy toy', 'ganon toy'],
         ['jibs', 'sfu jibs'],
         ['robomex', 'robohex'],
         ['trane', 'irn trane'],

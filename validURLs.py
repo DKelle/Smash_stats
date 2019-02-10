@@ -61,6 +61,18 @@ class validURLs(object):
 
         To fix this, each day we will create a one-time-ranking, only available for the day.
         """
+
+        # If today is the first, we are going to be publishing the monlth ranks.
+        # Because ranks have already been calculated for this month, bomb out here
+        today = datetime.datetime.today().strftime('%Y-%m-%d')
+        day = today.split('-')[-1]
+        if day == '1' or day == '01':
+            msg = 'Detected that because today is {}, scene {} does not need daily ranks.'.format(today, scene)
+            LOG.info(msg)
+            return
+
+
+        LOG.info('dallas: validurls is about to calulate ranks for scene {}'.format(scene))
         n = 5 if (scene == 'pro' or scene == 'pro_wiiu') else constants.TOURNAMENTS_PER_RANK
         urls, _ = bracket_utils.get_last_n_tournaments(self.db, n, scene)
         self.data_processor.create_daily_ranks(scene, urls)
@@ -321,7 +333,6 @@ class validURLs(object):
             tweet('About to start ranking for scene {}'.format(name))
         self.data_processor.check_and_update_ranks(name)
 
-        # Calulate once a day at 6 AM utc
         # In the case that there was a brand new player in the new bracket,
         # He wont have a rank yet. Calculate what rank he should be
         self.create_daily_ranks(name)
