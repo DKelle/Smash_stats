@@ -61,11 +61,23 @@ class validURLs(object):
 
         To fix this, each day we will create a one-time-ranking, only available for the day.
         """
+        today = datetime.today().strftime('%Y-%m-%d').split()
+        year, month, day = today.split('-')
+        # If this scene is inactive we don't need to rank
+        # Check to see if this scene was ranked in the past 2 months
+        previous_month = bracket_utils.get_previous_month(today)
+        previous_month = bracket_utils.get_previous_month(previous_month)
+
+        sql = "select * from ranks where date > '%{date}%' and scene={scene};"
+        args = {"date":previous_month, "scene":scene};
+        res = self.db.exec(sql, args)
+        LOG.info('dallas: this is is the previous month o {} : {}}'.format(today, previous_month))
+        if len(res) == 0:
+            # If this scene hasn't been ranked in the last 2 months, it is probably inactive
+            return
 
         # If today is the first, we are going to be publishing the monlth ranks.
         # Because ranks have already been calculated for this month, bomb out here
-        today = datetime.datetime.today().strftime('%Y-%m-%d')
-        day = today.split('-')[-1]
         if day == '1' or day == '01':
             msg = 'Detected that because today is {}, scene {} does not need daily ranks.'.format(today, scene)
             LOG.info(msg)

@@ -193,6 +193,8 @@ def analyze_tournament(db, url, scene, dated, urls_per_player=False, display_nam
                 continue
             # Make sure to sanitize and coalesce this tag
             tag = get_coalesced_tag(sanitize_tag(tag))
+            LOG.info('about to add player {} for scene {} in url {}'.format(tag, scene, url))
+            create_player_if_not_exist(tag, scene, db, testing)
             id = player.get('id')
             tag_player_id_map[id] = tag
 
