@@ -46,25 +46,26 @@ def _get_last_valid_url(base_url, start=1):
     #We know that URL number 'start' is valid. What is the next invalid URL?
     invalid_count = 0
     end = start #Use this to keep track of the last valid URL
+    cur = start
 
     #Sometimes a week is skipped -- Make sure we see 100 invalid URLs in a row before calling it quits
     while(invalid_count <= 30):
         #if base_url == "https://austinsmash4.challonge.com/atx145":
         #    print
-        url = base_url.replace('###', str(start))
+        url = base_url.replace('###', str(cur))
         print('about to check url {}'.format(url))
-        if debug: print('start is ' + str(start))
+        if debug: print('cur is ' + str(cur))
 
         data, status = hit_url(url)
 
         if status < 300  and is_valid(data, url=base_url):
             if debug: print('url ' + str(url) + ' is valid')
             invalid_count = 0
-            end = start
+            end = cur
         else:
             invalid_count = invalid_count + 1
 
-        start = start + 1
+        cur = cur + 1
     return end
 
 def get_valid_url_range(base_url):
@@ -128,6 +129,12 @@ def hit_url(url, load_from_cache=True):
     #Get the html page
     r = get(url)
     data = r.text
+
+    # This is a hack.
+    # On some user pages, we accidentally pick up a link to facebook.com/challonge and twitter.com/challonge
+    # Pickling the data from those websites takes a lot of disk. Intead, just do not cache them
+    if 'facebook' in url or 'twitter' in url:
+        return data, r.status_code
 
     if(is_valid(data, url=url) and load_from_cache):
         # Make sure we pickle this data, so we can get it next time
