@@ -225,7 +225,7 @@ def analyze_tournament(db, url, scene, dated, urls_per_player=False, display_nam
             args = {'player1': winner, 'player2': loser, 'winner': winner, 'date': date, 'scene': scene, 'base_url': url, 'display_name': display_name, 'scores': scores}
             db.exec(sql, args, debug=True)
 
-    	# We don't want to update the web if we are testing
+    	    # We don't want to update the web if we are testing
             if not testing:
                 group_id1 = calculate_and_update_group(winner, scene, db) if not winner in tag_to_gid else tag_to_gid[winner]
                 tag_to_gid[winner] = group_id1

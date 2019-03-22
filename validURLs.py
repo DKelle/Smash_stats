@@ -61,17 +61,16 @@ class validURLs(object):
 
         To fix this, each day we will create a one-time-ranking, only available for the day.
         """
-        today = datetime.today().strftime('%Y-%m-%d').split()
+        today = datetime.today().strftime('%Y-%m-%d')
         year, month, day = today.split('-')
         # If this scene is inactive we don't need to rank
         # Check to see if this scene was ranked in the past 2 months
         previous_month = bracket_utils.get_previous_month(today)
         previous_month = bracket_utils.get_previous_month(previous_month)
 
-        sql = "select * from ranks where date > '%{date}%' and scene={scene};"
+        sql = "select * from ranks where date > '%{date}%' and scene='{scene}';"
         args = {"date":previous_month, "scene":scene};
         res = self.db.exec(sql, args)
-        LOG.info('dallas: this is is the previous month o {} : {}}'.format(today, previous_month))
         if len(res) == 0:
             # If this scene hasn't been ranked in the last 2 months, it is probably inactive
             return
@@ -84,7 +83,7 @@ class validURLs(object):
             return
 
 
-        LOG.info('dallas: validurls is about to calulate ranks for scene {}'.format(scene))
+        LOG.info('validurls is about to calulate ranks for scene {}'.format(scene))
         n = 5 if (scene == 'pro' or scene == 'pro_wiiu') else constants.TOURNAMENTS_PER_RANK
         urls, _ = bracket_utils.get_last_n_tournaments(self.db, n, scene)
         self.data_processor.create_daily_ranks(scene, urls)

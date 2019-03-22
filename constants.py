@@ -139,8 +139,8 @@ SLEEP_TIME = 10 * 60 * 6 #1 hour
 TOURNAMENTS_PER_RANK = 20
 
 
-TEST_URLS = [('test1', ['https://challonge.com/smash_web_test_###']),
-        ('test2', ['https://challonge.com/smash_web_scene_two_###'])]
+TEST_URLS = [('test1', {'enumerated': ['https://challonge.com/smash_web_test_###']}),
+        ('test2', {'enumerated':['https://challonge.com/smash_web_scene_two_###']})]
 
 # This is the master list of scenes that will be analyzed
 #BRACKETS_TO_ANALYZE = [AUSTIN_URLS, SMASHBREWS_RULS, COLORADO_SINGLES_URLS, COLORADO_DOUBLES_URLS, SMS_URLS]

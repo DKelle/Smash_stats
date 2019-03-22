@@ -31,6 +31,9 @@ watch:
 anal:
 	watch python3 sql_utils.py watch analyzed
 
+ranks:
+	watch python3 sql_utils.py watch ranks
+
 grep:
 	tail -f -n 50 logs/smash.log | grep dallas
 
