@@ -190,7 +190,7 @@ class validURLs(object):
                     continue
 
                 LOG.info('About to process pro bracket {}'.format(url))
-                self.data_processor.process(url, name, display_name)
+                self.data_processor.process(url, name, display_name, testing=self.testing)
             else:
                 LOG.info("Skpping pro bracket because it has already been analyzed: {}".format(url))
         
@@ -235,7 +235,7 @@ class validURLs(object):
                             LOG.info('We are skipping the tournament {} because it is a doubles tournament'.format(display_name))
                             continue
 
-                        self.data_processor.process(bracket, name, display_name)
+                        self.data_processor.process(bracket, name, display_name, testing=self.testing)
 
                         # mark this bracket as analyzed
                         sql = "INSERT INTO user_analyzed (url, user, scene) VALUES ('{bracket}', '{user}', '{name}');"
@@ -258,7 +258,7 @@ class validURLs(object):
                         LOG.info('We are skipping the tournament {} because it is a doubles tournament'.format(display_name))
                         continue
 
-                    self.data_processor.process(url, name, display_name)
+                    self.data_processor.process(url, name, display_name, testing=self.testing)
 
                     # mark this bracket as analyzed
                     sql = "INSERT INTO user_analyzed (url, user, scene) VALUES ('{url}', '{user}', '{name}');"
@@ -315,7 +315,7 @@ class validURLs(object):
                             LOG.info('We are skipping the tournament {} because it is a doubles tournament'.format(display_name))
                             continue
 
-                        self.data_processor.process(bracket, name, display_name, new_bracket=True)
+                        self.data_processor.process(bracket, name, display_name, new_bracket=True, testing=self.testing)
 
             else:
                 # We need to create first and last from scratch
@@ -337,7 +337,7 @@ class validURLs(object):
                         LOG.info('We are skipping the tournament {} because it is a doubles tournament'.format(display_name))
                         continue
 
-                    self.data_processor.process(bracket, name, display_name)
+                    self.data_processor.process(bracket, name, display_name, testing=self.testing)
 
                     # Calculate ranks after each tournament so we can see how players are progressing
         if not analyzed_scenes and should_tweet:

@@ -18,7 +18,7 @@ class processData(object):
         LOG.info('loading constants for process')
         self.db = db
 
-    def process(self, bracket, scene, display_name, new_bracket=False):
+    def process(self, bracket, scene, display_name, new_bracket=False, testing=False):
         # There are some brackets that have been blacklisted. Skip these brackets
         if bracket in constants.BLACKLIST:
             LOG.info('Skipping bracket due to blacklisting: {}'.format(bracket))
@@ -35,7 +35,7 @@ class processData(object):
         # Send this bracket to get_results
         # We know the bracket is valid if it is from smashgg
         if 'smash.gg' in bracket:
-            success = get_results.process(bracket, scene, self.db, display_name, new_bracket)
+            success = get_results.process(bracket, scene, self.db, display_name, new_bracket, testing=testing)
             if success:
                 self.insert_placing_data(bracket, new_bracket)
             else:
@@ -45,7 +45,7 @@ class processData(object):
         else:
             html, status = bracket_utils.hit_url(bracket)
             if status == 200 and bracket_utils.is_valid(html):
-                get_results.process(bracket, scene, self.db, display_name)
+                get_results.process(bracket, scene, self.db, display_name, testing=testing)
                 self.insert_placing_data(bracket, new_bracket)
 
     def insert_placing_data(self, bracket, new_bracket):

@@ -102,7 +102,7 @@ SMS_S4 = ('San Marcos Smash 4', {'enumerated': ['http://challonge.com/RAA_###', 
 # There is a challonge user atxsanctumweeklies, but they also play PM and more
 # TODO DO NOT ADD MORE BRACKETS WITHOUT ADDING A CORRESPONDING DISPLAY NAME!!
 AUSTIN = ('Austin Ultimate', {'enumerated': ['http://challonge.com/ikkikon20###8smashsingles', 'https://challonge.com/uuas###', 'https://challonge.com/beg6it###c', 'https://austinsmash4.challonge.com/atxult###', 'https://challonge.com/t###ys7v0w', 'https://challonge.com/cityscape###', 'https://challonge.com/magesultimate01###19', 'https://challonge.com/magesultimate02###19', 'https://challonge.com/magesultimate03###19', 'https://challonge.com/magesultimate04###19', 'https://challonge.com/magesultimate05###19']})
-SMS = ('San Marcos Ultimate', {'enumerated': ['https://challonge.com/RAAU_S###', 'https://challonge.com/RAA_US###']})
+SMS = ('San Marcos Ultimate', {'enumerated': ['https://challonge.com/RAAU_S###', 'https://challonge.com/RAA_US###', 'https://challonge.com/RAAU_###S']})
 
 ##################################################
 #               SMASH ULTIMATE BRACKETS          #

@@ -252,7 +252,6 @@ def create_player_if_not_exist(p, scene, db, testing=False):
     scenes = bracket_utils.get_list_of_scene_names() if not testing else [scene]
     if len(res) == 0:
 
-
         # This player has never player before. Assume they have no matches in any other scene
         matches_per_scene = {s:0 for s in scenes}
         if scene in scenes:
@@ -273,7 +272,7 @@ def calculate_and_update_group(p, scene, db):
     scenes = bracket_utils.get_list_of_scene_names()
     if len(res) == 0:
         # Set this players scene in the web since they do not have one yet
-        gid = scenes.index(scene)
+        gid = -1 if scene not in scenes else scenes.index(scene)
     else:
         # This player has already played in other scenes. Update the counts
         matches_per_scene = json.loads(res[0][2])
@@ -281,7 +280,7 @@ def calculate_and_update_group(p, scene, db):
         # Which scene was this player a part of before?
         sort = [(k, matches_per_scene[k]) for k in sorted(matches_per_scene, key=matches_per_scene.get, reverse=True)]
         max_scene = sort[0][0]
-        group_id_before = scenes.index(max_scene)
+        group_id_before = -1 if max_scene not in scenes else scenes.index(max_scene)
 
         if not scene in matches_per_scene:
             LOG.info('the scene {} is not in their list'.format(scene))
@@ -291,7 +290,7 @@ def calculate_and_update_group(p, scene, db):
         # Which scene is this player a part of now?
         sort = [(k, matches_per_scene[k]) for k in sorted(matches_per_scene, key=matches_per_scene.get, reverse=True)]
         max_scene = sort[0][0]
-        group_id_after = scenes.index(max_scene)
+        group_id_after = -1 if max_scene not in scenes else scenes.index(max_scene)
         gid = group_id_after
 
         # If this player just changed scenes, update the player web
@@ -341,7 +340,7 @@ def get_coalesced_tag(tag, debug=debug):
     # If this is not a tag that we need to coalesce
     return tag
 
-def process(url, scene, db, display_name):
+def process(url, scene, db, display_name, testing):
     success = True
 
     # Just to be sure, make sure this bracket hasn't already been analyzed
@@ -361,7 +360,7 @@ def process(url, scene, db, display_name):
 
     success = False
     if "challonge" in url:
-        success = analyze_tournament(db, url, scene, True, False, display_name)
+        success = analyze_tournament(db, url, scene, True, False, display_name, testing=testing)
     else:
         try:
             sucess = analyze_smashgg_tournament(db, url, scene, True, False, display_name)
