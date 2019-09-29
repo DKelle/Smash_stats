@@ -1,43 +1,55 @@
+* {
+  box-sizing: border-box;
+}
 html {
     overflow: hidden;
     height: 100%;
     margin: 0px;
 }
-
 body {
     height: 100%;
     overflow: auto;
     margin: 0px;
 }
-
-* {
-  box-sizing: border-box;
-}
 div {
     overflow: hidden;
 	/*border: solid;*/
 }
-img {
-    width: 100%;
-    height: 100%;
-	opacity: .75;
+input {
+	transition: background-color .25s;
+	margin: 1%;
+	background-color: #0000006b;
+	border: none;
+	border-radius: 30px;
+	color: white;
+	padding: 10px 20px;
+	display: inline-block;
+	font-size: 16px;
 }
-
+input:hover {
+	background-color: #000000;
+}
 #topbar {
     height: 15%;
     width: 100%;
     align-items: stretch;
+    display: flex;
 }
 #topbar_partition {
     height: 100%;
     width: 33.33%;
-    align-items: stretch;
 }
 #picture_collage {
     height: 85%;
     width: 100%;
     align-items: stretch;
 	display: flex;
+}
+#icon {
+    margin-left: auto;
+    margin-right: auto;
+    width: 25%;
+    display: block;
 }
 #main_pic {
     height: 100%;
@@ -60,8 +72,40 @@ img {
 }
 .zoom {
 	transition: transform .5s, opacity .5s;
+    width: 100%;
+    height: 100%;
+	opacity: .75;
 }
 .zoom:hover {
 	transform: scale(1.1);
 	opacity: 1;
+}
+.icon_div {
+	background-image: url("images/linzo_icon_2.png");
+    background-size: 45%;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+.buttons_div {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.brands_div {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.selected {
+	background-color: #000000;
+}
+.brand-svg {
+	width: 8%;
+    margin: 1%;
+	-webkit-transition: -webkit-transform .3s ease-in-out;
+	   	  transition:         transform .3s ease-in-out;
+}
+.brand-svg:hover {
+	-webkit-transform: rotate(360deg);
+		  transform: rotate(360deg);
 }
